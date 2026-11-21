@@ -1,8 +1,8 @@
 // Boots the app: theme toggle, view switching by URL hash, shared audio,
 // the saved chord, and the three views.
 import { mountThemeToggle } from './theme-toggle.js';
-import { viewFromHash, VIEWS } from './router.js';
-import { readPref } from './prefs.js';
+import { viewFromHash, isViewHash, VIEWS } from './router.js';
+import { readPref, volumePref } from './prefs.js';
 import { parseChord } from './theory/chords.js';
 import { createEngine } from './audio/engine.js';
 import { createTransport } from './audio/transport.js';
@@ -13,7 +13,7 @@ import { mountReference } from './views/reference.js';
 const DEFAULT_CHORD = 'Cmaj7';
 
 export const app = {
-  engine: createEngine(),
+  engine: createEngine({ volume: volumePref() / 100 }),
   live: document.getElementById('live'),
   events: new EventTarget(),
 };
@@ -57,4 +57,11 @@ app.transport.onStop((reason) => {
 });
 
 showView(viewFromHash(location.hash), { focus: false });
-window.addEventListener('hashchange', () => showView(viewFromHash(location.hash), { focus: true }));
+window.addEventListener('hashchange', () => {
+  if (isViewHash(location.hash)) showView(viewFromHash(location.hash), { focus: true });
+});
+// The skip link moves focus to the content without touching the URL or the view.
+document.getElementById('skip').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('main').focus();
+});

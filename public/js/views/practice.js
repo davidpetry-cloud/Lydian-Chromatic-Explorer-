@@ -7,7 +7,7 @@ import { gravityRank } from '../theory/gravity.js';
 import { QUALITIES, chordNotes, lydianAnalysis } from '../theory/chords.js';
 import { mountChordInput } from '../input/chord-input.js';
 import { createKeyboard } from './keyboard.js';
-import { readPref, writePref } from '../prefs.js';
+import { writePref, volumePref } from '../prefs.js';
 
 const $ = (id) => document.getElementById(id);
 const names = (notes) => notes.map(noteName).join(' ');
@@ -45,34 +45,39 @@ export function mountPractice({ app, announce, initialText }) {
     return `${noteName(state.analysis.tonic)} ${scaleById(state.scaleId).name}`;
   }
 
-  function setPressed(id) {
-    for (const b of ['play-scale', 'drone', 'chord-loop']) $(b).setAttribute('aria-pressed', String(b === id));
+  const BUTTON_FOR = { scale: 'play-scale', drone: 'drone', chordLoop: 'chord-loop' };
+  const SILENT = 'Silent. Press a play button to start.';
+
+  // Pressed buttons and the "now playing" line always mirror what the
+  // transport is actually playing, whichever view started it.
+  function showPlaying(pattern) {
+    const active = pattern ? BUTTON_FOR[pattern.kind] : null;
+    for (const b of Object.values(BUTTON_FOR)) $(b).setAttribute('aria-pressed', String(b === active));
+    $('now-playing').textContent = pattern ? `Playing: ${pattern.label}` : SILENT;
   }
 
-  async function start(id, pattern, nowText) {
+  async function start(pattern) {
     await app.engine.resume();
     app.engine.setVolume(Number($('volume').value) / 100);
     app.transport.play(pattern);
-    setPressed(id);
-    $('now-playing').textContent = nowText;
     announce(pattern.label);
   }
 
   function playScale() {
     const bpm = state.bpm;
     const label = `${scaleLabel()}, ${DIRECTION_WORD[$('direction').value]}, ${bpm} bpm`;
-    start('play-scale', { kind: 'scale', steps: scaleSteps(), bpm, loop: true, label, drone: $('hold-tonic').checked ? tonicMidis() : null }, `Playing ${label}`);
+    start({ kind: 'scale', steps: scaleSteps(), bpm, loop: true, label, drone: $('hold-tonic').checked ? tonicMidis() : null });
   }
 
   function playDrone() {
     const label = `Drone on ${noteName(state.analysis.tonic)}, the Lydian tonic`;
-    start('drone', { kind: 'drone', steps: [tonicMidis()], bpm: state.bpm, loop: true, label }, label);
+    start({ kind: 'drone', steps: [tonicMidis()], bpm: state.bpm, loop: true, label });
   }
 
   function playChordLoop() {
     const tones = ascendingMidis(chordNotes(state.chord), 3).slice(0, -1);
     const label = `${state.chord.symbol} chord loop, ${state.bpm} bpm`;
-    start('chord-loop', { kind: 'chordLoop', steps: [tones, [], [], []], bpm: state.bpm, loop: true, label }, `Playing ${label}`);
+    start({ kind: 'chordLoop', steps: [tones, [], [], []], bpm: state.bpm, loop: true, label });
   }
 
   function restartIfPlaying() {
@@ -146,6 +151,7 @@ export function mountPractice({ app, announce, initialText }) {
     $('gravity-text').textContent = `Uses ${depth} of 12 tones, counted outward from ${noteName(tonic)}.`;
   }
 
+  let firstChord = true;
   function onChord({ chord }) {
     state.chord = chord;
     state.analysis = lydianAnalysis(chord);
@@ -160,6 +166,8 @@ export function mountPractice({ app, announce, initialText }) {
     renderLadder(tones);
     selectScale(state.scaleId);
     app.events.dispatchEvent(new CustomEvent('tonic', { detail: state.analysis.tonic }));
+    if (!firstChord) announce(`${chord.symbol}: Lydian tonic ${noteName(state.analysis.tonic)}, parent scale ${$('parent-name').textContent}.`);
+    firstChord = false;
     if (app.transport.isPlaying()) restartIfPlaying();
   }
 
@@ -175,10 +183,8 @@ export function mountPractice({ app, announce, initialText }) {
       }
     }, delay);
   });
-  app.transport.onStop(() => {
-    setPressed(null);
-    $('now-playing').textContent = 'Silent. Press a play button to start.';
-  });
+  app.transport.onPlay(showPlaying);
+  app.transport.onStop(() => showPlaying(null));
 
   $('play-scale').addEventListener('click', playScale);
   $('drone').addEventListener('click', playDrone);
@@ -193,8 +199,7 @@ export function mountPractice({ app, announce, initialText }) {
     app.transport.setBpm(state.bpm);
     app.transport.poke();
   });
-  const savedVolume = readPref('lce.volume', 70);
-  $('volume').value = String(Number.isFinite(savedVolume) ? Math.min(100, Math.max(0, savedVolume)) : 70);
+  $('volume').value = String(volumePref());
   $('volume-out').textContent = $('volume').value;
   $('volume').addEventListener('input', () => {
     const v = Number($('volume').value);

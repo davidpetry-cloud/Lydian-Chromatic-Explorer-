@@ -171,6 +171,61 @@ test('scale cards have a short name and a description', async () => {
   await page.close();
 });
 
+test('stopping a note before it sounds does not blip', async () => {
+  const { page } = await open();
+  const peaks = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    async function peak(stopEarly) {
+      class Offline extends OfflineAudioContext {
+        constructor() { super(1, 44100, 44100); }
+        get state() { return 'running'; }
+      }
+      const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
+      await engine.resume();
+      engine.note(60, 0.1, 0.5);
+      if (stopEarly) engine.stopAll();
+      const ctx = engine.context();
+      const data = (await ctx.startRendering()).getChannelData(0);
+      return data.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    }
+    return { normal: await peak(false), stopped: await peak(true) };
+  });
+  assert.ok(peaks.stopped <= peaks.normal + 0.01, JSON.stringify(peaks));
+  await page.close();
+});
+
+test('the skip link does not change the view', async () => {
+  const { page } = await open('/#gravity');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'skip');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(100);
+  assert.equal(await page.isVisible('#view-gravity'), true);
+  await page.close();
+});
+
+test('playing state stays true across views', async () => {
+  const { page } = await open();
+  await page.click('#play-scale');
+  await page.click('#tab-gravity');
+  await page.locator('#gravity-circle .gnode[data-rank="3"]').click();
+  assert.match(await page.textContent('#gravity-status'), /Drone on C/);
+  await page.click('#tab-practice');
+  assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
+  assert.equal(await page.getAttribute('#drone', 'aria-pressed'), 'true');
+  assert.match(await page.textContent('#now-playing'), /Drone on C/);
+  await page.click('#stop');
+  assert.match(await page.textContent('#gravity-status'), /Silent/);
+  await page.close();
+});
+
+test('a new chord is announced to screen readers', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Dm7');
+  await page.waitForFunction(() => /Lydian tonic F\b/.test(document.getElementById('live').textContent));
+  await page.close();
+});
+
 // ---------- Attack tests: the policy must stop these ----------
 
 test('injected inline scripts and handlers do not run', async () => {

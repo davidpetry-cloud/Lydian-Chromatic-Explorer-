@@ -10,6 +10,7 @@ export const stepTimes = (start, bpm, count) => Array.from({ length: count }, (_
 export function createTransport(engine, { setTimer = setInterval, clearTimer = clearInterval, lookahead = 0.1, tick = 25 } = {}) {
   const stepListeners = new Set();
   const stopListeners = new Set();
+  const playListeners = new Set();
   let current = null;
 
   function halt() {
@@ -53,6 +54,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     const held = pattern.kind === 'drone' ? pattern.steps[0] : pattern.drone;
     if (held) current.stopDrone = engine.drone(held);
     current.timer = setTimer(() => current && run(), tick);
+    playListeners.forEach((cb) => cb(pattern));
     run();
   }
 
@@ -64,6 +66,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     isPlaying: () => current !== null,
     current: () => current?.pattern ?? null,
     onStep(cb) { stepListeners.add(cb); return () => stepListeners.delete(cb); },
+    onPlay(cb) { playListeners.add(cb); return () => playListeners.delete(cb); },
     onStop(cb) { stopListeners.add(cb); return () => stopListeners.delete(cb); },
   };
 }

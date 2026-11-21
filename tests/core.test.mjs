@@ -149,3 +149,46 @@ test('a scale run can hold a drone underneath, stopped with it', () => {
   t.play(pattern(62, { loop: true }));
   assert.equal(f.engine.drones, 0);
 });
+
+test('volumePref reads the saved volume, clamped, defaulting to 70', async () => {
+  const { volumePref } = await import('../public/js/prefs.js');
+  const box = {};
+  withStorage({ getItem: (k) => box[k] ?? null, setItem: (k, v) => { box[k] = v; } }, () => {
+    assert.equal(volumePref(), 70);
+    box['lce.volume'] = '0';
+    assert.equal(volumePref(), 0);
+    box['lce.volume'] = '250';
+    assert.equal(volumePref(), 100);
+    box['lce.volume'] = '"loud"';
+    assert.equal(volumePref(), 70);
+  });
+});
+
+test('the engine starts at the volume it is given', async () => {
+  const { createEngine } = await import('../public/js/audio/engine.js');
+  const gains = [];
+  class FakeCtx {
+    constructor() { this.state = 'running'; this.currentTime = 0; this.destination = {}; }
+    createGain() { const g = { gain: { value: 1, setTargetAtTime() {} }, connect: (x) => x }; gains.push(g); return g; }
+  }
+  const engine = createEngine({ AudioContextCtor: FakeCtx, volume: 0 });
+  await engine.resume();
+  assert.equal(gains[0].gain.value, 0);
+});
+
+test('only view names in the hash switch views', async () => {
+  const { isViewHash } = await import('../public/js/router.js');
+  assert.equal(isViewHash('#gravity'), true);
+  assert.equal(isViewHash('#Reference'), true);
+  assert.equal(isViewHash('#main'), false);
+  assert.equal(isViewHash(''), false);
+});
+
+test('transport tells listeners when a pattern starts', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  const started = [];
+  t.onPlay((p) => started.push(p.label));
+  t.play(pattern(60, { loop: true }));
+  assert.deepEqual(started, ['p60']);
+});

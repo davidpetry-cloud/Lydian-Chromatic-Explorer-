@@ -144,6 +144,9 @@ export function mountGravity({ app, announce }) {
   overlay.addEventListener('change', render);
   document.getElementById('gravity-stop').addEventListener('click', () => app.transport.stop('user'));
   app.events.addEventListener('tonic', (e) => setTonic(e.detail));
+  const status = document.getElementById('gravity-status');
+  app.transport.onPlay((p) => { status.textContent = `Playing: ${p.label}`; });
+  app.transport.onStop(() => { status.textContent = 'Silent.'; });
 
   render();
   return { setTonic };

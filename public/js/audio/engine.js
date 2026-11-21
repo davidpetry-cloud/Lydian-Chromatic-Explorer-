@@ -7,14 +7,15 @@ import { midiToFreq } from '../theory/notes.js';
 const ATTACK = 0.01;
 const RELEASE = 0.15;
 
-export function createEngine({ AudioContextCtor = globalThis.AudioContext } = {}) {
+export function createEngine({ AudioContextCtor = globalThis.AudioContext, volume: startVolume = 0.7 } = {}) {
   let ctx = null;
   let master = null;
-  let volume = 0.7;
+  let volume = startVolume;
   const voices = new Set();
 
   function voice(midi, at, gain) {
     const out = ctx.createGain();
+    out.gain.value = 0; // silent until its envelope starts, even if that is cancelled
     out.gain.setValueAtTime(0, at);
     out.gain.linearRampToValueAtTime(gain, at + ATTACK);
     const filter = ctx.createBiquadFilter();
@@ -30,16 +31,24 @@ export function createEngine({ AudioContextCtor = globalThis.AudioContext } = {}
       o.start(at);
       return o;
     });
-    const v = { out, oscs };
+    const v = { out, oscs, start: at };
     voices.add(v);
     oscs[0].onended = () => { voices.delete(v); out.disconnect(); };
     return v;
   }
 
   function release(v, at) {
-    v.out.gain.cancelScheduledValues(at);
-    v.out.gain.setValueAtTime(v.out.gain.value, at);
-    v.out.gain.linearRampToValueAtTime(0, at + RELEASE);
+    const g = v.out.gain;
+    if (v.start > at) {
+      // Scheduled but not started yet: cancel it outright, so it never sounds.
+      g.cancelScheduledValues(0);
+      g.value = 0;
+      v.oscs.forEach((o) => o.stop(at));
+      return;
+    }
+    if (g.cancelAndHoldAtTime) g.cancelAndHoldAtTime(at);
+    else { g.cancelScheduledValues(at); g.setValueAtTime(g.value, at); }
+    g.linearRampToValueAtTime(0, at + RELEASE);
     v.oscs.forEach((o) => o.stop(at + RELEASE + 0.02));
   }
 
@@ -54,6 +63,7 @@ export function createEngine({ AudioContextCtor = globalThis.AudioContext } = {}
       if (ctx.state === 'suspended') await ctx.resume();
     },
     now: () => (ctx ? ctx.currentTime : 0),
+    context: () => ctx,
     note(midi, at, dur, { gain = 0.2 } = {}) {
       if (!ctx) return;
       const v = voice(midi, at, gain);
