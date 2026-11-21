@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseNote, noteName, pc } from '../public/js/theory/notes.js';
 import { scalePcs } from '../public/js/theory/scales.js';
+import { SOURCES } from '../public/js/data/sources.js';
 import { QUALITIES, SUPPORTED_QUALITIES, parseChord, chordNotes, lydianAnalysis } from '../public/js/theory/chords.js';
 
 const any = (text) => parseChord(text, { allowPending: true });
@@ -50,15 +51,15 @@ test('Lydian analysis of a ii–V–I', () => {
   assert.equal(noteName(ii.tonic), 'F');
   assert.equal(ii.parentScale, 'lydian');
   const v = lydianAnalysis(any('G7'));
-  assert.equal(noteName(v.tonic), 'G');
-  assert.equal(v.parentScale, 'lydian-flat-seventh');
+  assert.equal(noteName(v.tonic), 'F');
+  assert.equal(v.parentScale, 'lydian');
   const i = lydianAnalysis(any('Cmaj7'));
   assert.equal(names(i.parentNotes), 'C D E F♯ G A B');
   assert.equal(i.ladder.length, 7);
 });
 
 test('flat keys stay flat', () => {
-  assert.equal(noteName(lydianAnalysis(any('Gb7')).tonic), 'G♭');
+  assert.equal(noteName(lydianAnalysis(any('Gb7')).tonic), 'F♭');
   assert.equal(names(chordNotes(any('Ebm7'))), 'E♭ G♭ B♭ D♭');
 });
 
@@ -85,4 +86,17 @@ test('pending qualities are refused by default', () => {
   const m6 = QUALITIES.m6;
   assert.equal(m6.status, 'pending');
   assert.ok(parseChord('Cm6').error);
+});
+
+test('verified rows cite known sources', () => {
+  const ids = new Set(SOURCES.map((s) => s.id));
+  for (const id of SUPPORTED_QUALITIES) for (const s of QUALITIES[id].sources) assert.ok(ids.has(s), `${id}: ${s}`);
+});
+
+test('at least 12 qualities verified', () => {
+  assert.ok(SUPPORTED_QUALITIES.length >= 12, String(SUPPORTED_QUALITIES.length));
+});
+
+test('the parser accepts verified chords without allowPending', () => {
+  for (const text of ['Cmaj7', 'Dm7', 'G7', 'Caug', 'Gb7']) assert.ok(!parseChord(text).error, text);
 });

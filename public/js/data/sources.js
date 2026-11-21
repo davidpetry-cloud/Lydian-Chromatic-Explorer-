@@ -1,0 +1,19 @@
+// Sources behind the theory data and the glossary. Ids are used in
+// QUALITIES[*].sources and GLOSSARY[*].sources. See docs/theory-sources.md.
+const s = (id, citation, url, kind) => Object.freeze({ id, citation, url, kind });
+
+export const SOURCES = Object.freeze([
+  s('russell-2001', 'George Russell, Lydian Chromatic Concept of Tonal Organization, 4th ed. (Brookline, MA: Concept Publishing, 2001).', null, 'primary'),
+  s('italianpiano', 'Italian Piano, “George Russell Lydian Chromatic Concept, explained, full lesson.”', 'https://www.italianpiano.com/music-lessons/george-russell-lydian-chromatic-concept/', 'secondary'),
+  s('french-2018', 'Andy French, “Lydian Chromatic Concept of Tonal Organization, Part 3” (2018).', 'https://www.andyfrench.co.uk/2018/05/lydian-chromatic-concept-of-tonal-organization-part-3/', 'secondary'),
+  s('tjps', 'The Jazz Piano Site, “Lydian Chromatic Concept.”', 'https://www.thejazzpianosite.com/jazz-piano-lessons/modern-jazz-theory/lydian-chromatic-concept/', 'secondary'),
+  s('wikipedia-lcc', 'Wikipedia, “Lydian Chromatic Concept of Tonal Organization.”', 'https://en.wikipedia.org/wiki/Lydian_Chromatic_Concept_of_Tonal_Organization', 'secondary'),
+  s('wikipedia-chord-scale', 'Wikipedia, “Chord-scale system.”', 'https://en.wikipedia.org/wiki/Chord-scale_system', 'secondary'),
+  s('wikipedia-lydian-chord', 'Wikipedia, “Lydian chord.”', 'https://en.wikipedia.org/wiki/Lydian_chord', 'secondary'),
+  s('cafesaxophone', 'Cafe Saxophone forum, “george russel ‘the lydian chromatic concept…’.”', 'https://cafesaxophone.com/threads/george-russel-the-lydian-chromatic-concept.41504/', 'secondary'),
+  s('gct-f-lydian', 'Guitar Composer’s Toolbox, “F Lydian chords.”', 'https://guitarcomposerstoolbox.com/guitar-harmonizer/f-lydian/', 'secondary'),
+  s('mcclimon', 'Michael McClimon, “Reconceptualizing the Lydian Chromatic Concept” (conference slides).', 'https://files.mcclimon.org/projects/lcc-smt-slides.pdf', 'secondary'),
+  s('kvr-forum', 'KVR Audio Music Theory Forum, “George Russell’s Lydian Chromatic Concept of Tonal…,” page 2.', 'https://www.kvraudio.com/forum/viewtopic.php?t=227223&start=15', 'secondary'),
+]);
+
+export const sourceById = (id) => SOURCES.find((x) => x.id === id);
