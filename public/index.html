@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lydian Chromatic Explorer</title>
+  <meta name="description" content="Pick a chord, find its Lydian tonic, and hear the scales that sit over it, from ingoing to outgoing. A practice tool built on George Russell's Lydian Chromatic Concept.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/theme-init.js"></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <a class="skip" id="skip" href="#main">Skip to content</a>
+
+  <header class="app-header">
+    <p class="brand"><span class="brand-mark" aria-hidden="true">◐</span> Lydian Chromatic Explorer</p>
+    <nav class="tabs" aria-label="Views">
+      <a class="tab" id="tab-practice" href="#practice" aria-current="page">Practice</a>
+      <a class="tab" id="tab-gravity" href="#gravity">Gravity</a>
+      <a class="tab" id="tab-reference" href="#reference">Reference</a>
+    </nav>
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="Switch to light theme"><span aria-hidden="true">☀</span></button>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="view" id="view-practice" aria-labelledby="h-practice">
+      <h1 id="h-practice" tabindex="-1">Practice</h1>
+      <p class="lede">Pick a chord. Meet its Lydian tonic. Then wander from the scales that sit snugly inside it to the ones that lean way out.</p>
+      <div id="practice-root"></div>
+    </section>
+
+    <section class="view" id="view-gravity" aria-labelledby="h-gravity" hidden>
+      <h1 id="h-gravity" tabindex="-1">Tonal gravity</h1>
+      <p class="lede">Twelve tones, one centre. Stack fifths up from the Lydian tonic and each new tone sits a little further from home.</p>
+      <div id="gravity-root"></div>
+    </section>
+
+    <section class="view" id="view-reference" aria-labelledby="h-reference" hidden>
+      <h1 id="h-reference" tabindex="-1">Reference</h1>
+      <p class="lede">The words, the chords and the sources, in one searchable place.</p>
+      <div id="reference-root"></div>
+    </section>
+  </main>
+
+  <div class="visually-hidden" id="live" aria-live="polite" aria-atomic="true"></div>
+
+  <footer class="app-footer">
+    <p>Made by David Petry. Built on ideas from George Russell's <cite>Lydian Chromatic Concept of Tonal Organization</cite> (<a href="#reference">see sources</a>); all explanations here are original.</p>
+    <p><a href="https://github.com/davidpetry-cloud/Lydian-Chromatic-Explorer/blob/main/LICENSE">Licence</a> · <a href="https://david-petry.netlify.app/">david-petry.netlify.app</a></p>
+  </footer>
+</body>
+</html>

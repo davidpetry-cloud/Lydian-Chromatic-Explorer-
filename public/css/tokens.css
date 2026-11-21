@@ -1,0 +1,167 @@
+/* Design tokens copied from david-petry-site/site.css (lines 18-182) so the
+   explorer matches David Petry's site. Dark is the default theme. */
+/* ============================================================
+   TOKENS
+   ============================================================ */
+/* Dark is the default theme. */
+:root {
+  color-scheme: dark;
+
+  /* Colour: page and surfaces */
+  --bg:         #080a0e;
+  --bg2:        #0d1018;
+  --bg3:        #111520;
+  --surface:    #141824;
+  --card:       rgba(20, 24, 36, 0.55);
+  --card-2:     rgba(14, 17, 26, 0.75);
+  --card-hover: rgba(26, 31, 46, 0.72);
+  --nav-bg:     rgba(12, 15, 22, 0.66);
+
+  /* Colour: text, strongest first */
+  --white:  #f0f2f8;
+  --text:   #d8dce8;
+  --muted2: #8a94b0;
+  --muted:  #7c86a8;
+
+  /* Colour: accents */
+  --amber:         #e8a030;
+  --amber-dim:     rgba(232,160,48,0.12);
+  --teal:          #2dd4bf;
+  --teal-dim:      rgba(45,212,191,0.1);
+  --on-accent:     #0b0d12;
+  --on-amber-soft: rgba(8,10,14,0.75);
+  --accent-top:    color-mix(in oklab, var(--amber) 88%, white);
+
+  /* Colour: lines. --line/--line-2 are the current pair; --border/--border2 are the older, slightly fainter pair a few components still use */
+  --line:    rgba(255, 255, 255, 0.08);
+  --line-2:  rgba(255, 255, 255, 0.16);
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+
+  /* Colour: light effects */
+  --hi:        rgba(255, 255, 255, 0.05);
+  --glow-a:    rgba(232, 160, 48, 0.14);
+  --spot:      rgba(232, 160, 48, 0.06);
+  --sheen:     rgba(255, 255, 255, 0.38);
+  --btn-inset: rgba(255, 255, 255, 0.25);
+  --shadow:    inset 0 1px 0 var(--hi), 0 24px 48px -32px rgba(0, 0, 0, 0.8);
+  --grain-op:  0.06;
+
+  /* Type: families */
+  --sans:    'Outfit', sans-serif;
+  --serif:   'Cormorant Garamond', Georgia, serif;
+  --mono:    'DM Mono', monospace;
+  --display: 'Outfit', system-ui, sans-serif;
+
+  /* Type: sizes */
+  --fs-xs:   12px;
+  --fs-sm:   14px;
+  --fs-md:   15px;
+  --fs-base: 16px;
+  --fs-lg:   18px;
+  --fs-xl:   22px;
+  --fs-2xl:  28px;
+  --fs-3xl:  40px;
+  --fs-4xl:  64px;
+
+  /* Shape and motion */
+  --radius: 6px;
+  --r-sm:   10px;
+  --r:      16px;
+  --r-lg:   24px;
+  --pill:   999px;
+  --ease:   cubic-bezier(.2, .7, .2, 1);
+
+  /* Layout */
+  --nav-h: 64px;
+
+  /* Exercise categories: one gradient per style (see "Drum exercises") */
+  --cat-rock-1:   #f0a840;
+  --cat-rock-2:   #ff8a65;
+  --cat-jazz-1:   #8fb4ff;
+  --cat-jazz-2:   #b49cff;
+  --cat-blues-1:  #5ec8ff;
+  --cat-blues-2:  #6fe0d0;
+  --cat-latin-1:  #ff8f7a;
+  --cat-latin-2:  #ffc15e;
+  --cat-roll-1:   #2dd4bf;
+  --cat-roll-2:   #7fe3ff;
+  --cat-diddle-1: #9be37a;
+  --cat-diddle-2: #2dd4bf;
+  --cat-flam-1:   #c4a1ff;
+  --cat-flam-2:   #ff9ecf;
+  --cat-dur-1:    #ffd166;
+  --cat-dur-2:    #f0a840;
+  --cat-solo-1:   #ff7f9e;
+  --cat-solo-2:   #ffb36b;
+}
+/* Light theme: set on <html> by the small script in each page's <head>, from the
+   saved choice or the system setting. Warm sandstone, never bright white (David's
+   design direction, 2026-10-16). Text and accent tokens are darkened so every
+   pairing keeps at least 5:1 on the darkest band (--bg3); exercise category stops
+   keep at least 5.5:1 where they sit. Hex values in comments are approximate. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Colour: page and surfaces */
+  --bg:         oklch(0.91 0.025 80);  /* #eae0cf page */
+  --bg2:        oklch(0.89 0.027 79);  /* #e5d9c7 alternate band */
+  --bg3:        oklch(0.865 0.03 78);  /* #ded1bd wells, timeline rail */
+  --surface:    oklch(0.937 0.022 81);  /* #f2e9da one step lighter */
+  --card:       oklch(0.94 0.021 81 / 0.92);  /* renders about #f2e9da */
+  --card-2:     oklch(0.945 0.02 82 / 0.95);  /* #f4ecde */
+  --card-hover: oklch(0.952 0.019 82 / 0.96);  /* #f6eee1 */
+  --nav-bg:     oklch(0.91 0.025 80 / 0.8);
+
+  /* Colour: text, strongest first */
+  --white:  #14110e;
+  --text:   #2b2824;
+  --muted2: oklch(0.41 0.017 78);  /* #504940, was #554f46 */
+  --muted:  oklch(0.445 0.019 79);  /* #5a5348, was #665f54 */
+
+  /* Colour: accents */
+  --amber:         oklch(0.453 0.094 76);  /* #744e03, was #77510a */
+  --amber-dim:     oklch(0.453 0.094 76 / 0.08);
+  --teal:          oklch(0.432 0.093 171);  /* #006049, was #0d7159 */
+  --teal-dim:      oklch(0.432 0.093 171 / 0.10);
+  --on-accent:     oklch(0.955 0.02 85);  /* #f6efe1 cream on the amber */
+  --on-amber-soft: oklch(0.95 0.022 84 / 0.95);
+  --accent-top:    color-mix(in oklab, var(--amber) 92%, var(--on-accent));
+
+  /* Colour: lines. --line/--line-2 are the current pair; --border/--border2 are the older, slightly fainter pair a few components still use */
+  --line:    rgba(20, 17, 14, 0.10);
+  --line-2:  rgba(20, 17, 14, 0.20);
+  --border:  rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+
+  /* Colour: light effects */
+  --hi:        oklch(0.955 0.018 84 / 0.7);  /* warm cream tint, not white */
+  --glow-a:    rgba(232, 160, 48, 0.20);
+  --spot:      rgba(119, 81, 10, 0.05);
+  --sheen:     rgba(0, 0, 0, 0.22);
+  --btn-inset: oklch(0.96 0.03 85 / 0.3);
+  --shadow:    0 1px 2px rgba(20, 17, 14, 0.05), 0 24px 48px -32px rgba(20, 17, 14, 0.30);
+  --grain-op:  0.035;
+
+  /* Exercise categories: one gradient per style (see "Drum exercises") */
+  --cat-rock-1:   oklch(0.455 0.094 76);
+  --cat-rock-2:   oklch(0.468 0.144 35);
+  --cat-jazz-1:   oklch(0.461 0.159 265);
+  --cat-jazz-2:   oklch(0.464 0.171 289);
+  --cat-blues-1:  oklch(0.45 0.1 239);
+  --cat-blues-2:  oklch(0.44 0.093 171);
+  --cat-latin-1:  oklch(0.468 0.144 35);
+  --cat-latin-2:  oklch(0.458 0.099 76);
+  --cat-roll-1:   oklch(0.44 0.093 171);
+  --cat-roll-2:   oklch(0.45 0.1 239);
+  --cat-diddle-1: oklch(0.442 0.126 134);
+  --cat-diddle-2: oklch(0.44 0.093 171);
+  --cat-flam-1:   oklch(0.47 0.172 297);
+  --cat-flam-2:   oklch(0.475 0.162 351);
+  --cat-dur-1:    oklch(0.458 0.099 76);
+  --cat-dur-2:    oklch(0.455 0.094 76);
+  --cat-solo-1:   oklch(0.474 0.156 10);
+  --cat-solo-2:   oklch(0.464 0.125 50);
+}
+
+
