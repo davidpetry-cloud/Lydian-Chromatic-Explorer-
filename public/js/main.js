@@ -8,6 +8,7 @@ import { createEngine } from './audio/engine.js';
 import { createTransport } from './audio/transport.js';
 import { mountPractice } from './views/practice.js';
 import { mountGravity } from './views/gravity.js';
+import { mountReference } from './views/reference.js';
 
 const DEFAULT_CHORD = 'Cmaj7';
 
@@ -43,6 +44,7 @@ function showView(name, { focus }) {
 }
 
 mountThemeToggle(document.getElementById('themeToggle'));
+mountReference();
 app.gravity = mountGravity({ app, announce });
 app.practice = mountPractice({ app, announce, initialText: initialChord() });
 

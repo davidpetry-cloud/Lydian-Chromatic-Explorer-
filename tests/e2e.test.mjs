@@ -124,3 +124,28 @@ test('the gravity tonic follows the Practice chord', async () => {
   assert.match(first, /^F\b/);
   await page.close();
 });
+
+test('reference search filters the glossary as you type', async () => {
+  const { page, problems } = await open('/#reference');
+  const total = await page.locator('#glossary .gloss').count();
+  assert.ok(total >= 15);
+  await page.fill('#ref-search', 'gravity');
+  const visible = page.locator('#glossary .gloss:visible');
+  const count = await visible.count();
+  assert.ok(count >= 1 && count < total);
+  for (const text of await visible.allTextContents()) assert.match(text, /gravity/i);
+  assert.match(await page.textContent('#ref-count'), /\d+/);
+  await page.fill('#ref-search', '');
+  assert.equal(await page.locator('#glossary .gloss:visible').count(), total);
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('the chord table lists verified chords and the book citation is there', async () => {
+  const { page } = await open('/#reference');
+  assert.ok(await page.locator('#chord-table tbody tr').count() >= 12);
+  assert.match(await page.textContent('#chord-table'), /Dm7|Cm7/);
+  assert.match(await page.textContent('#sources-list'), /Concept Publishing, 2001/);
+  assert.ok(await page.locator('#pending-list li').count() >= 1);
+  await page.close();
+});

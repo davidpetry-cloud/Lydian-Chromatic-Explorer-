@@ -12,6 +12,8 @@ export const SOURCES = Object.freeze([
   s('wikipedia-lydian-chord', 'Wikipedia, “Lydian chord.”', 'https://en.wikipedia.org/wiki/Lydian_chord', 'secondary'),
   s('cafesaxophone', 'Cafe Saxophone forum, “george russel ‘the lydian chromatic concept…’.”', 'https://cafesaxophone.com/threads/george-russel-the-lydian-chromatic-concept.41504/', 'secondary'),
   s('gct-f-lydian', 'Guitar Composer’s Toolbox, “F Lydian chords.”', 'https://guitarcomposerstoolbox.com/guitar-harmonizer/f-lydian/', 'secondary'),
+  s('french-lydian-dominant', 'Andy French, “Melodic minor modes: Lydian Dominant” (2018).', 'https://www.andyfrench.co.uk/2018/06/melodic-minor-modes-lydian-dominant/', 'secondary'),
+  s('jazzguitar-be', 'Jazz Guitar Online forum, “Lydian Chromatic Concept explained simply.”', 'https://www.jazzguitar.be/forum/theory/48672-lydian-chromatic-concept-explained-simply.html', 'secondary'),
   s('mcclimon', 'Michael McClimon, “Reconceptualizing the Lydian Chromatic Concept” (conference slides).', 'https://files.mcclimon.org/projects/lcc-smt-slides.pdf', 'secondary'),
   s('kvr-forum', 'KVR Audio Music Theory Forum, “George Russell’s Lydian Chromatic Concept of Tonal…,” page 2.', 'https://www.kvraudio.com/forum/viewtopic.php?t=227223&start=15', 'secondary'),
 ]);

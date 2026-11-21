@@ -146,7 +146,38 @@
     <section class="view" id="view-reference" aria-labelledby="h-reference" hidden>
       <h1 id="h-reference" tabindex="-1">Reference</h1>
       <p class="lede">The words, the chords and the sources, in one searchable place.</p>
-      <div id="reference-root"></div>
+      <div class="reference" id="reference-root">
+        <div class="ref-search">
+          <div class="field">
+            <label for="ref-search">Search the reference</label>
+            <input id="ref-search" type="search" autocomplete="off" spellcheck="false" aria-describedby="ref-count">
+          </div>
+          <p class="hint" id="ref-count" role="status"></p>
+        </div>
+
+        <section aria-labelledby="h-glossary">
+          <h2 id="h-glossary">Glossary</h2>
+          <div class="glossary" id="glossary"></div>
+        </section>
+
+        <section aria-labelledby="h-chords">
+          <h2 id="h-chords">Chords and their Lydian tonics</h2>
+          <div class="table-scroll">
+            <table class="chord-table" id="chord-table">
+              <caption class="hint">Each chord type, its Lydian tonic counted from the chord's root, and its parent scale, with an example.</caption>
+              <thead><tr><th scope="col">Chord type</th><th scope="col">Example</th><th scope="col">Lydian tonic</th><th scope="col">Parent scale</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <h3 id="h-pending">Sources differ: not in the app yet</h3>
+          <ul class="pending-list" id="pending-list" aria-labelledby="h-pending"></ul>
+        </section>
+
+        <section aria-labelledby="h-sources" id="sources">
+          <h2 id="h-sources">Sources</h2>
+          <ol class="sources-list" id="sources-list"></ol>
+        </section>
+      </div>
     </section>
   </main>
 
