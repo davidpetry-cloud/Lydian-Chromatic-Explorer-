@@ -1,7 +1,8 @@
 # Instructions for working on the Lydian Chromatic Explorer
 
 A static practice app (plain HTML, CSS and JavaScript modules, no build
-step) served from `public/` on Cloudflare Pages. Design:
+step) served from `public/` on Cloudflare Workers
+(https://lydian-chromatic-explorer.davidpetry.workers.dev/). Design:
 `docs/superpowers/specs/2026-11-21-lydian-chromatic-explorer-design.md`.
 
 - Run `npm test` before every commit: unit tests (`node --test`) plus
@@ -45,6 +46,6 @@ step) served from `public/` on Cloudflare Pages. Design:
 
 ## Hosting
 
-- This app is hosted on Cloudflare Pages (free), not Netlify: David's
+- This app is hosted on Cloudflare Workers (free), not Netlify: David's
   Netlify site is on the Free plan, where each production deploy costs
   15 of 300 monthly credits. Never add Netlify config here.

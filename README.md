@@ -1,7 +1,8 @@
 # Lydian Chromatic Explorer
 
 Pick a chord, meet its Lydian tonic, and hear the scales that sit over it,
-from snugly ingoing to gloriously outgoing. It's a practice tool for
+from snugly ingoing to gloriously outgoing. Try it:
+https://lydian-chromatic-explorer.davidpetry.workers.dev/ It's a practice tool for
 improvisers and composers, built on George Russell's *Lydian Chromatic
 Concept of Tonal Organization*.
 
@@ -28,15 +29,16 @@ npm run serve
 `npm run serve` prints a local address (port 8080). There is no build step:
 the app is the `public/` folder.
 
-## Host it on Cloudflare Pages (free)
+## Live, and how it's hosted
 
-1. Sign in at dash.cloudflare.com, then go to **Workers & Pages** →
-   **Create** → **Pages** → **Connect to Git**.
-2. Pick this repository.
-3. Settings: production branch `main`, framework preset **None**, build
-   command **empty**, build output directory `public`.
-4. Save and deploy. Cloudflare reads `public/_headers` for the security
-   policy, and every pull request gets its own preview address.
+**https://lydian-chromatic-explorer.davidpetry.workers.dev/**
+
+It runs on Cloudflare Workers (free), connected to this repository: every
+merge to `main` redeploys it. Cloudflare serves the `public/` folder and
+applies `public/_headers`, so the live site has the same strict security
+policy the tests check. To set it up again from scratch, go to Cloudflare →
+**Workers & Pages** → **Create** → import this repository, with the build
+command empty and the output (assets) directory set to `public`.
 
 ## About the theory
 
