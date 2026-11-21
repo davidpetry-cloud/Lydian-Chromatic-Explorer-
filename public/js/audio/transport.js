@@ -50,7 +50,8 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     halt();
     const start = engine.now() + 0.05;
     current = { pattern, bpm: pattern.bpm, index: 0, nextTime: start, lastPoke: engine.now(), timer: null, stopDrone: null };
-    if (pattern.kind === 'drone') current.stopDrone = engine.drone(pattern.steps[0]);
+    const held = pattern.kind === 'drone' ? pattern.steps[0] : pattern.drone;
+    if (held) current.stopDrone = engine.drone(held);
     current.timer = setTimer(() => current && run(), tick);
     run();
   }

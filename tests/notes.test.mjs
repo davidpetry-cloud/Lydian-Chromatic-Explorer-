@@ -51,3 +51,11 @@ test('midiToFreq uses A4 = 440 Hz', () => {
   assert.equal(midiToFreq(69), 440);
   assert.equal(midiToFreq(60).toFixed(2), '261.63');
 });
+
+test('spokenName reads accidentals as words for screen readers', async () => {
+  const { spokenName } = await import('../public/js/theory/notes.js');
+  assert.equal(spokenName(parseNote('F#')), 'F sharp');
+  assert.equal(spokenName(parseNote('Bb')), 'B flat');
+  assert.equal(spokenName(parseNote('Cx')), 'C double sharp');
+  assert.equal(spokenName(parseNote('D')), 'D');
+});

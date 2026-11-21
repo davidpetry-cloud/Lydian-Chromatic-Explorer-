@@ -6,13 +6,13 @@ import { readPref } from './prefs.js';
 import { parseChord } from './theory/chords.js';
 import { createEngine } from './audio/engine.js';
 import { createTransport } from './audio/transport.js';
+import { mountPractice } from './views/practice.js';
 
 const DEFAULT_CHORD = 'Cmaj7';
 
 export const app = {
   engine: createEngine(),
   live: document.getElementById('live'),
-  chord: null,
 };
 app.transport = createTransport(app.engine);
 
@@ -26,7 +26,9 @@ export function announce(text) {
 function initialChord() {
   const saved = readPref('lce.chord', DEFAULT_CHORD);
   const parsed = typeof saved === 'string' ? parseChord(saved) : { error: 'bad' };
-  return parsed.error ? parseChord(DEFAULT_CHORD) : parsed;
+  return parsed.error
+    ? { text: DEFAULT_CHORD, chord: parseChord(DEFAULT_CHORD) }
+    : { text: saved.trim(), chord: parsed };
 }
 
 function showView(name, { focus }) {
@@ -39,7 +41,7 @@ function showView(name, { focus }) {
 }
 
 mountThemeToggle(document.getElementById('themeToggle'));
-app.chord = initialChord();
+app.practice = mountPractice({ app, announce, initialText: initialChord() });
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') app.transport.stop('hidden');

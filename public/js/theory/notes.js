@@ -48,3 +48,11 @@ export function ascendingMidis(notes, startOctave = 4) {
 }
 
 export const midiToFreq = (m) => 440 * 2 ** ((m - 69) / 12);
+
+const ACC_SPOKEN = { [-2]: ' double flat', [-1]: ' flat', 0: '', 1: ' sharp', 2: ' double sharp' };
+
+/** "F sharp", for screen readers (♯ and ♭ are read unreliably). */
+export const spokenName = (note) => note.letter + ACC_SPOKEN[note.acc];
+
+/** "#4" → "♯4", for showing scale degrees. */
+export const degreeLabel = (degree) => degree.replace(/#/g, '♯').replace(/b/g, '♭');

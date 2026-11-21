@@ -140,3 +140,12 @@ test('a drone holds until stopped', () => {
   t.stop();
   assert.equal(f.engine.drones, 0);
 });
+
+test('a scale run can hold a drone underneath, stopped with it', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play(pattern(60, { loop: true, drone: [48, 55] }));
+  assert.equal(f.engine.drones, 1);
+  t.play(pattern(62, { loop: true }));
+  assert.equal(f.engine.drones, 0);
+});
