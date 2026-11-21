@@ -2,7 +2,7 @@
 // the Lydian tonic, numbered 1–12 by the order of tonal gravity, with a
 // path from the tonic outward. Clicking or pressing Enter on a tone plays it
 // over a tonic drone and explains where it sits.
-import { noteName, spokenName, pc, parseNote, degreeLabel } from '../theory/notes.js';
+import { noteName, spokenName, pc, parseNote, degreeLabel, asciiName } from '../theory/notes.js';
 import { GRAVITY_DEGREES, gravityOrder } from '../theory/gravity.js';
 import { PRINCIPAL_SCALES, scalePcs } from '../theory/scales.js';
 
@@ -128,10 +128,19 @@ export function mountGravity({ app, announce }) {
     setFocus(focusRank, false);
   }
 
+  // A tonic spelled outside the twelve picker roots (F♭ from G♭7) gets its own option.
+  let spelled = null;
   function setTonic(next) {
     tonic = next;
-    const match = ROOTS.find((r) => pc(parseNote(r)) === pc(next));
-    tonicSelect.value = match;
+    spelled?.remove();
+    spelled = null;
+    const match = ROOTS.find((r) => r === asciiName(next));
+    if (match) {
+      tonicSelect.value = match;
+    } else {
+      spelled = new Option(noteName(next), asciiName(next), true, true);
+      tonicSelect.add(spelled);
+    }
     render();
   }
 

@@ -1,7 +1,7 @@
 // Chord input: root and type pickers kept in step with a text field that
 // reads chord symbols. Emits { chord, source: 'ui' }; MIDI input can later
 // be a second source of the same events.
-import { parseNote, noteName, pc } from '../theory/notes.js';
+import { parseNote, noteName, pc, asciiName } from '../theory/notes.js';
 import { QUALITIES, SUPPORTED_QUALITIES, parseChord } from '../theory/chords.js';
 import { writePref } from '../prefs.js';
 
@@ -20,10 +20,9 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
     qualitySelect.value = chord.quality;
   }
 
-  function accept(chord, { fromText }) {
+  function accept(chord) {
     error.textContent = '';
     text.removeAttribute('aria-invalid');
-    if (!fromText) text.value = symbolFor(rootSelect.value, chord.quality);
     syncPickers(chord);
     writePref('lce.chord', text.value.trim());
     onChord({ chord, source: 'ui' });
@@ -37,12 +36,17 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
       text.setAttribute('aria-invalid', 'true');
       return;
     }
-    accept(result, { fromText: true });
+    accept(result);
   }
 
   function readPickers() {
-    const result = parseChord(symbolFor(rootSelect.value, qualitySelect.value));
-    if (!result.error) accept(result, { fromText: false });
+    // Keep the spelling the player typed (C# stays C#) when the picker agrees on the pitch.
+    const typed = parseChord(text.value);
+    const sameRoot = !typed.error && pc(typed.root) === pc(parseNote(rootSelect.value));
+    const rootText = sameRoot ? asciiName(typed.root) : rootSelect.value;
+    const result = parseChord(symbolFor(rootText, qualitySelect.value));
+    if (!result.error) text.value = symbolFor(rootText, qualitySelect.value);
+    if (!result.error) accept(result);
   }
 
   text.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(readText, 300); });

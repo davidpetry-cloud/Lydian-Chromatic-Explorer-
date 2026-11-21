@@ -66,15 +66,18 @@ export function parseChord(text, { allowPending = false } = {}) {
   const m = ROOT_RE.exec(input);
   const root = m && parseNote(m[1] + m[2]);
   if (!root) {
-    const shown = m ? m[1] : [...input][0];
+    const shown = m && /[A-Ga-g]/.test(m[1]) ? m[1] + m[2] : [...input][0];
     return { error: `I don't know “${shown}” as a note. Try A to G, with # or b.` };
   }
-  const id = ALIAS_TO_ID.get(m[3]);
+  // Spaces don't matter, and word spellings (Maj, MIN, Aug…) are read in any
+  // case. Single letters keep their case, so M7 (major) ≠ m7 (minor).
+  const rest = m[3].replace(/\s+/g, '').replace(/^(maj|min|dim|aug|alt|sus)/i, (w) => w.toLowerCase());
+  const id = ALIAS_TO_ID.get(rest);
   const quality = id && QUALITIES[id];
   if (!quality || !quality.tonicDegree || (quality.status !== 'verified' && !allowPending)) {
     return { error: `“${input}” isn't a chord I know yet. See Reference for the list.` };
   }
-  const chord = { root, quality: id, symbol: noteName(root) + m[3] };
+  const chord = { root, quality: id, symbol: noteName(root) + rest };
   try {
     lydianAnalysis(chord);
   } catch (e) {

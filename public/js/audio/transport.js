@@ -22,7 +22,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   }
 
   function stop(reason = 'user') {
-    if (!current) return;
+    if (!current) { engine.stopAll(); return; } // still cut any ringing key
     halt();
     stopListeners.forEach((cb) => cb(reason));
   }

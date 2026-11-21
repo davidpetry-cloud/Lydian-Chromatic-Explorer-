@@ -72,6 +72,9 @@ export function createKeyboard(svg, { onKey }) {
         k.g.setAttribute('aria-label', `${spoken} ${octave}${inScale ? ', in scale' : ''}${isChord ? ', chord tone' : ''}`);
       }
     },
+    clearFlashes() {
+      for (const k of keys) k.g.classList.remove('is-sounding');
+    },
     flash(midi, ms = 220) {
       const k = keys.find((x) => x.midi === midi) ?? keys.find((x) => x.midi % 12 === midi % 12);
       if (!k) return;

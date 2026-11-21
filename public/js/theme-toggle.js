@@ -1,4 +1,6 @@
 // The light/dark theme button in the header.
+import { writePref } from './prefs.js';
+
 export function mountThemeToggle(button, root = document.documentElement) {
   if (!button) return;
   function paint() {
@@ -11,7 +13,7 @@ export function mountThemeToggle(button, root = document.documentElement) {
   button.addEventListener('click', () => {
     const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     root.setAttribute('data-theme', next);
-    try { localStorage.setItem('lce.theme', JSON.stringify(next)); } catch (e) { /* storage off: theme lasts this visit */ }
+    writePref('lce.theme', next); // if storage is off, the theme lasts this visit
     paint();
   });
   paint();

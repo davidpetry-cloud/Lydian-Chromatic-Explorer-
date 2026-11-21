@@ -58,3 +58,19 @@ test('server refuses malformed and escaping paths without crashing', async () =>
     await server.close();
   }
 });
+
+test('only prefs.js and the pre-paint theme script touch localStorage', async () => {
+  const { readdir } = await import('node:fs/promises');
+  const root = new URL('../public/js/', import.meta.url);
+  const files = (await readdir(root, { recursive: true })).filter((f) => f.endsWith('.js'));
+  const users = [];
+  for (const f of files) if ((await readFile(new URL(f, root), 'utf8')).includes('localStorage')) users.push(f);
+  assert.deepEqual(users.sort(), ['prefs.js', 'theme-init.js']);
+});
+
+test('app.css uses colour tokens: raw hex colours appear only in custom properties', async () => {
+  const css = await read('css/app.css');
+  const stray = css.split('\n').filter((line) => /#[0-9a-f]{3,8}\b/i.test(line))
+    .filter((line) => line.replace(/--[\w-]+:\s*#[0-9a-f]{3,8}\b/gi, '').match(/#[0-9a-f]{3,8}\b/i));
+  assert.deepEqual(stray, []);
+});

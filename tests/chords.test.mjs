@@ -100,3 +100,18 @@ test('at least 12 qualities verified', () => {
 test('the parser accepts verified chords without allowPending', () => {
   for (const text of ['Cmaj7', 'Dm7', 'G7', 'Caug', 'Gb7']) assert.ok(!parseChord(text).error, text);
 });
+
+test('maj, min, dim and aug words are read in any case, and spaces are ignored', () => {
+  assert.equal(any('CMaj7').quality, 'maj7');
+  assert.equal(any('CMAJ7').quality, 'maj7');
+  assert.equal(any('Cmaj 7').quality, 'maj7');
+  assert.equal(any('C Min7').quality, 'm7');
+  assert.equal(any('CAug').quality, 'aug');
+  assert.equal(any('CM7').quality, 'maj7');
+  assert.equal(any('Cm7').quality, 'm7');
+});
+
+test('a bad accidental names the whole root it could not read', () => {
+  assert.match(any('Cbbb7').error, /“Cbbb”/);
+  assert.match(any('C#b7').error, /“C#b”/);
+});

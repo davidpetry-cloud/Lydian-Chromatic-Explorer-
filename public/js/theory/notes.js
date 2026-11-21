@@ -56,3 +56,8 @@ export const spokenName = (note) => note.letter + ACC_SPOKEN[note.acc];
 
 /** "#4" → "♯4", for showing scale degrees. */
 export const degreeLabel = (degree) => degree.replace(/#/g, '♯').replace(/b/g, '♭');
+
+const ACC_ASCII = { [-2]: 'bb', [-1]: 'b', 0: '', 1: '#', 2: '##' };
+
+/** "C#", "Bb": how people type a note. */
+export const asciiName = (note) => note.letter + ACC_ASCII[note.acc];

@@ -59,3 +59,11 @@ test('spokenName reads accidentals as words for screen readers', async () => {
   assert.equal(spokenName(parseNote('Cx')), 'C double sharp');
   assert.equal(spokenName(parseNote('D')), 'D');
 });
+
+test('asciiName writes notes the way people type them', async () => {
+  const { asciiName } = await import('../public/js/theory/notes.js');
+  assert.equal(asciiName(parseNote('C#')), 'C#');
+  assert.equal(asciiName(parseNote('B♭')), 'Bb');
+  assert.equal(asciiName(parseNote('F𝄪')), 'F##');
+  assert.equal(asciiName(parseNote('E𝄫')), 'Ebb');
+});

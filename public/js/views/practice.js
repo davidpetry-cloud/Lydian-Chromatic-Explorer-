@@ -7,6 +7,7 @@ import { gravityRank } from '../theory/gravity.js';
 import { QUALITIES, chordNotes, lydianAnalysis } from '../theory/chords.js';
 import { mountChordInput } from '../input/chord-input.js';
 import { createKeyboard } from './keyboard.js';
+import { createFlashGate } from './flash-gate.js';
 import { writePref, volumePref } from '../prefs.js';
 
 const $ = (id) => document.getElementById(id);
@@ -63,9 +64,12 @@ export function mountPractice({ app, announce, initialText }) {
     announce(pattern.label);
   }
 
+  const scaleRunLabel = (bpm) => `${scaleLabel()}, ${DIRECTION_WORD[$('direction').value]}, ${bpm} bpm`;
+  const chordLoopLabel = (bpm) => `${state.chord.symbol} chord loop, ${bpm} bpm`;
+
   function playScale() {
     const bpm = state.bpm;
-    const label = `${scaleLabel()}, ${DIRECTION_WORD[$('direction').value]}, ${bpm} bpm`;
+    const label = scaleRunLabel(bpm);
     start({ kind: 'scale', steps: scaleSteps(), bpm, loop: true, label, drone: $('hold-tonic').checked ? tonicMidis() : null });
   }
 
@@ -76,7 +80,7 @@ export function mountPractice({ app, announce, initialText }) {
 
   function playChordLoop() {
     const tones = ascendingMidis(chordNotes(state.chord), 3).slice(0, -1);
-    const label = `${state.chord.symbol} chord loop, ${state.bpm} bpm`;
+    const label = chordLoopLabel(state.bpm);
     start({ kind: 'chordLoop', steps: [tones, [], [], []], bpm: state.bpm, loop: true, label });
   }
 
@@ -92,7 +96,7 @@ export function mountPractice({ app, announce, initialText }) {
     await app.engine.resume();
     app.transport.poke();
     app.engine.note(midi, app.engine.now() + 0.01, 0.6);
-    keyboard.flash(midi, 600);
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) keyboard.flash(midi, 600);
   }
 
   function renderLadder(chordTones) {
@@ -171,9 +175,13 @@ export function mountPractice({ app, announce, initialText }) {
     if (app.transport.isPlaying()) restartIfPlaying();
   }
 
+  const gate = createFlashGate();
+  const pending = new Set();
   app.transport.onStep(({ midis, at }) => {
     const delay = Math.max(0, (at - app.engine.now()) * 1000);
-    setTimeout(() => {
+    const id = setTimeout(() => {
+      pending.delete(id);
+      if (!midis.length || !gate()) return;
       midis.forEach((m) => keyboard.flash(m));
       const card = ladder.querySelector(`[data-scale="${state.scaleId}"]`);
       if (card && app.transport.current()?.kind === 'scale') {
@@ -182,9 +190,15 @@ export function mountPractice({ app, announce, initialText }) {
         card.classList.add('is-pulse');
       }
     }, delay);
+    pending.add(id);
   });
   app.transport.onPlay(showPlaying);
-  app.transport.onStop(() => showPlaying(null));
+  app.transport.onStop(() => {
+    pending.forEach(clearTimeout);
+    pending.clear();
+    keyboard.clearFlashes();
+    showPlaying(null);
+  });
 
   $('play-scale').addEventListener('click', playScale);
   $('drone').addEventListener('click', playDrone);
@@ -198,6 +212,10 @@ export function mountPractice({ app, announce, initialText }) {
     $('bpm-out').textContent = String(state.bpm);
     app.transport.setBpm(state.bpm);
     app.transport.poke();
+    // Keep the "now playing" line true without re-announcing every slider step.
+    const kind = app.transport.current()?.kind;
+    if (kind === 'scale') $('now-playing').textContent = `Playing: ${scaleRunLabel(state.bpm)}`;
+    if (kind === 'chordLoop') $('now-playing').textContent = `Playing: ${chordLoopLabel(state.bpm)}`;
   });
   $('volume').value = String(volumePref());
   $('volume-out').textContent = $('volume').value;

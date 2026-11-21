@@ -226,6 +226,79 @@ test('a new chord is announced to screen readers', async () => {
   await page.close();
 });
 
+test('changing the chord type keeps the typed root spelling', async () => {
+  const { page } = await open();
+  await enterChord(page, 'C#m7');
+  await page.selectOption('#chord-quality', 'maj7');
+  assert.equal(await page.inputValue('#chord-text'), 'C#maj7');
+  await page.close();
+});
+
+test('no key flashes after Stop', async () => {
+  const { page } = await open();
+  await page.$eval('#bpm', (el) => { el.value = '200'; el.dispatchEvent(new Event('input')); });
+  await page.click('#play-scale');
+  await page.waitForTimeout(500);
+  await page.click('#stop');
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator('#keyboard .is-sounding').count(), 0);
+  await page.close();
+});
+
+test('the now-playing line follows a tempo change', async () => {
+  const { page } = await open();
+  await page.click('#play-scale');
+  await page.$eval('#bpm', (el) => { el.value = '120'; el.dispatchEvent(new Event('input')); });
+  assert.match(await page.textContent('#now-playing'), /120 bpm/);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('keys do not flash at all when motion is reduced', async () => {
+  const { page } = await open();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => {
+    window.__flashes = 0;
+    new MutationObserver((list) => { for (const m of list) if (m.target.classList?.contains('is-sounding')) window.__flashes += 1; })
+      .observe(document.getElementById('keyboard'), { subtree: true, attributes: true, attributeFilter: ['class'] });
+  });
+  await page.click('#play-scale');
+  await page.waitForTimeout(900);
+  await page.click('#stop');
+  assert.equal(await page.evaluate(() => window.__flashes), 0);
+  await page.close();
+});
+
+test('the Gravity picker shows a tonic spelled outside the twelve roots', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Gb7');
+  await page.click('#tab-gravity');
+  assert.equal(await page.$eval('#gravity-tonic', (el) => el.selectedOptions[0].textContent), 'F♭');
+  await page.close();
+});
+
+test('a drone sounds until stopAll, then falls silent (real audio graph)', async () => {
+  const { page } = await open();
+  const energy = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    class Offline extends OfflineAudioContext {
+      constructor() { super(1, 44100, 44100); }
+      get state() { return 'running'; }
+    }
+    const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
+    await engine.resume();
+    const ctx = engine.context();
+    engine.drone([48, 55]);
+    ctx.suspend(0.5).then(() => { engine.stopAll(); ctx.resume(); });
+    const data = (await ctx.startRendering()).getChannelData(0);
+    const rms = (a, b) => Math.sqrt(data.slice(a * 44100, b * 44100).reduce((s, v) => s + v * v, 0) / ((b - a) * 44100));
+    return { during: rms(0.1, 0.4), after: rms(0.8, 1) };
+  });
+  assert.ok(energy.during > 0.01, JSON.stringify(energy));
+  assert.ok(energy.after < 0.0005, JSON.stringify(energy));
+  await page.close();
+});
+
 // ---------- Attack tests: the policy must stop these ----------
 
 test('injected inline scripts and handlers do not run', async () => {

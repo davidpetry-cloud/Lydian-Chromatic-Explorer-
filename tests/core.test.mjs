@@ -192,3 +192,28 @@ test('transport tells listeners when a pattern starts', () => {
   t.play(pattern(60, { loop: true }));
   assert.deepEqual(started, ['p60']);
 });
+
+test('Stop cuts ringing notes even when no pattern is playing', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  const reasons = [];
+  t.onStop((r) => reasons.push(r));
+  t.stop();
+  assert.equal(f.engine.stops, 1);
+  assert.deepEqual(reasons, []);
+});
+
+test('the flash gate allows at most one flash per interval', async () => {
+  const { createFlashGate } = await import('../public/js/views/flash-gate.js');
+  let now = 0;
+  const gate = createFlashGate({ minMs: 334, now: () => now });
+  const allowed = [];
+  for (let t = 0; t <= 1000; t += 100) { now = t; if (gate()) allowed.push(t); }
+  assert.deepEqual(allowed, [0, 400, 800]);
+});
+
+test('the flash gate stays shut when motion is reduced', async () => {
+  const { createFlashGate } = await import('../public/js/views/flash-gate.js');
+  const gate = createFlashGate({ minMs: 334, now: () => 0, reducedMotion: () => true });
+  assert.equal(gate(), false);
+});
