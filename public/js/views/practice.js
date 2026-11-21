@@ -125,7 +125,12 @@ export function mountPractice({ app, announce, initialText }) {
       });
       btn.setAttribute('aria-labelledby', `${ids[0]} ${ids[1]}`);
       btn.setAttribute('aria-describedby', `${ids[4]} ${ids[2]}`);
-      btn.addEventListener('click', () => { selectScale(row.scale.id); playScale(); });
+      // Picking a card only selects it. Sound starts from Play scale; if a scale
+      // is already sounding, it switches to the new one.
+      btn.addEventListener('click', () => {
+        selectScale(row.scale.id);
+        if (app.transport.current()?.kind === 'scale') playScale();
+      });
       li.append(btn);
       ladder.append(li);
     });
