@@ -155,6 +155,7 @@ export function mountPractice({ app, announce, initialText }) {
     state.scaleId = state.analysis.parentScale;
     renderLadder(tones);
     selectScale(state.scaleId);
+    app.events.dispatchEvent(new CustomEvent('tonic', { detail: state.analysis.tonic }));
     if (app.transport.isPlaying()) restartIfPlaying();
   }
 

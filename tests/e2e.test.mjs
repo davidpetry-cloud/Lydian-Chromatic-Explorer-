@@ -17,7 +17,7 @@ async function open(path = '/', { init } = {}) {
   page.on('pageerror', (e) => problems.push(String(e)));
   if (init) await page.addInitScript(init);
   await page.goto(server.url + path);
-  await page.locator('#tonic').waitFor({ timeout: 5000 });
+  await page.waitForFunction(() => document.getElementById('tonic')?.textContent.length > 0, null, { timeout: 5000 });
   return { page, problems };
 }
 
@@ -93,5 +93,34 @@ test('the keyboard can be reached and walked with arrow keys', async () => {
   const second = await page.evaluate(() => document.activeElement.getAttribute('aria-label'));
   assert.notEqual(first, second);
   assert.match(second, /^[A-G]/);
+  await page.close();
+});
+
+test('the gravity circle shows twelve tones in order from the tonic', async () => {
+  const { page, problems } = await open('/#gravity');
+  assert.equal(await page.isVisible('#view-gravity'), true);
+  assert.equal(await page.locator('#gravity-circle .gnode').count(), 12);
+  const first = await page.locator('#gravity-circle .gnode[data-rank="1"]').getAttribute('aria-label');
+  assert.match(first, /^C\b/);
+  assert.equal(await page.locator('#gravity-table tbody tr').count(), 12);
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('arrow keys walk the gravity order and Enter explains a tone', async () => {
+  const { page } = await open('/#gravity');
+  await page.locator('#gravity-circle .gnode[tabindex="0"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Enter');
+  assert.match(await page.textContent('#gravity-note'), /rank 2 of 12/);
+  await page.close();
+});
+
+test('the gravity tonic follows the Practice chord', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Dm7');
+  await page.click('#tab-gravity');
+  const first = await page.locator('#gravity-circle .gnode[data-rank="1"]').getAttribute('aria-label');
+  assert.match(first, /^F\b/);
   await page.close();
 });

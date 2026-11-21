@@ -172,6 +172,29 @@ input[type="range"] { min-height: 44px; accent-color: var(--amber); }
 .key:focus { outline: none; }
 .key:focus-visible rect { stroke: #2dd4bf; stroke-width: 5; }
 
+/* ---------- Gravity view ---------- */
+.gravity-layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+.gravity-side { display: grid; gap: 20px; }
+.gravity-figure { padding: 12px; }
+.gravity-circle { display: block; width: 100%; max-width: 520px; height: auto; margin: 0 auto; }
+.gpath { fill: none; stroke: var(--amber); stroke-width: 2; stroke-opacity: 0.55; stroke-linejoin: round;
+  stroke-dasharray: 2400; stroke-dashoffset: 0; animation: draw 1.6s var(--ease); }
+@keyframes draw { from { stroke-dashoffset: 2400; } }
+.gcenter { fill: var(--muted); }
+.gnode { cursor: pointer; }
+.gnode circle { fill: var(--surface); stroke: var(--border2); stroke-width: 2; }
+.gnode.is-lydian circle { stroke: var(--amber); }
+.gnode.is-tonic circle { fill: var(--amber); stroke: var(--amber); }
+.gnode .gmark { fill: none; stroke: var(--teal); stroke-width: 3; stroke-dasharray: 6 4; }
+.gname { font-family: var(--sans); font-weight: 600; font-size: 17px; fill: var(--white); pointer-events: none; }
+.gnode.is-tonic .gname { fill: var(--on-accent); }
+.grank { font-family: var(--mono); font-size: 14px; fill: var(--muted2); pointer-events: none; }
+.gnode.is-sounding circle { fill: var(--teal); }
+.gnode:focus { outline: none; }
+.gnode:focus-visible circle { stroke: var(--teal); stroke-width: 5; }
+.gravity-note { font-size: var(--fs-lg); color: var(--white); margin: 0; }
+@media (max-width: 860px) { .gravity-layout { grid-template-columns: 1fr; } }
+
 /* ---------- Small screens ---------- */
 @media (max-width: 720px) {
   h1 { font-size: var(--fs-2xl); }

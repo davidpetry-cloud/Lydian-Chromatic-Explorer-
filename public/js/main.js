@@ -7,12 +7,14 @@ import { parseChord } from './theory/chords.js';
 import { createEngine } from './audio/engine.js';
 import { createTransport } from './audio/transport.js';
 import { mountPractice } from './views/practice.js';
+import { mountGravity } from './views/gravity.js';
 
 const DEFAULT_CHORD = 'Cmaj7';
 
 export const app = {
   engine: createEngine(),
   live: document.getElementById('live'),
+  events: new EventTarget(),
 };
 app.transport = createTransport(app.engine);
 
@@ -41,6 +43,7 @@ function showView(name, { focus }) {
 }
 
 mountThemeToggle(document.getElementById('themeToggle'));
+app.gravity = mountGravity({ app, announce });
 app.practice = mountPractice({ app, announce, initialText: initialChord() });
 
 document.addEventListener('visibilitychange', () => {

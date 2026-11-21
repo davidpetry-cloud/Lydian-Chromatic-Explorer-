@@ -110,7 +110,37 @@
     <section class="view" id="view-gravity" aria-labelledby="h-gravity" hidden>
       <h1 id="h-gravity" tabindex="-1">Tonal gravity</h1>
       <p class="lede">Twelve tones, one centre. Stack fifths up from the Lydian tonic and each new tone sits a little further from home.</p>
-      <div id="gravity-root"></div>
+      <div class="gravity-layout" id="gravity-root">
+        <div class="gravity-figure card">
+          <svg id="gravity-circle" class="gravity-circle" viewBox="0 0 400 400" role="group" aria-labelledby="h-gravity" aria-describedby="gravity-hint"></svg>
+        </div>
+        <div class="gravity-side">
+          <section class="card" aria-labelledby="h-gravity-controls">
+            <h2 id="h-gravity-controls">Explore</h2>
+            <div class="control-row">
+              <div class="field">
+                <label for="gravity-tonic">Lydian tonic</label>
+                <select id="gravity-tonic"></select>
+              </div>
+              <div class="field">
+                <label for="gravity-overlay">Show a scale</label>
+                <select id="gravity-overlay"></select>
+              </div>
+            </div>
+            <p class="hint" id="gravity-hint">Each tone is placed round the circle of fifths and numbered by its distance from the tonic, 1 to 12. Tab to the circle, use the arrow keys to walk the order, and press Enter to hear a tone against the tonic.</p>
+            <button class="btn" id="gravity-stop" type="button"><span aria-hidden="true">■</span> Stop</button>
+          </section>
+          <section class="card" aria-labelledby="h-gravity-note">
+            <h2 id="h-gravity-note">This tone</h2>
+            <p class="gravity-note" id="gravity-note">Pick a tone on the circle to hear how far it sits from home.</p>
+          </section>
+        </div>
+        <table class="visually-hidden" id="gravity-table">
+          <caption>The order of tonal gravity from the current Lydian tonic</caption>
+          <thead><tr><th scope="col">Rank</th><th scope="col">Tone</th><th scope="col">Degree</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="view" id="view-reference" aria-labelledby="h-reference" hidden>
