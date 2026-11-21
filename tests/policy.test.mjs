@@ -38,3 +38,23 @@ test('server applies headers', async () => {
     await server.close();
   }
 });
+
+test('server refuses malformed and escaping paths without crashing', async () => {
+  const http = await import('node:http');
+  const server = await startServer();
+  const u = new URL(server.url);
+  const get = (path) => new Promise((resolve) => {
+    const req = http.request({ host: u.hostname, port: u.port, path }, (res) => { res.resume(); resolve(res.statusCode); });
+    req.on('error', (e) => resolve(`error ${e.code}`));
+    req.end();
+  });
+  try {
+    assert.equal(await get('/%E0%A4%A'), 400);
+    assert.equal(await get('/../LICENSE'), 404);
+    assert.equal(await get('/%2e%2e/%2e%2e/LICENSE'), 404);
+    assert.equal(await get('/_headers'), 404);
+    assert.equal(await get('/'), 200);
+  } finally {
+    await server.close();
+  }
+});

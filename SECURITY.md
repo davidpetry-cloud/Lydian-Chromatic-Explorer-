@@ -20,8 +20,25 @@ switch tabs.
 
 ## How it's tested
 
-`npm test` runs the policy checks (`tests/policy.test.mjs`) and browser
-tests (`tests/e2e.test.mjs`) that serve the app under these exact headers.
+`npm test` runs on every pull request. It serves the app under these exact
+headers and attacks it:
+
+- **Injected code:** an inline `<script>`, an `onerror=` attribute and an
+  `innerHTML` handler are added to the live page. None of them run, and the
+  browser logs a policy violation.
+- **Outside scripts:** a `<script src>` pointing at another site is refused.
+- **Sending data out:** `fetch()` and `navigator.sendBeacon()` to another
+  site are blocked, and no request leaves the page.
+- **Framing:** another site's page that frames the app gets nothing.
+- **The page shell:** `public/index.html` must contain no inline scripts,
+  styles or `on…=` handlers, and `public/_headers` must keep the policy.
+- **Local preview server** (`tests/serve.mjs`, never deployed): it refuses
+  malformed or `../` paths and never serves `_headers`.
+
+Code review (November 2026) found no use of `innerHTML`, `eval`,
+`new Function`, `document.write` or network APIs in `public/`. Values read
+back from storage are re-checked: an unknown chord falls back to Cmaj7, the
+volume is clamped to 0–100, and the theme must be `light` or `dark`.
 
 ## Reporting a vulnerability
 
