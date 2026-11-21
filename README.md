@@ -1,1 +1,53 @@
-# Lydian-Chromatic-Explorer-
+# Lydian Chromatic Explorer
+
+Pick a chord, meet its Lydian tonic, and hear the scales that sit over it,
+from snugly ingoing to gloriously outgoing. It's a practice tool for
+improvisers and composers, built on George Russell's *Lydian Chromatic
+Concept of Tonal Organization*.
+
+- **Practice:** pick or type a chord (`Cmaj7`, `Dm7`, `G7`, `B♭6`…) to see
+  its Lydian tonic and parent scale. All seven principal scales are laid out
+  from ingoing to outgoing. Play any of them, with or without the tonic
+  held underneath, or loop the chord or a drone.
+- **Gravity:** the twelve tones placed round the circle of fifths and
+  numbered by their pull toward the tonic. Walk them with the arrow keys
+  and hear each one against home.
+- **Reference:** a searchable glossary, the chord table, and the sources.
+
+Every sound is also shown on screen and named in text, everything works
+from the keyboard, and the app works on a phone.
+
+## Run it locally
+
+```bash
+npm install
+npm test
+npm run serve
+```
+
+`npm run serve` prints a local address (port 8080). There is no build step:
+the app is the `public/` folder.
+
+## Host it on Cloudflare Pages (free)
+
+1. Sign in at dash.cloudflare.com, then go to **Workers & Pages** →
+   **Create** → **Pages** → **Connect to Git**.
+2. Pick this repository.
+3. Settings: production branch `main`, framework preset **None**, build
+   command **empty**, build output directory `public`.
+4. Save and deploy. Cloudflare reads `public/_headers` for the security
+   policy, and every pull request gets its own preview address.
+
+## About the theory
+
+Scales and the order of tonal gravity are computed from intervals in
+`public/js/theory/`. Every chord mapping traces to sources listed in
+`docs/theory-sources.md`. Chords whose sources disagree are left out
+rather than guessed. Explanations are original; the book is: George Russell,
+*Lydian Chromatic Concept of Tonal Organization*, 4th ed. (Brookline, MA:
+Concept Publishing, 2001).
+
+## Licence
+
+Code: PolyForm Noncommercial 1.0.0. Content: all rights reserved. See
+`LICENSE` and `THIRD-PARTY-NOTICES.md`.

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lydian Chromatic Explorer</title>
+  <meta name="description" content="Pick a chord, find its Lydian tonic, and hear the scales that sit over it, from ingoing to outgoing. A practice tool built on George Russell's Lydian Chromatic Concept.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/theme-init.js"></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <a class="skip" id="skip" href="#main">Skip to content</a>
+
+  <header class="app-header">
+    <p class="brand"><span class="brand-mark" aria-hidden="true">◐</span> Lydian Chromatic Explorer</p>
+    <nav class="tabs" aria-label="Views">
+      <a class="tab" id="tab-practice" href="#practice" aria-current="page">Practice</a>
+      <a class="tab" id="tab-gravity" href="#gravity">Gravity</a>
+      <a class="tab" id="tab-reference" href="#reference">Reference</a>
+    </nav>
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="Switch to light theme"><span aria-hidden="true">☀</span></button>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="view" id="view-practice" aria-labelledby="h-practice">
+      <h1 id="h-practice" tabindex="-1">Practice</h1>
+      <p class="lede">Pick a chord. Meet its Lydian tonic. Then wander from the scales that sit snugly inside it to the ones that lean way out.</p>
+      <div class="practice-grid" id="practice-root">
+        <section class="card chord-card" aria-labelledby="h-chord">
+          <h2 id="h-chord">Your chord</h2>
+          <div class="chord-input">
+            <div class="field">
+              <label for="chord-root">Root</label>
+              <select id="chord-root"></select>
+            </div>
+            <div class="field">
+              <label for="chord-quality">Chord type</label>
+              <select id="chord-quality"></select>
+            </div>
+            <div class="field field-wide">
+              <label for="chord-text">Or type a chord</label>
+              <input id="chord-text" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="chord-hint chord-error">
+            </div>
+          </div>
+          <p class="hint" id="chord-hint">Try Cmaj7, Dm7, G7, B♭6 or F♯aug. Press Enter, or just pause.</p>
+          <p class="error" id="chord-error" role="status"></p>
+        </section>
+
+        <section class="card result-card" aria-labelledby="h-result">
+          <h2 id="h-result">Lydian tonic</h2>
+          <p class="tonic-line"><span class="tonic" id="tonic" aria-hidden="true"></span><span class="visually-hidden" id="tonic-spoken"></span><span class="tonic-chord" id="chord-name"></span></p>
+          <p class="parent-line">Parent scale: <strong id="parent-name"></strong><br><span class="mono" id="parent-notes"></span></p>
+          <div class="gravity-strip" aria-hidden="true" id="gravity-strip"></div>
+          <p class="hint" id="gravity-text"></p>
+        </section>
+
+        <section class="card controls-card" aria-labelledby="h-controls">
+          <h2 id="h-controls">Practice</h2>
+          <p class="hint">Playing: <strong id="selected-scale"></strong>. Pick another scale below to switch.</p>
+          <div class="control-row">
+            <button class="btn btn-primary" id="play-scale" type="button" aria-pressed="false"><span aria-hidden="true">▶</span> Play scale</button>
+            <div class="field">
+              <label for="direction">Direction</label>
+              <select id="direction">
+                <option value="up">Up</option>
+                <option value="down">Down</option>
+                <option value="updown">Up and down</option>
+              </select>
+            </div>
+            <label class="check"><input type="checkbox" id="hold-tonic" checked> Hold the tonic underneath</label>
+          </div>
+          <div class="control-row">
+            <button class="btn" id="drone" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> Drone</button>
+            <button class="btn" id="chord-loop" type="button" aria-pressed="false"><span aria-hidden="true">↻</span> Chord loop</button>
+            <button class="btn" id="stop" type="button"><span aria-hidden="true">■</span> Stop</button>
+          </div>
+          <div class="control-row">
+            <div class="field">
+              <label for="bpm">Tempo <output id="bpm-out" for="bpm">80</output> bpm</label>
+              <input id="bpm" type="range" min="40" max="200" step="1" value="80">
+            </div>
+            <div class="field">
+              <label for="volume">Volume <output id="volume-out" for="volume">70</output>%</label>
+              <input id="volume" type="range" min="0" max="100" step="1" value="70">
+            </div>
+          </div>
+          <p class="now-playing" id="now-playing" aria-hidden="true">Silent. Press a play button to start.</p>
+        </section>
+
+        <section class="ladder-section" aria-labelledby="h-ladder">
+          <h2 id="h-ladder">Scales over this chord <span class="ladder-dir">ingoing → outgoing</span></h2>
+          <p class="hint">All seven principal scales on the Lydian tonic, from the snuggest fit to the furthest reach. Pick one to play it.</p>
+          <ol class="ladder" id="ladder"></ol>
+        </section>
+
+        <section class="keyboard-section" aria-labelledby="h-keyboard">
+          <h2 id="h-keyboard">Keyboard</h2>
+          <p class="hint" id="keyboard-hint">Filled keys are in the scale; ringed keys are chord tones. Tab to the keyboard, then use the arrow keys and Enter to play.</p>
+          <div class="keyboard-scroll">
+            <svg id="keyboard" class="keyboard" role="group" aria-labelledby="h-keyboard" aria-describedby="keyboard-hint"></svg>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" id="view-gravity" aria-labelledby="h-gravity" hidden>
+      <h1 id="h-gravity" tabindex="-1">Tonal gravity</h1>
+      <p class="lede">Twelve tones, one centre. Stack fifths up from the Lydian tonic and each new tone sits a little further from home.</p>
+      <div class="gravity-layout" id="gravity-root">
+        <div class="gravity-figure card">
+          <svg id="gravity-circle" class="gravity-circle" viewBox="0 0 400 400" role="group" aria-labelledby="h-gravity" aria-describedby="gravity-hint"></svg>
+        </div>
+        <div class="gravity-side">
+          <section class="card" aria-labelledby="h-gravity-controls">
+            <h2 id="h-gravity-controls">Explore</h2>
+            <div class="control-row">
+              <div class="field">
+                <label for="gravity-tonic">Lydian tonic</label>
+                <select id="gravity-tonic"></select>
+              </div>
+              <div class="field">
+                <label for="gravity-overlay">Show a scale</label>
+                <select id="gravity-overlay"></select>
+              </div>
+            </div>
+            <p class="hint" id="gravity-hint">Each tone is placed round the circle of fifths and numbered by its distance from the tonic, 1 to 12. Tab to the circle, use the arrow keys to walk the order, and press Enter to hear a tone against the tonic.</p>
+            <div class="control-row">
+              <button class="btn" id="gravity-stop" type="button"><span aria-hidden="true">■</span> Stop</button>
+              <p class="now-playing" id="gravity-status" aria-hidden="true">Silent.</p>
+            </div>
+          </section>
+          <section class="card" aria-labelledby="h-gravity-note">
+            <h2 id="h-gravity-note">This tone</h2>
+            <p class="gravity-note" id="gravity-note">Pick a tone on the circle to hear how far it sits from home.</p>
+          </section>
+        </div>
+        <div class="visually-hidden">
+        <table id="gravity-table">
+          <caption>The order of tonal gravity from the current Lydian tonic</caption>
+          <thead><tr><th scope="col">Rank</th><th scope="col">Tone</th><th scope="col">Degree</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-reference" aria-labelledby="h-reference" hidden>
+      <h1 id="h-reference" tabindex="-1">Reference</h1>
+      <p class="lede">The words, the chords and the sources, in one searchable place.</p>
+      <div class="reference" id="reference-root">
+        <div class="ref-search">
+          <div class="field">
+            <label for="ref-search">Search the reference</label>
+            <input id="ref-search" type="search" autocomplete="off" spellcheck="false" aria-describedby="ref-count">
+          </div>
+          <p class="hint" id="ref-count" role="status"></p>
+        </div>
+
+        <section aria-labelledby="h-glossary">
+          <h2 id="h-glossary">Glossary</h2>
+          <div class="glossary" id="glossary"></div>
+        </section>
+
+        <section aria-labelledby="h-chords">
+          <h2 id="h-chords">Chords and their Lydian tonics</h2>
+          <div class="table-scroll">
+            <table class="chord-table" id="chord-table">
+              <caption class="hint">Each chord type, its Lydian tonic counted from the chord's root, and its parent scale, with an example.</caption>
+              <thead><tr><th scope="col">Chord type</th><th scope="col">Example</th><th scope="col">Lydian tonic</th><th scope="col">Parent scale</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <h3 id="h-pending">Sources differ: not in the app yet</h3>
+          <ul class="pending-list" id="pending-list" aria-labelledby="h-pending"></ul>
+        </section>
+
+        <section aria-labelledby="h-sources" id="sources">
+          <h2 id="h-sources">Sources</h2>
+          <ol class="sources-list" id="sources-list"></ol>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="visually-hidden" id="live" aria-live="polite" aria-atomic="true"></div>
+
+  <footer class="app-footer">
+    <p>Made by David Petry. Built on ideas from George Russell's <cite>Lydian Chromatic Concept of Tonal Organization</cite> (<a href="#reference">see sources</a>); all explanations here are original.</p>
+    <p><a href="https://github.com/davidpetry-cloud/Lydian-Chromatic-Explorer/blob/main/LICENSE">Licence</a> · <a href="https://david-petry.netlify.app/">david-petry.netlify.app</a></p>
+  </footer>
+</body>
+</html>
