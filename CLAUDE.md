@@ -17,6 +17,8 @@ step) served from `public/` on Cloudflare Pages. Design:
 
 ## Theory accuracy
 
+- Cite a source for every music-theory claim, and where sources disagree,
+  say so rather than guessing.
 - Scales and the gravity order are computed from intervals in
   `public/js/theory/`; never hand-write note lists.
 - Any change to theory data needs a source per row in
@@ -40,3 +42,9 @@ step) served from `public/` on Cloudflare Pages. Design:
   refuse to run inside another site's frame.
 - Before merging a new screen, run the accessibility-review and
   security-review skills and fix what they find. See `SECURITY.md`.
+
+## Hosting
+
+- This app is hosted on Cloudflare Pages (free), not Netlify: David's
+  Netlify site is on the Free plan, where each production deploy costs
+  15 of 300 monthly credits. Never add Netlify config here.
