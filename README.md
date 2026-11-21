@@ -38,7 +38,8 @@ merge to `main` redeploys it. Cloudflare serves the `public/` folder and
 applies `public/_headers`, so the live site has the same strict security
 policy the tests check. To set it up again from scratch, go to Cloudflare →
 **Workers & Pages** → **Create** → import this repository, with the build
-command empty and the output (assets) directory set to `public`.
+command empty. `wrangler.jsonc` tells Cloudflare to serve `public/` and
+enables a preview link for every pull request.
 
 ## About the theory
 

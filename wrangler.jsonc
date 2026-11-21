@@ -1,0 +1,14 @@
+// Cloudflare Workers configuration: a static site, no Worker script.
+// Cloudflare serves only public/ and applies public/_headers (the strict
+// security policy). The same settings are used for production deploys
+// (main) and for preview builds of other branches.
+{
+  "name": "lydian-chromatic-explorer",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public"
+  },
+  // Preview builds for pull requests (`wrangler preview`) need this block;
+  // it may stay empty.
+  "previews": {}
+}

@@ -74,3 +74,14 @@ test('app.css uses colour tokens: raw hex colours appear only in custom properti
     .filter((line) => line.replace(/--[\w-]+:\s*#[0-9a-f]{3,8}\b/gi, '').match(/#[0-9a-f]{3,8}\b/i));
   assert.deepEqual(stray, []);
 });
+
+test('wrangler.jsonc serves only public/ and enables preview builds', async () => {
+  const text = await readFile(new URL('../wrangler.jsonc', import.meta.url), 'utf8');
+  const config = JSON.parse(text.replace(/^\s*\/\/.*$/gm, ''));
+  assert.equal(config.name, 'lydian-chromatic-explorer');
+  assert.equal(config.assets.directory, './public');
+  assert.equal(config.main, undefined, 'static assets only: no Worker script');
+  assert.deepEqual(config.previews, {});
+  assert.match(config.compatibility_date, /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(config.compatibility_date <= new Date().toISOString().slice(0, 10), 'compatibility_date must not be in the future');
+});
