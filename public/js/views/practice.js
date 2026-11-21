@@ -106,12 +106,16 @@ export function mountPractice({ app, announce, initialText }) {
         ['span', 'ladder-degrees mono', row.scale.degrees.map(degreeLabel).join(' ')],
         ['span', `ladder-fit ${row.holdsChord ? 'fit-holds' : 'fit-changes'}`, `${row.holdsChord ? '●' : '◐'} ${fitLine(row, chordTones)}`],
       ];
-      for (const [tag, cls, text] of parts) {
+      const ids = parts.map((_, k) => `ladder-${i}-${k}`);
+      parts.forEach(([tag, cls, text], k) => {
         const s = document.createElement(tag);
         s.className = cls;
+        s.id = ids[k];
         s.textContent = text;
         btn.append(s);
-      }
+      });
+      btn.setAttribute('aria-labelledby', `${ids[0]} ${ids[1]}`);
+      btn.setAttribute('aria-describedby', `${ids[4]} ${ids[2]}`);
       btn.addEventListener('click', () => { selectScale(row.scale.id); playScale(); });
       li.append(btn);
       ladder.append(li);
@@ -147,7 +151,7 @@ export function mountPractice({ app, announce, initialText }) {
     state.analysis = lydianAnalysis(chord);
     const tones = chordNotes(chord);
     $('tonic').textContent = noteName(state.analysis.tonic);
-    $('tonic').setAttribute('aria-label', spokenName(state.analysis.tonic));
+    $('tonic-spoken').textContent = spokenName(state.analysis.tonic);
     $('chord-name').textContent = `for ${chord.symbol} (${QUALITIES[chord.quality].label}: ${names(tones)})`;
     $('parent-name').textContent = `${noteName(state.analysis.tonic)} ${scaleById(state.analysis.parentScale).name}`;
     $('parent-notes').textContent = names(state.analysis.parentNotes);

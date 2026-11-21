@@ -150,6 +150,27 @@ test('the chord table lists verified chords and the book citation is there', asy
   await page.close();
 });
 
+test('every view reflows to a 320 px screen without sideways scrolling', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 800 } });
+  for (const hash of ['', '#gravity', '#reference']) {
+    await page.goto(`${server.url}/${hash}`);
+    await page.waitForFunction(() => document.getElementById('tonic')?.textContent.length > 0);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320, hash || '#practice');
+  }
+  await page.close();
+});
+
+test('scale cards have a short name and a description', async () => {
+  const { page } = await open();
+  const card = page.locator('.ladder-card').first();
+  const name = await card.evaluate((el) => el.getAttribute('aria-labelledby').split(' ').map((id) => document.getElementById(id).textContent).join(' '));
+  assert.match(name, /^1 C Lydian$/);
+  const desc = await card.evaluate((el) => el.getAttribute('aria-describedby').split(' ').map((id) => document.getElementById(id).textContent).join(' '));
+  assert.match(desc, /C D E F♯ G A B/);
+  assert.equal(await page.locator('#tonic[aria-label]').count(), 0);
+  await page.close();
+});
+
 // ---------- Attack tests: the policy must stop these ----------
 
 test('injected inline scripts and handlers do not run', async () => {

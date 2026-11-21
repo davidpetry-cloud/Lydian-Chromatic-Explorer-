@@ -193,10 +193,10 @@ input[type="range"] { min-height: 44px; accent-color: var(--amber); }
 .gnode:focus { outline: none; }
 .gnode:focus-visible circle { stroke: var(--teal); stroke-width: 5; }
 .gravity-note { font-size: var(--fs-lg); color: var(--white); margin: 0; }
-@media (max-width: 860px) { .gravity-layout { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .gravity-layout { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- Reference view ---------- */
-.reference { display: grid; gap: 32px; }
+.reference { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); }
 .ref-search { max-width: 520px; }
 .ref-search .hint { margin: 6px 0 0; }
 .glossary { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
