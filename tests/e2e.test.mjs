@@ -299,6 +299,44 @@ test('a drone sounds until stopAll, then falls silent (real audio graph)', async
   await page.close();
 });
 
+test('a note sounds like a struck electric-piano key: bright attack that mellows and fades', async () => {
+  const { page } = await open();
+  const shape = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    class Offline extends OfflineAudioContext {
+      constructor() { super(1, 44100, 44100); }
+      get state() { return 'running'; }
+    }
+    const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
+    await engine.resume();
+    engine.note(57, 0, 1);
+    const x = (await engine.context().startRendering()).getChannelData(0);
+    const win = (a, b) => x.subarray(Math.round(a * 44100), Math.round(b * 44100));
+    const rms = (a, b) => { const w = win(a, b); return Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length); };
+    // Brightness: energy of the sample-to-sample change relative to the signal's energy.
+    const bright = (a, b) => { const w = win(a, b); let d = 0, e = 0; for (let i = 1; i < w.length; i++) { d += (w[i] - w[i - 1]) ** 2; e += w[i] ** 2; } return d / e; };
+    return { early: rms(0.01, 0.06), late: rms(0.5, 0.6), brightEarly: bright(0.01, 0.06), brightLate: bright(0.5, 0.6) };
+  });
+  assert.ok(shape.early > 0.02, JSON.stringify(shape));
+  assert.ok(shape.brightEarly > shape.brightLate * 1.5, `attack should be brighter than the ring: ${JSON.stringify(shape)}`);
+  assert.ok(shape.late < shape.early, `should fade: ${JSON.stringify(shape)}`);
+  assert.ok(shape.late > shape.early * 0.05, `should still ring: ${JSON.stringify(shape)}`);
+  await page.close();
+});
+
+test('clicking a scale card selects it without playing', async () => {
+  const { page } = await open();
+  await page.locator('.ladder-card').nth(1).click();
+  assert.equal(await page.getAttribute('.ladder-card >> nth=1', 'aria-pressed'), 'true');
+  assert.match(await page.textContent('#selected-scale'), /Lydian Augmented/);
+  assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
+  assert.match(await page.textContent('#now-playing'), /Silent/);
+  await page.click('#play-scale');
+  assert.match(await page.textContent('#now-playing'), /Lydian Augmented/);
+  await page.click('#stop');
+  await page.close();
+});
+
 // ---------- Attack tests: the policy must stop these ----------
 
 test('injected inline scripts and handlers do not run', async () => {
