@@ -38,9 +38,10 @@ step) served from `public/` on Cloudflare Workers
   `public/js/prefs.js`, and the app must work without it.
 - Sound starts only after a user press, shows its state on screen and in
   text, and stops on its own (20 minutes idle, or the tab hidden).
-- MIDI (later): connect only after a button press, show a clear
-  "listening" state, turn `midi=()` into `midi=(self)` only then, and
-  refuse to run inside another site's frame.
+- MIDI (`public/js/input/midi-input.js`): connects only after the Connect
+  button is pressed, asks for notes only (no SysEx), shows a clear
+  "Listening" state, stops after 20 quiet minutes, and refuses inside
+  another site's frame. `_headers` allows `midi=(self)` and nothing wider.
 - Before merging a new screen, run the accessibility-review and
   security-review skills and fix what they find. See `SECURITY.md`.
 

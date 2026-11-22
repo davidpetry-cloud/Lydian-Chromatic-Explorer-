@@ -9,13 +9,13 @@ let browser;
 before(async () => { server = await startServer(); browser = await chromium.launch(); });
 after(async () => { await browser?.close(); await server?.close(); });
 
-async function open(path = '/', { init } = {}) {
+async function open(path = '/', { init, initArg } = {}) {
   const page = await browser.newPage();
   page.setDefaultTimeout(5000);
   const problems = [];
   page.on('console', (m) => { if (/Content Security Policy|Refused to/.test(m.text())) problems.push(m.text()); });
   page.on('pageerror', (e) => problems.push(String(e)));
-  if (init) await page.addInitScript(init);
+  if (init) await page.addInitScript(init, initArg);
   await page.goto(server.url + path);
   await page.waitForFunction(() => document.getElementById('tonic')?.textContent.length > 0, null, { timeout: 5000 });
   return { page, problems };
@@ -334,6 +334,83 @@ test('clicking a scale card selects it without playing', async () => {
   await page.click('#play-scale');
   assert.match(await page.textContent('#now-playing'), /Lydian Augmented/);
   await page.click('#stop');
+  await page.close();
+});
+
+// ---------- MIDI (simulated keyboard) ----------
+
+// Runs inside the page: Playwright passes only the function's text, so
+// options arrive as its argument (initArg), not from the test's scope.
+const fakeMidi = ({ reject = false } = {}) => {
+  window.__midiRequested = false;
+  const input = { name: 'Test Keys', onmidimessage: null };
+  const access = { inputs: new Map([['k', input]]), onstatechange: null };
+  navigator.requestMIDIAccess = async (opts) => {
+    window.__midiRequested = true;
+    window.__midiOpts = opts;
+    if (reject) throw new DOMException('denied', 'NotAllowedError');
+    return access;
+  };
+  const send = (data) => input.onmidimessage?.({ data: Uint8Array.from(data) });
+  let down = [];
+  window.__midi = {
+    play(notes) { down.forEach((n) => send([0x80, n, 0])); down = notes; notes.forEach((n) => send([0x90, n, 100])); },
+    release() { down.forEach((n) => send([0x80, n, 0])); down = []; },
+  };
+};
+
+test('MIDI: nothing is requested until Connect is pressed', async () => {
+  const { page } = await open('/', { init: fakeMidi });
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => window.__midiRequested), false);
+  assert.match(await page.textContent('#midi-status'), /MIDI is off/);
+  await page.close();
+});
+
+test('MIDI: hold a chord on the keyboard and it becomes the chord', async () => {
+  const { page, problems } = await open('/', { init: fakeMidi });
+  await page.click('#midi-connect');
+  await page.waitForFunction(() => /Listening to Test Keys/.test(document.getElementById('midi-status').textContent));
+  assert.deepEqual(await page.evaluate(() => window.__midiOpts), { sysex: false });
+  assert.equal(await page.getAttribute('#midi-connect', 'aria-pressed'), 'true');
+  await page.evaluate(() => window.__midi.play([62, 65, 69, 72]));
+  await page.waitForFunction(() => document.getElementById('chord-text').value === 'Dm7');
+  assert.match(await page.textContent('#tonic'), /F/);
+  assert.match(await page.textContent('#midi-heard'), /Dm7/);
+  await page.evaluate(() => window.__midi.release());
+  await page.waitForTimeout(300);
+  assert.equal(await page.inputValue('#chord-text'), 'Dm7');
+  await page.evaluate(() => window.__midi.play([60, 62, 64, 65]));
+  await page.waitForFunction(() => /isn't a chord I know yet/.test(document.getElementById('midi-heard').textContent));
+  assert.equal(await page.inputValue('#chord-text'), 'Dm7');
+  await page.click('#midi-disconnect');
+  assert.match(await page.textContent('#midi-status'), /MIDI is off/);
+  assert.equal(await page.getAttribute('#midi-connect', 'aria-pressed'), 'false');
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('MIDI: the Connect button is a true toggle', async () => {
+  const { page } = await open('/', { init: fakeMidi });
+  await page.click('#midi-connect');
+  await page.waitForFunction(() => /Listening/.test(document.getElementById('midi-status').textContent));
+  await page.click('#midi-connect');
+  assert.match(await page.textContent('#midi-status'), /MIDI is off/);
+  assert.equal(await page.getAttribute('#midi-connect', 'aria-pressed'), 'false');
+  await page.close();
+});
+
+test('MIDI: a browser without Web MIDI gets a helpful note', async () => {
+  const { page } = await open('/', { init: () => { delete Navigator.prototype.requestMIDIAccess; delete navigator.requestMIDIAccess; } });
+  await page.click('#midi-connect');
+  await page.waitForFunction(() => /isn't available in this browser/.test(document.getElementById('midi-status').textContent));
+  await page.close();
+});
+
+test('MIDI: a declined permission is explained', async () => {
+  const { page } = await open('/', { init: fakeMidi, initArg: { reject: true } });
+  await page.click('#midi-connect');
+  await page.waitForFunction(() => /Permission was declined/.test(document.getElementById('midi-status').textContent));
   await page.close();
 });
 

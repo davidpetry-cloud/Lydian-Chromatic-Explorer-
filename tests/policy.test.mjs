@@ -23,7 +23,8 @@ test('_headers sets the strict CSP', async () => {
   const headers = await read('_headers');
   assert.ok(headers.includes(`Content-Security-Policy: ${CSP}`));
   assert.ok(headers.includes("frame-ancestors 'none'"));
-  assert.ok(headers.includes('midi=()'));
+  assert.ok(headers.includes('midi=(self)'), 'MIDI allowed for this site only');
+  assert.ok(!headers.includes('midi=()'));
 });
 
 test('server applies headers', async () => {

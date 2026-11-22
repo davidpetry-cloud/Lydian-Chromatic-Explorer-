@@ -32,6 +32,7 @@ export function createMidiInput({
   }
 
   function onMessage({ data }) {
+    if (!data || data.length < 3) return; // note messages are three bytes
     const kind = data[0] & 0xf0;
     const note = data[1];
     if (kind === 0x90 && data[2] > 0) held.add(note);
@@ -62,7 +63,14 @@ export function createMidiInput({
     status(state);
   }
 
-  async function connect() {
+  let pending = null;
+  function connect() {
+    // A second press while the browser is still asking shares the same request.
+    if (!pending) pending = start().finally(() => { pending = null; });
+    return pending;
+  }
+
+  async function start() {
     if (listening) { attach(); return; }
     if (isFramed()) { status('framed'); return; }
     if (typeof requestAccess !== 'function') { status('unsupported'); return; }

@@ -234,7 +234,7 @@ export function mountPractice({ app, announce, initialText }) {
   document.getElementById('view-practice').addEventListener('pointerdown', () => app.transport.poke());
   document.getElementById('view-practice').addEventListener('keydown', () => app.transport.poke());
 
-  mountChordInput({
+  const chordInput = mountChordInput({
     rootSelect: $('chord-root'),
     qualitySelect: $('chord-quality'),
     text: $('chord-text'),
@@ -243,5 +243,9 @@ export function mountPractice({ app, announce, initialText }) {
     onChord,
   });
 
-  return { getTonic: () => state.analysis.tonic, getChord: () => state.chord };
+  return {
+    getTonic: () => state.analysis.tonic,
+    getChord: () => state.chord,
+    setChord: (chord, source) => chordInput.setChord(chord, source),
+  };
 }

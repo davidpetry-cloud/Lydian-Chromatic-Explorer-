@@ -48,6 +48,14 @@
           </div>
           <p class="hint" id="chord-hint">Try Cmaj7, Dm7, G7, B♭6 or F♯aug. Press Enter, or just pause.</p>
           <p class="error" id="chord-error" role="status"></p>
+          <div class="midi" id="midi">
+            <div class="control-row">
+              <button class="btn midi-connect" id="midi-connect" type="button" aria-pressed="false" aria-describedby="midi-status"><span aria-hidden="true">🎹</span> <span class="midi-label">Connect MIDI keyboard</span></button>
+              <button class="btn" id="midi-disconnect" type="button" hidden>Disconnect</button>
+            </div>
+            <p class="hint midi-status" id="midi-status" role="status">MIDI is off. Connect a keyboard to set chords by playing them.</p>
+            <p class="hint midi-heard" id="midi-heard" aria-live="polite"></p>
+          </div>
         </section>
 
         <section class="card result-card" aria-labelledby="h-result">

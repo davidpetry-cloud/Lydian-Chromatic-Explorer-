@@ -1,6 +1,6 @@
 // Chord input: root and type pickers kept in step with a text field that
-// reads chord symbols. Emits { chord, source: 'ui' }; MIDI input can later
-// be a second source of the same events.
+// reads chord symbols. Emits { chord, source } with source 'ui' or 'midi'
+// (MIDI chords arrive through setChord).
 import { parseNote, noteName, pc, asciiName } from '../theory/notes.js';
 import { QUALITIES, SUPPORTED_QUALITIES, parseChord } from '../theory/chords.js';
 import { writePref } from '../prefs.js';
@@ -57,4 +57,17 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
   text.value = initial.text;
   syncPickers(initial.chord);
   onChord({ chord: initial.chord, source: 'ui' });
+
+  return {
+    /** Set the chord from another input (MIDI): updates the field, pickers and saved chord. */
+    setChord(chord, source) {
+      clearTimeout(timer);
+      text.value = symbolFor(asciiName(chord.root), chord.quality);
+      error.textContent = '';
+      text.removeAttribute('aria-invalid');
+      syncPickers(chord);
+      writePref('lce.chord', text.value);
+      onChord({ chord, source });
+    },
+  };
 }

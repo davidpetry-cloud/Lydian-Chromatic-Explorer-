@@ -9,7 +9,9 @@ Concept of Tonal Organization*.
 - **Practice:** pick or type a chord (`Cmaj7`, `Dm7`, `G7`, `B♭6`…) to see
   its Lydian tonic and parent scale. All seven principal scales are laid out
   from ingoing to outgoing. Play any of them, with or without the tonic
-  held underneath, or loop the chord or a drone.
+  held underneath, or loop the chord or a drone. Got a MIDI keyboard?
+  Press **Connect MIDI keyboard** and just hold the chord (Chrome, Edge or
+  Firefox; Safari doesn't support MIDI).
 - **Gravity:** the twelve tones placed round the circle of fifths and
   numbered by their pull toward the tonic. Walk them with the arrow keys
   and hear each one against home.

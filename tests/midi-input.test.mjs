@@ -145,3 +145,21 @@ test('disconnect turns everything off', async () => {
   assert.equal(s.access.onstatechange, null);
   assert.equal(s.midi.isListening(), false);
 });
+
+test('two quick Connect presses ask the browser only once', async () => {
+  let asked = 0;
+  const s = setup({ requestAccess: async () => { asked += 1; return fakeAccess(); } });
+  await Promise.all([s.midi.connect(), s.midi.connect()]);
+  assert.equal(asked, 1);
+});
+
+test('short or odd MIDI messages are ignored safely', async () => {
+  const s = setup();
+  await s.midi.connect();
+  const input = s.access.inputs.get('in0');
+  send(input, [0xF8]);
+  send(input, [0x90]);
+  send(input, [0xF0, 0x7E, 0x7F, 0xF7]);
+  s.timers.advance(150);
+  assert.deepEqual(s.held.at(-1) ?? [], []);
+});
