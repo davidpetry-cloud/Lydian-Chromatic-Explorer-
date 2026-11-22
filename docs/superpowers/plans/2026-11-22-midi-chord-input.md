@@ -56,7 +56,7 @@
   - `[62,65,69,72]` → `Dm7`; `[55,59,62,65]` → `G7`
   - `[48,60,64,67,72]` → `C` (quality `maj`)
   - `[60,64]` → `null`; `[]` → `null`
-  - `[60,64,67,68]` → `.error` equals `"C E G A♭ isn't a chord I know yet."`
+  - `[60,62,64,65]` → `.error` equals `"C D E F isn't a chord I know yet."` (note: `[60,64,67,68]` is really A♭maj7♯5)
   - `[60,63,66,69]` (dim7, pending) → `.error`
   - `[66,70,73,76]` → `chord.symbol === 'F♯7'`
 - [ ] **Step 2: Run `node --test tests/recognize.test.mjs`.** Expected: FAIL (module missing).
