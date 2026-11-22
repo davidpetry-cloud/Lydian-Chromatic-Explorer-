@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-22. A snapshot of where the Lydian Chromatic Explorer
+Last updated: 2026-11-22 (after #9). A snapshot of where the Lydian Chromatic Explorer
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -28,7 +28,9 @@ stands, so any future session (or person) can pick up from here.
 | `wrangler.jsonc`, so preview builds work | #6 |
 | Dependabot updates: setup-node 7, checkout 7, Playwright 1.65.1 | #2, #3, #4 |
 | Electric-piano sound; scale cards select without playing | #7 |
-| MIDI keyboard: hold a chord to set it (bass note = root, inversions understood) | MIDI PR |
+| MIDI keyboard: hold a chord to set it (bass note = root, inversions understood); review fixes: uneven releases, repeated strikes, unplugging, one announcement per chord, correct spellings | #8 |
+| Each scale card also reads "From C: … · C Dorian" (major-mode names), with Start on: Chord root for playback | #9 |
+| MIDI accepts seventh-family chords without the 5th (G B F = G7, G B F A = G9) | #9 |
 
 ## Decisions to remember
 
@@ -40,6 +42,15 @@ stands, so any future session (or person) can pick up from here.
   limits deploys.
 - **Sound** is synthesized in the browser (FM electric piano). There are no
   sample files to license.
+- **Two names for one scale:** Russell names a scale from the Lydian tonic
+  (Cm7 → E♭ Lydian); cards also show it from the chord root (C Dorian),
+  because players read it that way. Only the seven major-scale modes get
+  mode names.
+- **MIDI:** the bass note is the root; exact matches are tried before a
+  missing 5th; rootless voicings are not guessed; chords settle 250 ms
+  after the last key goes down; lifting keys never changes the chord.
+- **Model choice:** Opus (medium) for theory and feature work and reviews;
+  Sonnet (medium) for small follow-ups.
 - Sound starts only from a press. Picking a scale card only selects it.
   Changing the chord while something plays switches to the new chord.
   Gravity tones play over a tonic drone.
@@ -54,5 +65,9 @@ stands, so any future session (or person) can pick up from here.
 3. **Horizontal scales:** the theory's horizontal side isn't in the app yet.
 4. **Custom domain** (for example `lydian.<your domain>`), if David buys one.
 5. **Cloudflare API connector** (`https://mcp.cloudflare.com/mcp`), which
-   could read build logs. The older Cloudflare Developer Platform connector
-   is in use and works.
+   could read build logs. David chose to keep using the older Cloudflare
+   Developer Platform connector, which works for status checks.
+6. **Mode names beyond the major modes** (melodic-minor and other modes):
+   names vary between sources, so they would need sourcing first.
+7. **Site wording:** David's site `CLAUDE.md` still says "Cloudflare Pages";
+   fix it in the next real site update (Netlify deploys cost credits).
