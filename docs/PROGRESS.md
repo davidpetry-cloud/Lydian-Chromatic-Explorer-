@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-21. A snapshot of where the Lydian Chromatic Explorer
+Last updated: 2026-11-22. A snapshot of where the Lydian Chromatic Explorer
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -27,7 +27,8 @@ stands, so any future session (or person) can pick up from here.
 | Live address in README and CLAUDE.md | #5 |
 | `wrangler.jsonc`, so preview builds work | #6 |
 | Dependabot updates: setup-node 7, checkout 7, Playwright 1.65.1 | #2, #3, #4 |
-| Electric-piano sound; scale cards select without playing | #7 (open when this was written) |
+| Electric-piano sound; scale cards select without playing | #7 |
+| MIDI keyboard: hold a chord to set it (bass note = root, inversions understood) | MIDI PR |
 
 ## Decisions to remember
 
@@ -47,8 +48,9 @@ stands, so any future session (or person) can pick up from here.
 
 1. **Book check:** with Russell's 4th edition, confirm or correct the
    "Sources differ" chords and the dominant mapping, then add the chords.
-2. **MIDI input:** the chord input already has a slot for a second input
-   source (see the design, section 6.6).
+2. **More MIDI** (David chose these out for now): lighting the on-screen
+   keys from MIDI, inside/outside feedback while playing, playing MIDI
+   notes through the app's sound.
 3. **Horizontal scales:** the theory's horizontal side isn't in the app yet.
 4. **Custom domain** (for example `lydian.<your domain>`), if David buys one.
 5. **Cloudflare API connector** (`https://mcp.cloudflare.com/mcp`), which
