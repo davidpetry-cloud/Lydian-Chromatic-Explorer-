@@ -390,6 +390,46 @@ test('MIDI: hold a chord on the keyboard and it becomes the chord', async () => 
   await page.close();
 });
 
+test('MIDI: striking the same chord again does not restart or re-announce', async () => {
+  const { page } = await open('/', { init: fakeMidi });
+  await page.click('#midi-connect');
+  await page.waitForFunction(() => /Listening/.test(document.getElementById('midi-status').textContent));
+  await page.evaluate(() => window.__midi.play([62, 65, 69, 72]));
+  await page.waitForFunction(() => /Lydian tonic F/.test(document.getElementById('live').textContent));
+  await page.evaluate(() => {
+    window.__liveChanges = 0;
+    new MutationObserver(() => { window.__liveChanges += 1; }).observe(document.getElementById('live'), { childList: true, characterData: true, subtree: true });
+  });
+  await page.evaluate(() => { window.__midi.release(); window.__midi.play([62, 65, 69, 72]); });
+  await page.waitForTimeout(600);
+  assert.equal(await page.evaluate(() => window.__liveChanges), 0);
+  await page.close();
+});
+
+test('MIDI: one clear announcement per chord, and the heard line is not a second live region', async () => {
+  const { page } = await open('/', { init: fakeMidi });
+  assert.equal(await page.getAttribute('#midi-heard', 'aria-live'), null);
+  await page.click('#midi-connect');
+  await page.waitForFunction(() => /Listening/.test(document.getElementById('midi-status').textContent));
+  await page.click('#play-scale');
+  await page.evaluate(() => window.__midi.play([55, 59, 62, 65]));
+  await page.waitForFunction(() => /G7: Lydian tonic F/.test(document.getElementById('live').textContent));
+  assert.match(await page.textContent('#live'), /Playing F Lydian/);
+  await page.evaluate(() => window.__midi.play([60, 62, 64, 65]));
+  await page.waitForFunction(() => /isn't a chord I know yet/.test(document.getElementById('live').textContent));
+  await page.click('#stop');
+  await page.close();
+});
+
+test('MIDI: the button label stays fixed; its pressed state tells the story', async () => {
+  const { page } = await open('/', { init: fakeMidi });
+  await page.click('#midi-connect');
+  await page.waitForFunction(() => /Listening/.test(document.getElementById('midi-status').textContent));
+  assert.match(await page.textContent('#midi-connect'), /Connect MIDI keyboard/);
+  assert.equal(await page.getAttribute('#midi-connect', 'aria-describedby'), null);
+  await page.close();
+});
+
 test('MIDI: the Connect button is a true toggle', async () => {
   const { page } = await open('/', { init: fakeMidi });
   await page.click('#midi-connect');

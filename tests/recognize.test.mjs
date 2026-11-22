@@ -47,3 +47,14 @@ test('roots are spelled like the root picker', () => {
   assert.equal(sym([66, 70, 73, 76]), 'F♯7');
   assert.equal(recognizeChord([60, 64, 67, 71]).heard, 'C E G B');
 });
+
+test('the heard line spells notes the way the chord spells them', () => {
+  assert.equal(recognizeChord([64, 68, 71]).heard, 'E G♯ B');
+  assert.equal(recognizeChord([69, 73, 76]).heard, 'A C♯ E');
+  assert.equal(recognizeChord([62, 65, 69, 72]).heard, 'D F A C');
+});
+
+test('an augmented triad is named from the bass', () => {
+  assert.equal(sym([60, 64, 68]), 'Caug');
+  assert.equal(sym([64, 68, 72]), 'Eaug');
+});

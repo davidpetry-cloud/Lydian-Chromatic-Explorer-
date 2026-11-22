@@ -57,11 +57,16 @@ export function mountPractice({ app, announce, initialText }) {
     $('now-playing').textContent = pattern ? `Playing: ${pattern.label}` : SILENT;
   }
 
+  // A chord change while playing is announced together with what plays next,
+  // so one message can't overwrite the other.
+  let pendingChordMessage = null;
+
   async function start(pattern) {
     await app.engine.resume();
     app.engine.setVolume(Number($('volume').value) / 100);
     app.transport.play(pattern);
-    announce(pattern.label);
+    announce(pendingChordMessage ? `${pendingChordMessage} Playing ${pattern.label}.` : pattern.label);
+    pendingChordMessage = null;
   }
 
   const scaleRunLabel = (bpm) => `${scaleLabel()}, ${DIRECTION_WORD[$('direction').value]}, ${bpm} bpm`;
@@ -175,9 +180,10 @@ export function mountPractice({ app, announce, initialText }) {
     renderLadder(tones);
     selectScale(state.scaleId);
     app.events.dispatchEvent(new CustomEvent('tonic', { detail: state.analysis.tonic }));
-    if (!firstChord) announce(`${chord.symbol}: Lydian tonic ${noteName(state.analysis.tonic)}, parent scale ${$('parent-name').textContent}.`);
+    const message = `${chord.symbol}: Lydian tonic ${noteName(state.analysis.tonic)}, parent scale ${$('parent-name').textContent}.`;
+    if (!firstChord && app.transport.isPlaying()) { pendingChordMessage = message; restartIfPlaying(); }
+    else if (!firstChord) announce(message);
     firstChord = false;
-    if (app.transport.isPlaying()) restartIfPlaying();
   }
 
   const gate = createFlashGate();

@@ -4,19 +4,19 @@
 import { createMidiInput } from '../input/midi-input.js';
 import { recognizeChord } from '../input/recognize.js';
 
-export function mountMidiPanel({ setChord }) {
+export function mountMidiPanel({ setChord, announce, onActivity = () => {} }) {
   const connect = document.getElementById('midi-connect');
   const disconnect = document.getElementById('midi-disconnect');
   const status = document.getElementById('midi-status');
   const heard = document.getElementById('midi-heard');
-  const label = connect.querySelector('.midi-label');
 
   function show({ state, message }) {
     const on = state === 'listening' || state === 'no-devices';
     status.textContent = message;
     connect.setAttribute('aria-pressed', String(on));
     connect.classList.toggle('is-listening', state === 'listening');
-    label.textContent = on ? 'Listening' : 'Connect MIDI keyboard';
+    // The label stays put; aria-pressed and the status line say what's happening.
+    if (!on && document.activeElement === disconnect) connect.focus();
     disconnect.hidden = !on;
     if (!on) heard.textContent = '';
   }
@@ -25,12 +25,13 @@ export function mountMidiPanel({ setChord }) {
     requestAccess: typeof navigator.requestMIDIAccess === 'function' ? navigator.requestMIDIAccess.bind(navigator) : null,
     isFramed: () => window.top !== window.self,
     onStatus: show,
+    onActivity,
     onHeld(notes) {
       const result = recognizeChord(notes);
       if (!result) return; // fewer than three notes, or keys released: keep the chord
-      if (result.error) { heard.textContent = result.error; return; }
+      if (result.error) { heard.textContent = result.error; announce(result.error); return; }
       heard.textContent = `Heard ${result.heard} → ${result.chord.symbol}`;
-      setChord(result.chord, 'midi');
+      setChord(result.chord, 'midi'); // announced by the Practice view, once
     },
   });
 

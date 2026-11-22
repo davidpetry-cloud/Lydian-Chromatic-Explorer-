@@ -38,7 +38,8 @@ set that chord, the same as typing it, so their hands stay on the keys.
 
    A Disconnect button sits beside it. Hot-plugging updates the device list.
 3. **Recognition** (pure function, `public/js/input/recognize.js`):
-   - It runs on the set of held notes, 150 ms after the last change, when 3
+   - It runs on the set of held notes, 250 ms after the last key goes down
+     (raised from 150 ms after review, so slow rolls count once), when 3
      or more distinct pitch classes are held.
    - It matches the pitch-class set exactly against `SUPPORTED_QUALITIES`.
      The root candidates are the lowest note first, then the other held

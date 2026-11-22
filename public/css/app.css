@@ -178,7 +178,7 @@ input[type="range"] { min-height: 44px; accent-color: var(--amber); }
 .midi-status, .midi-heard { margin: 0 0 4px; }
 .midi-heard { font-family: var(--mono); color: var(--text); min-height: 1.6em; }
 .midi-connect.is-listening { border-color: var(--teal); box-shadow: inset 0 0 0 1px var(--teal); }
-.midi-connect.is-listening .midi-label::before { content: "● "; color: var(--teal); }
+.midi-connect.is-listening::after { content: "● Listening"; color: var(--teal); font-size: var(--fs-sm); }
 
 /* ---------- Gravity view ---------- */
 .gravity-layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }

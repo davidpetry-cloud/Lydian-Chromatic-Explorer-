@@ -13,6 +13,7 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
   for (const id of SUPPORTED_QUALITIES) qualitySelect.add(new Option(QUALITIES[id].label, id));
 
   let timer = null;
+  let current = initial.chord;
 
   function syncPickers(chord) {
     const match = ROOTS.find((r) => pc(parseNote(r)) === pc(chord.root));
@@ -24,6 +25,7 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
     error.textContent = '';
     text.removeAttribute('aria-invalid');
     syncPickers(chord);
+    current = chord;
     writePref('lce.chord', text.value.trim());
     onChord({ chord, source: 'ui' });
   }
@@ -60,14 +62,18 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
 
   return {
     /** Set the chord from another input (MIDI): updates the field, pickers and saved chord. */
+    /** Returns false (and does nothing) when it's the chord already set. */
     setChord(chord, source) {
+      if (current && current.symbol === chord.symbol) return false;
       clearTimeout(timer);
       text.value = symbolFor(asciiName(chord.root), chord.quality);
       error.textContent = '';
       text.removeAttribute('aria-invalid');
       syncPickers(chord);
+      current = chord;
       writePref('lce.chord', text.value);
       onChord({ chord, source });
+      return true;
     },
   };
 }

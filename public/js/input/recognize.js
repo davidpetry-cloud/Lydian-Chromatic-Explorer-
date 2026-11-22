@@ -4,7 +4,7 @@
 // if the bass doesn't make a known chord (an inversion), the other notes
 // are tried in order up from the bass. Only verified chord types count.
 import { parseNote, pc, noteName, asciiName, DEGREE_SEMITONES } from '../theory/notes.js';
-import { QUALITIES, SUPPORTED_QUALITIES, parseChord } from '../theory/chords.js';
+import { QUALITIES, SUPPORTED_QUALITIES, parseChord, chordNotes } from '../theory/chords.js';
 
 const ROOTS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'].map(parseNote);
 const rootFor = (pitchClass) => ROOTS.find((n) => pc(n) === pitchClass);
@@ -25,7 +25,11 @@ export function recognizeChord(midiNotes) {
   for (const root of pcs) {
     const shape = key(new Set(pcs.map((p) => (p - root + 12) % 12)));
     const match = SHAPES.find((s) => s.shape === shape);
-    if (match) return { chord: parseChord(asciiName(rootFor(root)) + QUALITIES[match.id].aliases[0]), heard };
+    if (match) {
+      const chord = parseChord(asciiName(rootFor(root)) + QUALITIES[match.id].aliases[0]);
+      // Spell what was heard the way the chord spells it (E G♯ B, not E A♭ B).
+      return { chord, heard: chordNotes(chord).map(noteName).join(' ') };
+    }
   }
   return { error: `${heard} isn't a chord I know yet.`, heard };
 }

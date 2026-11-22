@@ -14,17 +14,24 @@ const MESSAGES = {
 };
 
 export function createMidiInput({
-  requestAccess, isFramed, onHeld, onStatus,
+  requestAccess, isFramed, onHeld, onStatus, onActivity = () => {},
   setTimer = setTimeout, clearTimer = clearTimeout,
-  idleMs = 20 * 60 * 1000, settleMs = 150,
+  idleMs = 20 * 60 * 1000, settleMs = 250,
 }) {
   let access = null;
   let listening = false;
   const held = new Set();
   let settleTimer = null;
   let idleTimer = null;
+  let lastStatus = '';
 
-  const status = (state, message = MESSAGES[state]) => onStatus({ state, message });
+  // Say each status once: re-attaching after a device change often repeats it.
+  function status(state, message = MESSAGES[state]) {
+    const key = `${state}|${message}`;
+    if (key === lastStatus) return;
+    lastStatus = key;
+    onStatus({ state, message });
+  }
 
   function resetIdle() {
     clearTimer(idleTimer);
@@ -35,16 +42,20 @@ export function createMidiInput({
     if (!data || data.length < 3) return; // note messages are three bytes
     const kind = data[0] & 0xf0;
     const note = data[1];
-    if (kind === 0x90 && data[2] > 0) held.add(note);
+    const pressed = kind === 0x90 && data[2] > 0;
+    if (pressed) held.add(note);
     else if (kind === 0x80 || kind === 0x90) held.delete(note);
     else return;
     resetIdle();
+    onActivity();
     clearTimer(settleTimer);
-    settleTimer = setTimer(() => onHeld([...held].sort((a, b) => a - b)), settleMs);
+    // Report only after a key goes down: lifting fingers unevenly must not
+    // turn Cmaj7 into C on the way out.
+    if (pressed) settleTimer = setTimer(() => onHeld([...held].sort((a, b) => a - b)), settleMs);
   }
 
   function attach() {
-    const inputs = [...access.inputs.values()];
+    const inputs = [...access.inputs.values()].filter((i) => i.state !== 'disconnected');
     inputs.forEach((input) => { input.onmidimessage = onMessage; });
     if (inputs.length) status('listening', `Listening to ${inputs.map((i) => i.name || 'a MIDI keyboard').join(', ')}. Hold a chord.`);
     else status('no-devices');
@@ -82,7 +93,8 @@ export function createMidiInput({
       return;
     }
     listening = true;
-    access.onstatechange = () => { if (listening) attach(); };
+    // A keyboard came or went: forget held notes (a pulled cable never sends note-offs).
+    access.onstatechange = () => { if (listening) { held.clear(); attach(); } };
     attach();
     resetIdle();
   }

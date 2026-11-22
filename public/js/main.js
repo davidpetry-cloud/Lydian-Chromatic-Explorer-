@@ -48,7 +48,7 @@ mountThemeToggle(document.getElementById('themeToggle'));
 mountReference();
 app.gravity = mountGravity({ app, announce });
 app.practice = mountPractice({ app, announce, initialText: initialChord() });
-mountMidiPanel({ setChord: app.practice.setChord });
+mountMidiPanel({ setChord: app.practice.setChord, announce, onActivity: () => app.transport.poke() });
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') app.transport.stop('hidden');

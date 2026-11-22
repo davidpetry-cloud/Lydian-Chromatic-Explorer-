@@ -94,7 +94,7 @@ test('a rolled chord is reported once, after it settles', async () => {
   send(input, [0x90, 60, 90]); s.timers.advance(50);
   send(input, [0x90, 64, 90]); s.timers.advance(50);
   send(input, [0x91, 67, 90]);
-  s.timers.advance(150);
+  s.timers.advance(300);
   assert.deepEqual(s.held, [[60, 64, 67]]);
 });
 
@@ -106,11 +106,67 @@ test('note-off and velocity-0 note-on both release; other messages are ignored',
   send(input, [0xB0, 1, 64]);
   send(input, [0x90, 64, 0]);
   send(input, [0x80, 60, 0]);
-  s.timers.advance(150);
-  assert.deepEqual(s.held.at(-1), [67]);
-  send(input, [0x80, 67, 0]);
-  s.timers.advance(150);
-  assert.deepEqual(s.held.at(-1), []);
+  send(input, [0x90, 72, 100]);
+  s.timers.advance(300);
+  assert.deepEqual(s.held.at(-1), [67, 72]);
+});
+
+test('lifting fingers does not report a smaller chord', async () => {
+  const s = setup();
+  await s.midi.connect();
+  const input = s.access.inputs.get('in0');
+  [60, 64, 67, 71].forEach((n) => send(input, [0x90, n, 100]));
+  s.timers.advance(300);
+  send(input, [0x80, 71, 0]);
+  s.timers.advance(300);
+  send(input, [0x80, 60, 0]);
+  s.timers.advance(300);
+  assert.deepEqual(s.held, [[60, 64, 67, 71]]);
+});
+
+test('a slow roll (gaps up to 200 ms) is still one chord', async () => {
+  const s = setup();
+  await s.midi.connect();
+  const input = s.access.inputs.get('in0');
+  for (const n of [60, 64, 67, 71]) { send(input, [0x90, n, 100]); s.timers.advance(200); }
+  s.timers.advance(300);
+  assert.deepEqual(s.held, [[60, 64, 67, 71]]);
+});
+
+test('unplugging while holding keys forgets those notes', async () => {
+  const s = setup();
+  await s.midi.connect();
+  const input = s.access.inputs.get('in0');
+  [60, 64].forEach((n) => send(input, [0x90, n, 100]));
+  s.access.onstatechange?.({});
+  [67, 71, 74].forEach((n) => send(input, [0x90, n, 100]));
+  s.timers.advance(300);
+  assert.deepEqual(s.held.at(-1), [67, 71, 74]);
+});
+
+test('ports the browser reports as disconnected do not count', async () => {
+  const s = setup();
+  await s.midi.connect();
+  s.access.inputs.get('in0').state = 'disconnected';
+  s.access.onstatechange?.({});
+  assert.equal(s.last().state, 'no-devices');
+});
+
+test('the same status is not repeated', async () => {
+  const s = setup();
+  await s.midi.connect();
+  const before = s.statuses.length;
+  s.access.onstatechange?.({});
+  assert.equal(s.statuses.length, before);
+});
+
+test('every note message reports activity, so playback stays awake', async () => {
+  let pokes = 0;
+  const timers = fakeTimers(); const access = fakeAccess();
+  const midi = createMidiInput({ requestAccess: async () => access, isFramed: () => false, onHeld() {}, onStatus() {}, onActivity: () => { pokes += 1; }, setTimer: timers.setTimer, clearTimer: timers.clearTimer });
+  await midi.connect();
+  send(access.inputs.get('in0'), [0x90, 60, 100]);
+  assert.equal(pokes, 1);
 });
 
 test('pressing Connect twice does not double-report', async () => {
@@ -118,7 +174,7 @@ test('pressing Connect twice does not double-report', async () => {
   await s.midi.connect();
   await s.midi.connect();
   send(s.access.inputs.get('in0'), [0x90, 60, 100]);
-  s.timers.advance(150);
+  s.timers.advance(300);
   assert.equal(s.held.length, 1);
 });
 
