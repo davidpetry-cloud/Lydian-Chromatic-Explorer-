@@ -31,6 +31,7 @@ stands, so any future session (or person) can pick up from here.
 | MIDI keyboard: hold a chord to set it (bass note = root, inversions understood); review fixes: uneven releases, repeated strikes, unplugging, one announcement per chord, correct spellings | #8 |
 | Each scale card also reads "From C: … · C Dorian" (major-mode names), with Start on: Chord root for playback | #9 |
 | MIDI accepts seventh-family chords without the 5th (G B F = G7, G B F A = G9) | #9 |
+| Site `CLAUDE.md`: new apps go on Cloudflare Workers; the Explorer's live address | david-petry-site#27 |
 
 ## Decisions to remember
 
@@ -69,5 +70,3 @@ stands, so any future session (or person) can pick up from here.
    Developer Platform connector, which works for status checks.
 6. **Mode names beyond the major modes** (melodic-minor and other modes):
    names vary between sources, so they would need sourcing first.
-7. **Site wording:** David's site `CLAUDE.md` still says "Cloudflare Pages";
-   fix it in the next real site update (Netlify deploys cost credits).
