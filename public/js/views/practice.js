@@ -3,6 +3,7 @@
 // practice controls. Every sound is mirrored on screen and in text.
 import { noteName, spokenName, pc, ascendingMidis, degreeLabel } from '../theory/notes.js';
 import { scaleById, scaleNotes } from '../theory/scales.js';
+import { modeFrom } from '../theory/modes.js';
 import { gravityRank } from '../theory/gravity.js';
 import { QUALITIES, chordNotes, lydianAnalysis } from '../theory/chords.js';
 import { mountChordInput } from '../input/chord-input.js';
@@ -35,8 +36,15 @@ export function mountPractice({ app, announce, initialText }) {
     return [root, root + 7];
   }
 
+  // The selected scale read from the chord root, when "Start on: Chord root" is chosen and the root is in it.
+  function fromRoot() {
+    if ($('start-on').value !== 'root') return null;
+    return modeFrom(scaleNotes(state.analysis.tonic, state.scaleId), state.chord.root);
+  }
+
   function scaleSteps() {
-    const up = ascendingMidis(scaleNotes(state.analysis.tonic, state.scaleId), 4);
+    const rooted = fromRoot();
+    const up = ascendingMidis(rooted ? rooted.notes : scaleNotes(state.analysis.tonic, state.scaleId), 4);
     const dir = $('direction').value;
     const seq = dir === 'down' ? [...up].reverse() : dir === 'updown' ? [...up, ...up.slice(1, -1).reverse()] : up;
     return seq.map((m) => [m]);
@@ -69,7 +77,12 @@ export function mountPractice({ app, announce, initialText }) {
     pendingChordMessage = null;
   }
 
-  const scaleRunLabel = (bpm) => `${scaleLabel()}, ${DIRECTION_WORD[$('direction').value]}, ${bpm} bpm`;
+  function scaleRunLabel(bpm) {
+    const rooted = fromRoot();
+    const root = noteName(state.chord.root);
+    const from = rooted ? ` from ${root}${rooted.name ? ` (${root} ${rooted.name})` : ''}` : '';
+    return `${scaleLabel()}${from}, ${DIRECTION_WORD[$('direction').value]}, ${bpm} bpm`;
+  }
   const chordLoopLabel = (bpm) => `${state.chord.symbol} chord loop, ${bpm} bpm`;
 
   function playScale() {
@@ -104,6 +117,14 @@ export function mountPractice({ app, announce, initialText }) {
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) keyboard.flash(midi, 600);
   }
 
+  // "From C: C D E♭ F G A B♭ · C Dorian": the same notes, read from the chord root.
+  function fromRootLine(notes) {
+    const root = noteName(state.chord.root);
+    const m = modeFrom(notes, state.chord.root);
+    if (!m) return `From ${root}: ${root} isn't in this scale`;
+    return `From ${root}: ${names(m.notes)}${m.name ? ` · ${root} ${m.name}` : ''}`;
+  }
+
   function renderLadder(chordTones) {
     ladder.replaceChildren();
     state.analysis.ladder.forEach((row, i) => {
@@ -119,6 +140,7 @@ export function mountPractice({ app, announce, initialText }) {
         ['span', 'ladder-notes mono', names(row.notes)],
         ['span', 'ladder-degrees mono', row.scale.degrees.map(degreeLabel).join(' ')],
         ['span', `ladder-fit ${row.holdsChord ? 'fit-holds' : 'fit-changes'}`, `${row.holdsChord ? '●' : '◐'} ${fitLine(row, chordTones)}`],
+        ['span', 'ladder-from', fromRootLine(row.notes)],
       ];
       const ids = parts.map((_, k) => `ladder-${i}-${k}`);
       parts.forEach(([tag, cls, text], k) => {
@@ -129,7 +151,7 @@ export function mountPractice({ app, announce, initialText }) {
         btn.append(s);
       });
       btn.setAttribute('aria-labelledby', `${ids[0]} ${ids[1]}`);
-      btn.setAttribute('aria-describedby', `${ids[4]} ${ids[2]}`);
+      btn.setAttribute('aria-describedby', `${ids[4]} ${ids[2]} ${ids[5]}`);
       // Picking a card only selects it. Sound starts from Play scale; if a scale
       // is already sounding, it switches to the new one.
       btn.addEventListener('click', () => {
@@ -217,6 +239,7 @@ export function mountPractice({ app, announce, initialText }) {
   $('stop').addEventListener('click', () => app.transport.stop('user'));
   $('direction').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
   $('hold-tonic').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
+  $('start-on').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
 
   $('bpm').addEventListener('input', () => {
     state.bpm = Number($('bpm').value);

@@ -58,3 +58,24 @@ test('an augmented triad is named from the bass', () => {
   assert.equal(sym([60, 64, 68]), 'Caug');
   assert.equal(sym([64, 68, 72]), 'Eaug');
 });
+
+test('a missing 5th is allowed for seventh-family chords', () => {
+  assert.equal(sym([55, 59, 65, 69]), 'G9');     // G B F A
+  assert.equal(sym([55, 59, 65]), 'G7');          // G B F shell
+  assert.equal(sym([60, 64, 71]), 'Cmaj7');       // C E B
+  assert.equal(sym([60, 63, 70]), 'Cm7');         // C E♭ B♭
+  assert.equal(sym([55, 59, 64, 65, 69]), 'G13'); // G B E F A
+});
+
+test('exact matches still win over a missing-5th reading', () => {
+  assert.equal(sym([60, 64, 67, 71]), 'Cmaj7');
+  assert.equal(sym([57, 60, 64, 67]), 'Am7');
+});
+
+test('rootless voicings are still not guessed', () => {
+  assert.ok(recognizeChord([65, 71, 76]).error); // F B E
+});
+
+test('the heard line lists only the notes actually played', () => {
+  assert.equal(recognizeChord([55, 59, 65, 69]).heard, 'G B F A');
+});

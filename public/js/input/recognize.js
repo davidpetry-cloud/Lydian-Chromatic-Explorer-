@@ -10,10 +10,17 @@ const ROOTS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'].
 const rootFor = (pitchClass) => ROOTS.find((n) => pc(n) === pitchClass);
 const key = (set) => [...set].sort((a, b) => a - b).join(',');
 
-const SHAPES = SUPPORTED_QUALITIES.map((id) => ({
-  id,
-  shape: key(new Set(QUALITIES[id].degrees.map((d) => DEGREE_SEMITONES[d] % 12))),
-}));
+const semis = (id) => new Set(QUALITIES[id].degrees.map((d) => DEGREE_SEMITONES[d] % 12));
+const SHAPES = SUPPORTED_QUALITIES.map((id) => ({ id, shape: key(semis(id)) }));
+
+// Players often leave out the perfect 5th of seventh-family chords
+// (sources: docs/theory-sources.md). These are tried only after every exact
+// match fails, so a full voicing always wins.
+const FIFTH_OPTIONAL = ['maj7', '6', '69', 'm7', '7', '9', '13'];
+const NO_FIFTH_SHAPES = SHAPES
+  .filter((s) => FIFTH_OPTIONAL.includes(s.id))
+  .map(({ id }) => { const set = semis(id); set.delete(7); return { id, shape: key(set) }; })
+  .filter((s) => s.shape.split(',').length >= 3);
 
 export function recognizeChord(midiNotes) {
   if (!midiNotes.length) return null;
@@ -22,14 +29,20 @@ export function recognizeChord(midiNotes) {
   const pcs = [...new Set(midiNotes.map((m) => ((m % 12) + 12) % 12))].sort((a, b) => up(a) - up(b));
   if (pcs.length < 3) return null;
   const heard = pcs.map((p) => noteName(rootFor(p))).join(' ');
-  for (const root of pcs) {
-    const shape = key(new Set(pcs.map((p) => (p - root + 12) % 12)));
-    const match = SHAPES.find((s) => s.shape === shape);
-    if (match) {
-      const chord = parseChord(asciiName(rootFor(root)) + QUALITIES[match.id].aliases[0]);
-      // Spell what was heard the way the chord spells it (E G♯ B, not E A♭ B).
-      return { chord, heard: chordNotes(chord).map(noteName).join(' ') };
+  const find = (shapes) => {
+    for (const root of pcs) {
+      const shape = key(new Set(pcs.map((p) => (p - root + 12) % 12)));
+      const match = shapes.find((s) => s.shape === shape);
+      if (match) return { root, match };
     }
+    return null;
+  };
+  const found = find(SHAPES) ?? find(NO_FIFTH_SHAPES);
+  if (found) {
+    const chord = parseChord(asciiName(rootFor(found.root)) + QUALITIES[found.match.id].aliases[0]);
+    // Spell what was played the way the chord spells it (E G♯ B, not E A♭ B),
+    // listing only notes actually held (a left-out 5th isn't "heard").
+    return { chord, heard: chordNotes(chord).filter((n) => pcs.includes(pc(n))).map(noteName).join(' ') };
   }
   return { error: `${heard} isn't a chord I know yet.`, heard };
 }

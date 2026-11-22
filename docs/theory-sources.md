@@ -41,6 +41,13 @@ it. Where sources disagree, or only one source speaks to it, the row stays
 | minor 7, minor | ♭3 (a minor third above the root) | Lydian | italianpiano, gct-f-lydian | italianpiano: Russell derives the minor seventh chord from the sixth degree of the Lydian scale. gct-f-lydian confirms Dm7 is the vi chord of F Lydian (the structure, not Russell's attribution). | Verified, with a weaker second source. **Book check wanted.** |
 | augmented, maj7♯5 | 1 | Lydian Augmented | italianpiano, wikipedia-lydian-chord | Russell includes Lydian Augmented because it gives the augmented chord, which the Lydian scale lacks; Wikipedia ties the Lydian augmented chord to the Lydian augmented scale. | Verified |
 
+## MIDI recognition and mode names (2026-11-22)
+
+| Fact | Value in the app | Sources | What they say | Verdict |
+|---|---|---|---|---|
+| The perfect 5th may be left out of seventh-family chords | MIDI recognition accepts maj7, 6, 6/9, m7, 7, 9 and 13 without the 5th, only after exact matches fail | wikipedia-seventh-chord, tjps-shell | In jazz the fifth of a seventh chord is often omitted; shell voicings keep root, 3rd and 7th and drop the 5th. | Agree |
+| The seven modes of the major scale, and their names | Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian, as rotations of the Lydian scale (computed in `modes.js`) | wikipedia-mode, berklee-modes | Each mode is the major scale started on a different degree; Dorian is natural minor with a raised 6th, Mixolydian lowers the 7th, and so on. | Agree. Only these seven get names; other scales show their notes from the root without a name. |
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.

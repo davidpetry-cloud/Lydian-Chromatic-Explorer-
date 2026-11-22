@@ -337,6 +337,18 @@ test('clicking a scale card selects it without playing', async () => {
   await page.close();
 });
 
+test('scale cards show the notes from the chord root, with the familiar mode name', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Cm7');
+  const first = page.locator('.ladder-card').first();
+  assert.match(await first.textContent(), /From C: C D E♭ F G A B♭ · C Dorian/);
+  await page.selectOption('#start-on', 'root');
+  await page.click('#play-scale');
+  assert.match(await page.textContent('#now-playing'), /E♭ Lydian from C \(C Dorian\)/);
+  await page.click('#stop');
+  await page.close();
+});
+
 // ---------- MIDI (simulated keyboard) ----------
 
 // Runs inside the page: Playwright passes only the function's text, so
