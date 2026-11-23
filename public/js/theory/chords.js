@@ -80,12 +80,23 @@ export function parseChord(text, { allowPending = false } = {}) {
   // Spaces don't matter, and word spellings (Maj, MIN, Aug…) are read in any
   // case. Single letters keep their case, so M7 (major) ≠ m7 (minor).
   const rest = m[3].replace(/\s+/g, '').replace(/^(maj|min|dim|aug|alt|sus)/i, (w) => w.toLowerCase());
-  const id = ALIAS_TO_ID.get(rest);
+  // A slash names the bass note (Cmaj7/E). Try the whole text as a chord
+  // type first, because 6/9 has a slash of its own.
+  let qualityText = rest;
+  let bass = root;
+  if (!ALIAS_TO_ID.has(rest) && rest.includes('/')) {
+    const at = rest.lastIndexOf('/');
+    qualityText = rest.slice(0, at);
+    bass = parseNote(rest.slice(at + 1));
+    if (!bass) return { error: `I don't know “${rest.slice(at + 1)}” as a bass note. Try A to G, with # or b.` };
+  }
+  const id = ALIAS_TO_ID.get(qualityText);
   const quality = id && QUALITIES[id];
   if (!quality || !quality.tonicDegree || (quality.status !== 'verified' && !allowPending)) {
     return { error: `“${input}” isn't a chord I know yet. See Reference for the list.` };
   }
-  const chord = { root, quality: id, symbol: noteName(root) + rest };
+  const slash = bass === root ? '' : `/${noteName(bass)}`;
+  const chord = { root, quality: id, symbol: noteName(root) + qualityText + slash, bass };
   try {
     lydianAnalysis(chord);
   } catch (e) {

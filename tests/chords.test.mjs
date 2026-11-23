@@ -134,3 +134,33 @@ test('new verified chord types: 7♯11 and extended chords', () => {
 test('19 chord types are verified now', () => {
   assert.equal(SUPPORTED_QUALITIES.length, 19);
 });
+
+test('slash chords carry a bass note and keep the analysis', () => {
+  const c = parseChord('Cmaj7/E');
+  assert.equal(noteName(c.bass), 'E');
+  assert.equal(c.symbol, 'Cmaj7/E');
+  assert.equal(noteName(lydianAnalysis(c).tonic), 'C');
+  const p = parseChord('Dm7/G');
+  assert.equal(noteName(p.bass), 'G');
+  assert.equal(noteName(lydianAnalysis(p).tonic), 'F');
+  assert.equal(noteName(parseChord('C/Bb').bass), 'B♭');
+  assert.equal(noteName(parseChord('C/B♭').bass), 'B♭');
+});
+
+test('without a slash the bass is the root', () => {
+  const c = parseChord('Cmaj7');
+  assert.equal(noteName(c.bass), 'C');
+  assert.equal(c.symbol, 'Cmaj7');
+});
+
+test('6/9 is still a chord type, and can take a slash bass too', () => {
+  assert.equal(parseChord('C6/9').quality, '69');
+  assert.equal(noteName(parseChord('C6/9').bass), 'C');
+  const c = parseChord('C6/9/E');
+  assert.equal(c.quality, '69');
+  assert.equal(noteName(c.bass), 'E');
+});
+
+test('a bad bass note gets a friendly error', () => {
+  assert.match(parseChord('Cmaj7/H').error, /bass note/);
+});
