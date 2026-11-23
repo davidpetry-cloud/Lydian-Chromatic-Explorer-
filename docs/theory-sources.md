@@ -48,6 +48,20 @@ it. Where sources disagree, or only one source speaks to it, the row stays
 | The perfect 5th may be left out of seventh-family chords | MIDI recognition accepts maj7, 6, 6/9, m7, 7, 9 and 13 without the 5th, only after exact matches fail | wikipedia-seventh-chord, tjps-shell | In jazz the fifth of a seventh chord is often omitted; shell voicings keep root, 3rd and 7th and drop the 5th. | Agree |
 | The seven modes of the major scale, and their names | Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian, as rotations of the Lydian scale (computed in `modes.js`) | wikipedia-mode, berklee-modes | Each mode is the major scale started on a different degree; Dorian is natural minor with a raised 6th, Mixolydian lowers the 7th, and so on. | Agree. Only these seven get names; other scales show their notes from the root without a name. |
 
+## More chord types (2026-11-23)
+
+| Quality | Tonic | Parent | Sources | What they say | Verdict |
+|---|---|---|---|---|---|
+| 7♯11 | 1 | Lydian Flat Seventh | wikipedia-lydian-chord, french-lydian-dominant | The dominant 7♯11 is the chord of the Lydian dominant scale; Russell calls that scale the Lydian Flat Seventh. | Verified |
+| maj9, add9, maj13 | 1 | Lydian | as major (italianpiano, wikipedia-chord-scale) | Extensions of the major chord whose every tone is in the same Lydian scale, the same reasoning that ships 9 and 13 with the dominant. | Verified (by extension) |
+| m9, m11, m13 | ♭3 | Lydian | as minor 7 (italianpiano, gct-f-lydian) | Extensions of the minor 7 chord whose every tone is in the same Lydian scale. | Verified (by extension); the minor 7 book check also covers these |
+
+A second research round (search only) did **not** reach two sources for:
+- **7♯5:** one forum example uses Auxiliary Augmented.
+- **7♭9 and 7♯9:** the sources contradict each other.
+- **dim7:** Lydian Diminished vs Auxiliary Diminished.
+- **m7♭5, altered, minor-major 7, m6, dim and 7sus4:** no source tying them to Russell's system.
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.
@@ -55,7 +69,6 @@ These ship as `pending`: the app refuses them and lists them in Reference.
 | Quality | Provisional idea | Why it's pending |
 |---|---|---|
 | diminished 7 | Lydian Diminished (italianpiano) *or* Auxiliary Diminished (the plan, via the whole-half scale) | italianpiano says Russell derives the diminished seventh chord from Lydian Diminished; no second source. |
-| 7♯11 | Lydian Flat Seventh on the root | The ♯11 isn't in the Lydian scale a whole step below; only general "Lydian dominant fits 7♯11" sources, none tied to Russell's tonic rule. |
 | 7♯5 | Auxiliary Augmented on the root | The whole-tone scale is described, but no source links the chord to Russell's parent. |
 | 7♭9, 7♯9 | Auxiliary Diminished Blues on the root | As above. |
 | minor-major 7 | Lydian Diminished on the root | A search found no source tying it to Lydian Diminished. |

@@ -115,3 +115,22 @@ test('a bad accidental names the whole root it could not read', () => {
   assert.match(any('Cbbb7').error, /“Cbbb”/);
   assert.match(any('C#b7').error, /“C#b”/);
 });
+
+test('new verified chord types: 7♯11 and extended chords', () => {
+  const cases = {
+    'C7#11': ['C', 'lydian-flat-seventh'],
+    'Cmaj9': ['C', 'lydian'], 'Cadd9': ['C', 'lydian'], 'Cmaj13': ['C', 'lydian'],
+    'Cm9': ['E♭', 'lydian'], 'Cm11': ['E♭', 'lydian'], 'Cm13': ['E♭', 'lydian'],
+  };
+  for (const [text, [tonic, parent]] of Object.entries(cases)) {
+    const c = parseChord(text);
+    assert.ok(!c.error, `${text}: ${c.error}`);
+    const a = lydianAnalysis(c);
+    assert.equal(noteName(a.tonic), tonic, text);
+    assert.equal(a.parentScale, parent, text);
+  }
+});
+
+test('19 chord types are verified now', () => {
+  assert.equal(SUPPORTED_QUALITIES.length, 19);
+});
