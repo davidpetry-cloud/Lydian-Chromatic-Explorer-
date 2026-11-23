@@ -149,6 +149,7 @@ input[type="range"] { min-height: 44px; accent-color: var(--amber); }
 .ladder-notes { color: var(--text); }
 .ladder-degrees { color: var(--muted2); font-size: var(--fs-sm); }
 .ladder-fit { font-size: var(--fs-sm); }
+.ladder-from { font-size: var(--fs-sm); color: var(--text); border-top: 1px solid var(--line); padding-top: 4px; margin-top: 2px; }
 .fit-holds { color: var(--teal); }
 .fit-changes { color: var(--muted2); }
 .ladder-card.is-pulse { animation: pulse 0.35s var(--ease); }

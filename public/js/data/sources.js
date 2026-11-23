@@ -14,6 +14,10 @@ export const SOURCES = Object.freeze([
   s('gct-f-lydian', 'Guitar Composer’s Toolbox, “F Lydian chords.”', 'https://guitarcomposerstoolbox.com/guitar-harmonizer/f-lydian/', 'secondary'),
   s('french-lydian-dominant', 'Andy French, “Melodic minor modes: Lydian Dominant” (2018).', 'https://www.andyfrench.co.uk/2018/06/melodic-minor-modes-lydian-dominant/', 'secondary'),
   s('jazzguitar-be', 'Jazz Guitar Online forum, “Lydian Chromatic Concept explained simply.”', 'https://www.jazzguitar.be/forum/theory/48672-lydian-chromatic-concept-explained-simply.html', 'secondary'),
+  s('wikipedia-seventh-chord', 'Wikipedia, “Seventh chord” (on omitting the fifth in jazz).', 'https://en.wikipedia.org/wiki/Seventh_chord', 'secondary'),
+  s('tjps-shell', 'The Jazz Piano Site, “Shell Chords & Omitting Notes.”', 'https://www.thejazzpianosite.com/?p=329', 'secondary'),
+  s('wikipedia-mode', 'Wikipedia, “Mode (music).”', 'https://en.wikipedia.org/wiki/Mode_(music)', 'secondary'),
+  s('berklee-modes', 'Berklee Online, “Take Note”: the modes of the major scale.', 'https://online.berklee.edu/takenote/?p=11280', 'secondary'),
   s('mcclimon', 'Michael McClimon, “Reconceptualizing the Lydian Chromatic Concept” (conference slides).', 'https://files.mcclimon.org/projects/lcc-smt-slides.pdf', 'secondary'),
   s('kvr-forum', 'KVR Audio Music Theory Forum, “George Russell’s Lydian Chromatic Concept of Tonal…,” page 2.', 'https://www.kvraudio.com/forum/viewtopic.php?t=227223&start=15', 'secondary'),
 ]);
