@@ -17,7 +17,7 @@ test('the bass sits in octave 2, the chord above it', () => {
 test('a root-position chord keeps all its tones above the bass', () => {
   const v = voiceChord(c('Dm7'));
   assert.equal(v.bass, 38);
-  assert.deepEqual(pcs(v.upper), new Set([5, 9, 0]));
+  assert.deepEqual(pcs(v.upper), new Set([2, 5, 9, 0]));
 });
 
 test('a ii–V–I moves each upper voice by two semitones or less', () => {
@@ -32,4 +32,16 @@ test('a ii–V–I moves each upper voice by two semitones or less', () => {
 test('a pedal bass stays put under changing chords', () => {
   const vs = voiceProgression(['Dm7/G', 'G7', 'Cmaj7/G'].map(c));
   assert.deepEqual(vs.map((v) => v.bass), [43, 43, 43]);
+});
+
+test('G7 to C resolves the tendency tones: B up to C, F down to E', () => {
+  const [g7, c] = voiceProgression([parseChord('G7'), parseChord('C')]);
+  const b = g7.upper.find((m) => m % 12 === 11);
+  const f = g7.upper.find((m) => m % 12 === 5);
+  assert.ok(c.upper.includes(b + 1), `B ${b} → ${c.upper}`);
+  assert.ok(c.upper.includes(f - 1), `F ${f} → ${c.upper}`);
+});
+
+test('a root-position chord keeps its root above the bass too', () => {
+  assert.ok(voiceChord(c('C')).upper.some((m) => m % 12 === 0));
 });

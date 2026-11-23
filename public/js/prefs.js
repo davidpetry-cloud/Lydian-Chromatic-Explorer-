@@ -22,6 +22,7 @@ export function dronePref() {
   const v = readPref('lce.drone', null);
   const modes = ['bass', 'tonic', 'root', 'other'];
   if (!v || typeof v !== 'object' || !modes.includes(v.mode) || typeof v.note !== 'string') return { ...DRONE_DEFAULT };
+  if (!/^[A-G](#|b)?$/.test(v.note)) return { ...DRONE_DEFAULT }; // one of the twelve picker notes
   return { mode: v.mode, note: v.note };
 }
 

@@ -40,3 +40,15 @@ test('voice leading covers harmonic rhythm, inversions and pedal points', () => 
   const text = LEARN.find((s) => s.id === 'voice-leading-bass').paragraphs.join(' ').toLowerCase();
   for (const word of ['harmonic rhythm', 'inversion', 'pedal']) assert.ok(text.includes(word), word);
 });
+
+test('home and away does not claim all twelve tones stack in fifths', () => {
+  const text = LEARN.find((s) => s.id === 'home-away').paragraphs.join(' ');
+  assert.doesNotMatch(text, /measured it in perfect fifths/);
+  assert.match(text, /nearest seven/);
+});
+
+test('the tendency-tone examples end on a plain C triad', () => {
+  const two = LEARN.find((s) => s.id === 'two-views').example.chords.map((c) => c.symbol);
+  assert.deepEqual(two, ['G7', 'C']);
+  assert.equal(LEARN.find((s) => s.id === 'voice-leading-bass').example.chords[2].symbol, 'C');
+});

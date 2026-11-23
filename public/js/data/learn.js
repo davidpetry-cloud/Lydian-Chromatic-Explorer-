@@ -11,7 +11,7 @@ export const LEARN = Object.freeze([
     title: 'Home and away',
     tradition: 'russell',
     paragraphs: [
-      'Every tone feels some pull toward a centre, the way a room has a front door. George Russell called that pull tonal gravity, and he measured it in perfect fifths: stack fifths up from home and each new tone sits a little further out.',
+      'Every tone feels some pull toward a centre, the way a room has a front door. George Russell called that pull tonal gravity. The nearest seven tones stack in perfect fifths up from home, each a little further out; the last five follow Russell’s own order, ending with the flat second. The Gravity view shows the whole ladder.',
       'Near tones blend into home. Far tones lean away and ask for an answer. You can hear the distance before you can name it, so start by listening.',
     ],
     example: {
@@ -68,7 +68,7 @@ export const LEARN = Object.freeze([
     title: 'Horizontal: a passage leaning toward one centre',
     tradition: 'russell',
     paragraphs: [
-      'Horizontal means hearing a whole passage, not chord by chord. A short progression can lean toward one centre even though each chord has its own Lydian tonic: D minor 7 and G7 both live in F Lydian, and both point on toward C.',
+      'Horizontal means hearing a whole passage, not chord by chord, even though each chord has its own Lydian tonic. D minor 7 and G7 both live in F Lydian; in this phrase they lead on to C, where it lands.',
       'Playing horizontally means choosing one sound that floats over several chords instead of changing scale on every chord. The Form & Gravity lab, coming next, is built for exactly this kind of listening.',
     ],
     example: {
@@ -87,14 +87,14 @@ export const LEARN = Object.freeze([
     paragraphs: [
       'Classical voice leading hears gravity in single lines. Some notes are tendency tones: the leading tone wants to rise a half step to the tonic, and the seventh of a chord wants to fall by step. In G7 to C, B rises to C while F falls to E.',
       'Harmonic rhythm is how often the chords change. Slow harmonic rhythm lets each pull settle; fast harmonic rhythm piles pulls on top of each other and drives toward the cadence.',
-      'The bass steers it all. A bass moving by fifths sounds strong and inevitable; a bass moving by step sounds smooth; a pedal point holds one note while the chords above change, and the held note may even sit outside them. An inversion puts a note other than the root in the bass: C over E pulls differently from C over C, even though the chord is the same.',
+      'The bass steers it all. Listen to how it moves: by fifths, by step, or held as a pedal point, one note sustained while the chords above change, even when the held note sits outside them. An inversion puts a note other than the root in the bass: C over E is the same chord as C over C, but the bass line it makes is different.',
     ],
     example: {
       label: 'One progression, three bass lines, two harmonic rhythms',
-      description: 'The same ii–V–I three times. First with the roots in the bass, four beats each. Then with inversions, so the bass moves by step: F, F, E. Then over a G pedal, at twice the harmonic rhythm.',
+      description: 'The same ii–V–I three times. First with the roots in the bass, four beats each, ending on a plain C chord. Then with inversions, so the bass moves by step: F, F, E. Then over a G pedal, with ii and V at twice the harmonic rhythm.',
       bpm: 84,
       chords: [
-        { symbol: 'Dm7', beats: 4 }, { symbol: 'G7', beats: 4 }, { symbol: 'Cmaj7', beats: 4 },
+        { symbol: 'Dm7', beats: 4 }, { symbol: 'G7', beats: 4 }, { symbol: 'C', beats: 4 },
         { symbol: 'Dm7/F', beats: 4 }, { symbol: 'G7/F', beats: 4 }, { symbol: 'Cmaj7/E', beats: 4 },
         { symbol: 'Dm7/G', beats: 2 }, { symbol: 'G7', beats: 2 }, { symbol: 'Cmaj7/G', beats: 4 },
       ],
@@ -112,9 +112,9 @@ export const LEARN = Object.freeze([
     ],
     example: {
       label: 'G7 to C, heard two ways',
-      description: 'G7 held, then C major 7. Classically, B rises to C and F falls to E. In Russell’s terms, the first chord leans toward F Lydian and the second sits at home in C Lydian.',
+      description: 'G7 held, then C major. Classically, B rises to C and F falls to E, and you can hear both lines move. In Russell’s terms, the first chord leans toward F Lydian and the second sits at home in C Lydian.',
       bpm: 66,
-      chords: [{ symbol: 'G7', beats: 4 }, { symbol: 'Cmaj7', beats: 8 }],
+      chords: [{ symbol: 'G7', beats: 4 }, { symbol: 'C', beats: 8 }],
     },
     try: 'gravity',
     sources: ['geneseo-dominant-seventh', 'italianpiano', 'french-2018'],

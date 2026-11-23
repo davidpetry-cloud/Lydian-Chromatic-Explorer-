@@ -78,7 +78,7 @@ export function mountPractice({ app, announce, initialText }) {
   async function start(pattern) {
     await app.engine.resume();
     app.engine.setVolume(Number($('volume').value) / 100);
-    app.transport.play(pattern);
+    app.transport.play({ ...pattern, owner: 'practice' });
     announce(pendingChordMessage ? `${pendingChordMessage} Playing ${pattern.label}.` : pattern.label);
     pendingChordMessage = null;
   }
@@ -109,9 +109,13 @@ export function mountPractice({ app, announce, initialText }) {
     start({ kind: 'chordLoop', steps: [tones, [], [], []], bpm: state.bpm, loop: true, label });
   }
 
+  // Practice only follows its own playback; a Learn example or a Gravity
+  // drone keeps playing when the chord changes here.
+  const ours = () => app.transport.current()?.owner === 'practice';
+
   function restartIfPlaying() {
     const current = app.transport.current();
-    if (!current) return;
+    if (!current || current.owner !== 'practice') return;
     if (current.kind === 'scale') playScale();
     else if (current.kind === 'drone') playDrone();
     else playChordLoop();
@@ -204,6 +208,11 @@ export function mountPractice({ app, announce, initialText }) {
     $('chord-name').textContent = `for ${chord.symbol} (${QUALITIES[chord.quality].label}: ${names(tones)})`;
     $('parent-name').textContent = `${noteName(state.analysis.tonic)} ${scaleById(state.analysis.parentScale).name}`;
     $('parent-notes').textContent = names(state.analysis.parentNotes);
+    // Say so when the bass sits outside the parent scale (a pedal like D/C):
+    // the app doesn't guess a different analysis for it.
+    const inParent = state.analysis.parentNotes.some((n) => pc(n) === pc(chord.bass));
+    $('bass-note').textContent = inParent ? ''
+      : `The bass ${noteName(chord.bass)} isn't in ${$('parent-name').textContent}: it sounds as a pedal under this chord. Sources don't settle how Russell analyses that, so the parent shown is the chord's own.`;
     renderGravity();
     state.scaleId = state.analysis.parentScale;
     renderLadder(tones);
@@ -218,6 +227,7 @@ export function mountPractice({ app, announce, initialText }) {
   const gate = createFlashGate();
   const pending = new Set();
   app.transport.onStep(({ midis, at }) => {
+    if (!ours()) return;
     const delay = Math.max(0, (at - app.engine.now()) * 1000);
     const id = setTimeout(() => {
       pending.delete(id);
@@ -254,7 +264,7 @@ export function mountPractice({ app, announce, initialText }) {
   function droneChanged() {
     $('drone-other-field').hidden = $('drone-on').value !== 'other';
     writePref('lce.drone', droneChoice());
-    const kind = app.transport.current()?.kind;
+    const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'drone') playDrone();
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
   }
@@ -265,7 +275,7 @@ export function mountPractice({ app, announce, initialText }) {
   $('bpm').addEventListener('input', () => {
     state.bpm = Number($('bpm').value);
     $('bpm-out').textContent = String(state.bpm);
-    app.transport.setBpm(state.bpm);
+    if (ours()) app.transport.setBpm(state.bpm);
     app.transport.poke();
     // Keep the "now playing" line true without re-announcing every slider step.
     const kind = app.transport.current()?.kind;

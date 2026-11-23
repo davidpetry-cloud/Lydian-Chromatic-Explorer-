@@ -8,9 +8,12 @@ const BASS_LOW = 36;   // C2
 const UPPER_LOW = 60;  // C4
 const RANGE = [55, 76]; // where moving voices may go
 
+// Root position: every chord tone above the bass (the root doubled), so lines
+// like B → C can resolve. Inversions and pedals: the bass note isn't doubled.
 function upperClasses(chord) {
   const bass = pc(chord.bass);
   const tones = [...new Set(chordNotes(chord).map(pc))];
+  if (bass === pc(chord.root)) return tones;
   const above = tones.filter((p) => p !== bass);
   return above.length >= 2 ? above : tones;
 }

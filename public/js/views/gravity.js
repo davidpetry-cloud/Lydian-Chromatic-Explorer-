@@ -63,7 +63,7 @@ export function mountGravity({ app, announce }) {
     const drone = 48 + pc(tonic);
     const label = `Drone on ${noteName(tonic)}, the Lydian tonic`;
     if (app.transport.current()?.label !== label) {
-      app.transport.play({ kind: 'drone', steps: [[drone, drone + 7]], bpm: 80, loop: true, label });
+      app.transport.play({ kind: 'drone', owner: 'gravity', steps: [[drone, drone + 7]], bpm: 80, loop: true, label });
     }
     app.transport.poke();
     const midi = 60 + pc(n.note);

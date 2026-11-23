@@ -95,6 +95,7 @@ export function parseChord(text, { allowPending = false } = {}) {
   if (!quality || !quality.tonicDegree || (quality.status !== 'verified' && !allowPending)) {
     return { error: `“${input}” isn't a chord I know yet. See Reference for the list.` };
   }
+  if (pc(bass) === pc(root) && bass.letter === root.letter) bass = root; // Emaj7/E is just Emaj7
   const slash = bass === root ? '' : `/${noteName(bass)}`;
   const chord = { root, quality: id, symbol: noteName(root) + qualityText + slash, bass };
   try {

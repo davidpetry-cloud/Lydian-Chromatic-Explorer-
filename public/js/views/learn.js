@@ -30,8 +30,8 @@ export function mountLearn({ app, announce }) {
 
   for (const s of LEARN) {
     const card = make('section', { cls: 'card learn-section', attrs: { id: `learn-${s.id}`, 'aria-labelledby': `learn-h-${s.id}` } });
-    card.append(make('p', { cls: `learn-tradition is-${s.tradition}`, text: TRADITION[s.tradition] }));
     card.append(make('h2', { text: s.title, attrs: { id: `learn-h-${s.id}` } }));
+    card.append(make('p', { cls: `learn-tradition is-${s.tradition}`, text: TRADITION[s.tradition] }));
     for (const p of s.paragraphs) card.append(make('p', { text: p }));
 
     if (s.ideas.length) {
@@ -73,13 +73,15 @@ export function mountLearn({ app, announce }) {
         await app.engine.resume();
         const voices = voiceProgression(chords.map((c) => c.chord));
         const label = `${s.example.label}: ${chords.map((c) => c.chord.symbol).join(', ')}`;
+        // Mark this example active before playing: the first step fires at once.
+        clearActive();
+        active = { id: s.id, items, now, label };
         app.transport.play({
-          kind: 'progression', loop: false, bpm: s.example.bpm, label,
+          kind: 'progression', owner: 'learn', loop: false, bpm: s.example.bpm, label,
           steps: voices.map((v) => [v.bass, ...v.upper]),
           durations: chords.map((c) => c.beats),
         });
-        active = { id: s.id, items, now, label };
-        now.textContent = `Playing: ${label}`;
+        if (!items[0].hasAttribute('aria-current')) now.textContent = `Playing: ${label}`;
         announce(`Playing ${label}`);
       });
       stop.addEventListener('click', () => app.transport.stop('user'));

@@ -403,6 +403,41 @@ test('Learn: an example replaces whatever Practice was playing', async () => {
   await page.close();
 });
 
+test('Learn: the first chord is highlighted as soon as an example starts', async () => {
+  const { page } = await open('/#learn');
+  await page.locator('#learn-home-away .learn-play').click();
+  await page.waitForFunction(() => document.querySelector('#learn-home-away .learn-chords li')?.getAttribute('aria-current') === 'true', null, { timeout: 1500 });
+  await page.locator('#learn-home-away .learn-stop').click();
+  await page.close();
+});
+
+test('Learn: changing the Practice chord does not replace a playing example', async () => {
+  const { page } = await open('/#learn');
+  await page.locator('#learn-horizontal .learn-play').click();
+  await page.click('#tab-practice');
+  await enterChord(page, 'G7');
+  await page.waitForTimeout(300);
+  assert.match(await page.textContent('#now-playing'), /ii–V–I/);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('Practice says when the bass is outside the parent scale', async () => {
+  const { page } = await open();
+  await enterChord(page, 'D/C');
+  assert.match(await page.textContent('#bass-note'), /bass C isn't in D Lydian/);
+  await enterChord(page, 'Cmaj7/E');
+  assert.equal((await page.textContent('#bass-note')).trim(), '');
+  await page.close();
+});
+
+test('Learn: the tradition label follows the heading', async () => {
+  const { page } = await open('/#learn');
+  const order = await page.evaluate(() => [...document.querySelector('#learn-home-away').children].slice(0, 2).map((e) => e.tagName));
+  assert.deepEqual(order, ['H2', 'P']);
+  await page.close();
+});
+
 // ---------- MIDI (simulated keyboard) ----------
 
 // Runs inside the page: Playwright passes only the function's text, so

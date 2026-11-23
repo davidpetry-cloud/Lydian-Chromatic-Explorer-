@@ -164,3 +164,7 @@ test('6/9 is still a chord type, and can take a slash bass too', () => {
 test('a bad bass note gets a friendly error', () => {
   assert.match(parseChord('Cmaj7/H').error, /bass note/);
 });
+
+test('a slash naming the root itself is not kept', () => {
+  assert.equal(parseChord('Emaj7/E').symbol, 'Emaj7');
+});

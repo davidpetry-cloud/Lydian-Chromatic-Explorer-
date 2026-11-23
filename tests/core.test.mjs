@@ -257,3 +257,11 @@ test('a pattern can hold a step for several beats', () => {
 test('router knows the Learn view', () => {
   assert.equal(viewFromHash('#learn'), 'learn');
 });
+
+test('dronePref rejects an "other" note that is not a note', async () => {
+  const { dronePref } = await import('../public/js/prefs.js');
+  const box = { 'lce.drone': JSON.stringify({ mode: 'other', note: 'zzz' }) };
+  withStorage({ getItem: (k) => box[k] ?? null, setItem() {} }, () => {
+    assert.deepEqual(dronePref(), { mode: 'bass', note: 'C' });
+  });
+});
