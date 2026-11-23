@@ -244,3 +244,12 @@ test('dronePref defaults to the bass note and ignores junk', async () => {
     assert.deepEqual(dronePref(), { mode: 'other', note: 'F#' });
   });
 });
+
+test('a pattern can hold a step for several beats', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play({ kind: 'progression', steps: [[48, 60]], durations: [4], bpm: 120, loop: false, label: 'held' });
+  f.tick();
+  assert.ok(f.engine.notes.length >= 2);
+  assert.ok(f.engine.notes.every((n) => n.dur === 2), JSON.stringify(f.engine.notes));
+});
