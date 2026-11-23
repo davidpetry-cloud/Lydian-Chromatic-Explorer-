@@ -56,8 +56,14 @@ export function mountLearn({ app, announce }) {
       });
       const items = [...list.children];
       const row = make('div', { cls: 'control-row' });
-      const play = make('button', { cls: 'btn btn-primary learn-play', text: '▶ Play example', attrs: { type: 'button' } });
-      const stop = make('button', { cls: 'btn learn-stop', text: '■ Stop', attrs: { type: 'button' } });
+      // The ▶ and ■ symbols are decoration; screen readers hear just the words.
+      const button = (cls, symbol, words) => {
+        const b = make('button', { cls, attrs: { type: 'button' } });
+        b.append(make('span', { text: symbol, attrs: { 'aria-hidden': 'true' } }), document.createTextNode(` ${words}`));
+        return b;
+      };
+      const play = button('btn btn-primary learn-play', '▶', 'Play example');
+      const stop = button('btn learn-stop', '■', 'Stop');
       const now = make('p', { cls: 'now-playing learn-now', text: 'Silent.', attrs: { 'aria-hidden': 'true' } });
       row.append(play, stop);
       ex.append(list, row, now);

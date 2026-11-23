@@ -32,7 +32,9 @@ stands, so any future session (or person) can pick up from here.
 | Each scale card also reads "From C: … · C Dorian" (major-mode names), with Start on: Chord root for playback | #9 |
 | MIDI accepts seventh-family chords without the 5th (G B F = G7, G B F A = G9) | #9 |
 | Site `CLAUDE.md`: new apps go on Cloudflare Workers; the Explorer's live address | david-petry-site#27 |
-| 7 more chord types: 7♯11, maj9, add9, maj13, m9, m11, m13 (19 in all) | chord-types PR |
+| 7 more chord types: 7♯11, maj9, add9, maj13, m9, m11, m13 (19 in all) | #10 |
+| Slash chords and a bass-note drone everywhere (Drone on: bass, Lydian tonic, root, other) | Learn PR |
+| Learn tab: six sourced, playable sections on tonal gravity, voice leading and the bass | Learn PR |
 
 ## Decisions to remember
 
@@ -56,6 +58,12 @@ stands, so any future session (or person) can pick up from here.
 - Sound starts only from a press. Picking a scale card only selects it.
   Changing the chord while something plays switches to the new chord.
   Gravity tones play over a tonic drone.
+
+## Gravity series (agreed order)
+
+1. **Learn tab:** done (this PR).
+2. **Form & Gravity lab:** sections of 4–8 bars, A/B sections that change key centre or harmonic rhythm, many chords at once, heard as the big picture.
+3. **Live line feedback:** notes marked by gravity rank as you play (MIDI or clicks).
 
 ## Open ideas (not started)
 
