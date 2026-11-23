@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-23 (Learn tab, #11). A snapshot of where the Lydian Chromatic Explorer
+Last updated: 2026-11-23 (after #11 went live). A snapshot of where the Lydian Chromatic Explorer
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -65,16 +65,28 @@ stands, so any future session (or person) can pick up from here.
   Changing the chord while something plays switches to the new chord.
   Gravity tones play over a tonic drone.
 
+## Next step
+
+Start the **Form & Gravity lab** (gravity series, project 2) with a short
+brainstorm: how David pictures building a section.
+
 ## Gravity series (agreed order)
 
-1. **Learn tab:** done (#11), with slash chords and the bass-note drone.
+1. **Learn tab:** done and live (#11), with slash chords and the bass-note
+   drone. Review fixes included: examples play what the text says (G7 → C:
+   B rises, F falls), Learn and Gravity playback isn't hijacked by Practice,
+   the first chord is highlighted, and the "fifths" wording is exact.
 2. **Form & Gravity lab:** sections of 4–8 bars, A/B sections that change key centre or harmonic rhythm, many chords at once, heard as the big picture.
 3. **Live line feedback:** notes marked by gravity rank as you play (MIDI or clicks).
 
 ## Open ideas (not started)
 
-1. **Book check:** with Russell's 4th edition, confirm or correct the
-   "Sources differ" chords and the dominant mapping, then add the chords.
+1. **Book check:** with Russell's 4th edition, confirm or correct:
+   - the "Sources differ" chords (10 waiting), then add them;
+   - the dominant mapping (G7 → F Lydian);
+   - positions 8–11 of the order of tonal gravity (inferred);
+   - how Russell analyses a bass outside the parent scale (D/C). The app
+     currently keeps the chord's own parent and says so.
 2. **More MIDI** (David chose these out for now): lighting the on-screen
    keys from MIDI, inside/outside feedback while playing, playing MIDI
    notes through the app's sound.
