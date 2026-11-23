@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-22 (after #9). A snapshot of where the Lydian Chromatic Explorer
+Last updated: 2026-11-23 (Learn tab, #11). A snapshot of where the Lydian Chromatic Explorer
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -33,8 +33,8 @@ stands, so any future session (or person) can pick up from here.
 | MIDI accepts seventh-family chords without the 5th (G B F = G7, G B F A = G9) | #9 |
 | Site `CLAUDE.md`: new apps go on Cloudflare Workers; the Explorer's live address | david-petry-site#27 |
 | 7 more chord types: 7♯11, maj9, add9, maj13, m9, m11, m13 (19 in all) | #10 |
-| Slash chords and a bass-note drone everywhere (Drone on: bass, Lydian tonic, root, other) | Learn PR |
-| Learn tab: six sourced, playable sections on tonal gravity, voice leading and the bass | Learn PR |
+| Slash chords and a bass-note drone everywhere (Drone on: bass, Lydian tonic, root, other) | #11 |
+| Learn tab: six sourced, playable sections on tonal gravity, voice leading and the bass | #11 |
 
 ## Decisions to remember
 
@@ -53,6 +53,12 @@ stands, so any future session (or person) can pick up from here.
 - **MIDI:** the bass note is the root; exact matches are tried before a
   missing 5th; rootless voicings are not guessed; chords settle 250 ms
   after the last key goes down; lifting keys never changes the chord.
+- **Drone = bass note by default** (David): the slash note, or the root. Also
+  Lydian tonic, chord root or any note. The bass never changes the Lydian
+  analysis.
+- **Learn tab** is for players arriving from David's site: every section
+  names its tradition (Russell, classical or both) and cites two or more
+  sources; practice ideas are labelled "Idea".
 - **Model choice:** Opus (medium) for theory and feature work and reviews;
   Sonnet (medium) for small follow-ups.
 - Sound starts only from a press. Picking a scale card only selects it.
@@ -61,7 +67,7 @@ stands, so any future session (or person) can pick up from here.
 
 ## Gravity series (agreed order)
 
-1. **Learn tab:** done (this PR).
+1. **Learn tab:** done (#11), with slash chords and the bass-note drone.
 2. **Form & Gravity lab:** sections of 4–8 bars, A/B sections that change key centre or harmonic rhythm, many chords at once, heard as the big picture.
 3. **Live line feedback:** notes marked by gravity rank as you play (MIDI or clicks).
 
