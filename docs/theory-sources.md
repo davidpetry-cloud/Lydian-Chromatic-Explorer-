@@ -62,6 +62,26 @@ A second research round (search only) did **not** reach two sources for:
 - **dim7:** Lydian Diminished vs Auxiliary Diminished.
 - **m7♭5, altered, minor-major 7, m6, dim and 7sus4:** no source tying them to Russell's system.
 
+## Learn tab (2026-11-23)
+
+| Claim in Learn | Sources | Verdict |
+|---|---|---|
+| The nearest seven tones stack in fifths; near and far tones (§1) | french-2018, mcclimon | Agree |
+| Ingoing ↔ outgoing as the seven principal scales from Lydian to Auxiliary Diminished Blues (§2) | mcclimon, french-2018 | Agree. The four "Ideas" are practice suggestions, labelled as such, not claims about Russell. |
+| Minor 7 leans to the Lydian tonic a minor third up; same notes as Dorian from the root (§3) | italianpiano, wikipedia-mode | As in the chord table |
+| ii and V both live in the Lydian scale a whole step below V; the passage leans to I (§4) | italianpiano, cafesaxophone | As in the chord table |
+| Leading tone rises by half step; chordal seventh falls by step (§5) | geneseo-dominant-seventh, harmony-musicianship-lt7 | Agree |
+| Harmonic rhythm = how often chords change; it often speeds up toward cadences (§5) | wikipedia-harmonic-rhythm, britannica-harmonic-rhythm | Agree |
+| Pedal point: a held bass note under changing chords, which may lie outside them (§5) | wikipedia-pedal-point, puget-sound-pedal | Agree |
+| Inversion: a chord tone other than the root in the bass; C/E is first inversion (§5) | omt-inversion, wikipedia-first-inversion | Agree |
+| Classical view hears lines and resolutions; Russell hears centres (§6) | geneseo-dominant-seventh, italianpiano, french-2018 | Summary of the rows above |
+
+| Order of tonal gravity beyond the first seven (§1 wording) | french-2018, mcclimon | Only the first seven are stacked fifths; positions 8–11 are inferred (see "Scales and gravity" above). §1 now says so. |
+
+**Open question:** when the bass lies outside the chord's parent scale (D/C: C is not in D Lydian), no source says how Russell analyses it. The app keeps the chord's own parent and says so in Practice. This is for the book check.
+
+The bass note never changes the Lydian analysis in this app. No source found treats inversions differently in Russell's system; if the book does, this is the place to record it.
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.

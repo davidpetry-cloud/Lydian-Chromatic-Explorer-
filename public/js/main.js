@@ -10,6 +10,7 @@ import { mountPractice } from './views/practice.js';
 import { mountGravity } from './views/gravity.js';
 import { mountReference } from './views/reference.js';
 import { mountMidiPanel } from './views/midi-panel.js';
+import { mountLearn } from './views/learn.js';
 
 const DEFAULT_CHORD = 'Cmaj7';
 
@@ -46,6 +47,7 @@ function showView(name, { focus }) {
 
 mountThemeToggle(document.getElementById('themeToggle'));
 mountReference();
+mountLearn({ app, announce });
 app.gravity = mountGravity({ app, announce });
 app.practice = mountPractice({ app, announce, initialText: initialChord() });
 mountMidiPanel({ setChord: app.practice.setChord, announce, onActivity: () => app.transport.poke() });

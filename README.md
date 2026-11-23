@@ -15,7 +15,14 @@ Concept of Tonal Organization*.
 - **Gravity:** the twelve tones placed round the circle of fifths and
   numbered by their pull toward the tonic. Walk them with the arrow keys
   and hear each one against home.
+- **Learn:** six short, playable stops on tonal gravity: home and away,
+  ingoing and outgoing, vertical and horizontal, voice leading and the bass
+  (harmonic rhythm, inversions, pedal points), and Russell's view next to
+  classical voice leading.
 - **Reference:** a searchable glossary, the chord table, and the sources.
+
+Type slash chords (`Cmaj7/E`, `Dm7/G`) to choose the bass note; the drone
+plays that bass note by default (or the Lydian tonic, the root, or any note).
 
 Every sound is also shown on screen and named in text, everything works
 from the keyboard, and the app works on a phone.

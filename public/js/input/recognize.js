@@ -39,7 +39,12 @@ export function recognizeChord(midiNotes) {
   };
   const found = find(SHAPES) ?? find(NO_FIFTH_SHAPES);
   if (found) {
-    const chord = parseChord(asciiName(rootFor(found.root)) + QUALITIES[found.match.id].aliases[0]);
+    const plain = parseChord(asciiName(rootFor(found.root)) + QUALITIES[found.match.id].aliases[0]);
+    // A bass that isn't the root makes a slash chord (E–G–B–C → Cmaj7/E),
+    // spelled as the chord spells it when it's a chord tone.
+    const bassNote = bass === found.root ? null
+      : chordNotes(plain).find((n) => pc(n) === bass) ?? rootFor(bass);
+    const chord = bassNote ? parseChord(`${asciiName(plain.root)}${QUALITIES[found.match.id].aliases[0]}/${asciiName(bassNote)}`) : plain;
     // Spell what was played the way the chord spells it (E G♯ B, not E A♭ B),
     // listing only notes actually held (a left-out 5th isn't "heard").
     return { chord, heard: chordNotes(chord).filter((n) => pcs.includes(pc(n))).map(noteName).join(' ') };

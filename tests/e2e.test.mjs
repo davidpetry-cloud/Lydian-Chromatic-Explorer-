@@ -349,6 +349,95 @@ test('scale cards show the notes from the chord root, with the familiar mode nam
   await page.close();
 });
 
+test('the drone plays the bass note by default, and the picker changes it', async () => {
+  const { page } = await open();
+  assert.equal(await page.inputValue('#drone-on'), 'bass');
+  await enterChord(page, 'Cmaj7/E');
+  await page.click('#drone');
+  assert.match(await page.textContent('#now-playing'), /Drone on E\b/);
+  await page.selectOption('#drone-on', 'tonic');
+  await enterChord(page, 'Cm7');
+  await page.click('#drone');
+  assert.match(await page.textContent('#now-playing'), /Drone on E♭/);
+  assert.equal(await page.isVisible('#drone-other'), false);
+  await page.selectOption('#drone-on', 'other');
+  assert.equal(await page.isVisible('#drone-other'), true);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('changing the chord type keeps the slash bass', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Cmaj7/E');
+  await page.selectOption('#chord-quality', 'm7');
+  assert.equal(await page.inputValue('#chord-text'), 'Cm7/E');
+  await enterChord(page, 'G7');
+  await page.selectOption('#chord-quality', 'maj7');
+  assert.equal(await page.inputValue('#chord-text'), 'Gmaj7');
+  await page.close();
+});
+
+test('Learn: six sections, each example plays and shows where it is', async () => {
+  const { page, problems } = await open('/#learn');
+  assert.equal(await page.locator('#view-learn h2').count(), 6);
+  const section = page.locator('#learn-horizontal');
+  await section.locator('.learn-play').click();
+  await page.waitForFunction(() => /Dm7/.test(document.querySelector('#learn-horizontal .learn-now').textContent));
+  await page.waitForFunction(() => document.querySelectorAll('#learn-horizontal [aria-current="true"]').length === 1);
+  await section.locator('.learn-stop').click();
+  await page.waitForFunction(() => document.getElementById('live').textContent === 'Stopped');
+  assert.equal(await page.locator('#learn-horizontal [aria-current="true"]').count(), 0);
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('Learn: an example replaces whatever Practice was playing', async () => {
+  const { page } = await open();
+  await page.click('#play-scale');
+  await page.click('#tab-learn');
+  await page.locator('#learn-vertical .learn-play').click();
+  await page.waitForFunction(() => /Cm7/.test(document.querySelector('#learn-vertical .learn-now').textContent));
+  await page.click('#tab-practice');
+  assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
+  await page.click('#stop');
+  await page.close();
+});
+
+test('Learn: the first chord is highlighted as soon as an example starts', async () => {
+  const { page } = await open('/#learn');
+  await page.locator('#learn-home-away .learn-play').click();
+  await page.waitForFunction(() => document.querySelector('#learn-home-away .learn-chords li')?.getAttribute('aria-current') === 'true', null, { timeout: 1500 });
+  await page.locator('#learn-home-away .learn-stop').click();
+  await page.close();
+});
+
+test('Learn: changing the Practice chord does not replace a playing example', async () => {
+  const { page } = await open('/#learn');
+  await page.locator('#learn-horizontal .learn-play').click();
+  await page.click('#tab-practice');
+  await enterChord(page, 'G7');
+  await page.waitForTimeout(300);
+  assert.match(await page.textContent('#now-playing'), /ii–V–I/);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('Practice says when the bass is outside the parent scale', async () => {
+  const { page } = await open();
+  await enterChord(page, 'D/C');
+  assert.match(await page.textContent('#bass-note'), /bass C isn't in D Lydian/);
+  await enterChord(page, 'Cmaj7/E');
+  assert.equal((await page.textContent('#bass-note')).trim(), '');
+  await page.close();
+});
+
+test('Learn: the tradition label follows the heading', async () => {
+  const { page } = await open('/#learn');
+  const order = await page.evaluate(() => [...document.querySelector('#learn-home-away').children].slice(0, 2).map((e) => e.tagName));
+  assert.deepEqual(order, ['H2', 'P']);
+  await page.close();
+});
+
 // ---------- MIDI (simulated keyboard) ----------
 
 // Runs inside the page: Playwright passes only the function's text, so

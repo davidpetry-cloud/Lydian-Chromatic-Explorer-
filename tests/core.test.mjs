@@ -217,3 +217,51 @@ test('the flash gate stays shut when motion is reduced', async () => {
   const gate = createFlashGate({ minMs: 334, now: () => 0, reducedMotion: () => true });
   assert.equal(gate(), false);
 });
+
+test('resolveDrone picks the note for each drone mode', async () => {
+  const { resolveDrone } = await import('../public/js/audio/drone.js');
+  const { parseChord } = await import('../public/js/theory/chords.js');
+  const { noteName, parseNote } = await import('../public/js/theory/notes.js');
+  const c = parseChord('Cm7/G');
+  const tonic = parseNote('Eb');
+  assert.equal(noteName(resolveDrone({ mode: 'bass' }, c, tonic)), 'G');
+  assert.equal(noteName(resolveDrone({ mode: 'tonic' }, c, tonic)), 'E♭');
+  assert.equal(noteName(resolveDrone({ mode: 'root' }, c, tonic)), 'C');
+  assert.equal(noteName(resolveDrone({ mode: 'other', note: 'D' }, c, tonic)), 'D');
+  assert.equal(noteName(resolveDrone({ mode: 'other', note: 'zz' }, c, tonic)), 'G');
+});
+
+test('dronePref defaults to the bass note and ignores junk', async () => {
+  const { dronePref } = await import('../public/js/prefs.js');
+  const box = {};
+  withStorage({ getItem: (k) => box[k] ?? null, setItem: (k, v) => { box[k] = v; } }, () => {
+    assert.deepEqual(dronePref(), { mode: 'bass', note: 'C' });
+    box['lce.drone'] = '"zzz"';
+    assert.deepEqual(dronePref(), { mode: 'bass', note: 'C' });
+    box['lce.drone'] = JSON.stringify({ mode: 'sideways', note: 'D' });
+    assert.deepEqual(dronePref(), { mode: 'bass', note: 'C' });
+    box['lce.drone'] = JSON.stringify({ mode: 'other', note: 'F#' });
+    assert.deepEqual(dronePref(), { mode: 'other', note: 'F#' });
+  });
+});
+
+test('a pattern can hold a step for several beats', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play({ kind: 'progression', steps: [[48, 60]], durations: [4], bpm: 120, loop: false, label: 'held' });
+  f.tick();
+  assert.ok(f.engine.notes.length >= 2);
+  assert.ok(f.engine.notes.every((n) => n.dur === 2), JSON.stringify(f.engine.notes));
+});
+
+test('router knows the Learn view', () => {
+  assert.equal(viewFromHash('#learn'), 'learn');
+});
+
+test('dronePref rejects an "other" note that is not a note', async () => {
+  const { dronePref } = await import('../public/js/prefs.js');
+  const box = { 'lce.drone': JSON.stringify({ mode: 'other', note: 'zzz' }) };
+  withStorage({ getItem: (k) => box[k] ?? null, setItem() {} }, () => {
+    assert.deepEqual(dronePref(), { mode: 'bass', note: 'C' });
+  });
+});

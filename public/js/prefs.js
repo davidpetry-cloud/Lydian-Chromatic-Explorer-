@@ -15,6 +15,17 @@ export function volumePref() {
   return Number.isFinite(v) ? Math.min(100, Math.max(0, Math.round(v))) : 70;
 }
 
+const DRONE_DEFAULT = Object.freeze({ mode: 'bass', note: 'C' });
+
+/** The saved drone choice, { mode, note }, falling back to the bass note. */
+export function dronePref() {
+  const v = readPref('lce.drone', null);
+  const modes = ['bass', 'tonic', 'root', 'other'];
+  if (!v || typeof v !== 'object' || !modes.includes(v.mode) || typeof v.note !== 'string') return { ...DRONE_DEFAULT };
+  if (!/^[A-G](#|b)?$/.test(v.note)) return { ...DRONE_DEFAULT }; // one of the twelve picker notes
+  return { mode: v.mode, note: v.note };
+}
+
 export function writePref(key, value) {
   try {
     globalThis.localStorage.setItem(key, JSON.stringify(value));

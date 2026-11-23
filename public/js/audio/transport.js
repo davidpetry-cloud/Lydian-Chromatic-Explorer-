@@ -40,10 +40,13 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
         return;
       }
       const index = p.index % steps.length;
-      for (const midi of steps[index]) engine.note(midi, p.nextTime, beat * 0.9);
+      // A step lasts one beat, or as many beats as `durations` says (held chords).
+      const beats = p.pattern.durations?.[index] ?? 1;
+      const length = p.pattern.durations ? beats * beat : beat * 0.9;
+      for (const midi of steps[index]) engine.note(midi, p.nextTime, length);
       stepListeners.forEach((cb) => cb({ index, midis: steps[index], at: p.nextTime }));
       p.index += 1;
-      p.nextTime += beat;
+      p.nextTime += beats * beat;
     }
   }
 

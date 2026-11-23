@@ -20,6 +20,7 @@
     <nav class="tabs" aria-label="Views">
       <a class="tab" id="tab-practice" href="#practice" aria-current="page">Practice</a>
       <a class="tab" id="tab-gravity" href="#gravity">Gravity</a>
+      <a class="tab" id="tab-learn" href="#learn">Learn</a>
       <a class="tab" id="tab-reference" href="#reference">Reference</a>
     </nav>
     <button class="icon-btn" id="themeToggle" type="button" aria-label="Switch to light theme"><span aria-hidden="true">☀</span></button>
@@ -62,6 +63,7 @@
           <h2 id="h-result">Lydian tonic</h2>
           <p class="tonic-line"><span class="tonic" id="tonic" aria-hidden="true"></span><span class="visually-hidden" id="tonic-spoken"></span><span class="tonic-chord" id="chord-name"></span></p>
           <p class="parent-line">Parent scale: <strong id="parent-name"></strong><br><span class="mono" id="parent-notes"></span></p>
+          <p class="hint bass-note" id="bass-note"></p>
           <div class="gravity-strip" aria-hidden="true" id="gravity-strip"></div>
           <p class="hint" id="gravity-text"></p>
         </section>
@@ -86,10 +88,23 @@
                 <option value="root">Chord root</option>
               </select>
             </div>
-            <label class="check"><input type="checkbox" id="hold-tonic" checked> Hold the tonic underneath</label>
+            <label class="check"><input type="checkbox" id="hold-tonic" checked> Hold the drone underneath</label>
           </div>
           <div class="control-row">
             <button class="btn" id="drone" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> Drone</button>
+            <div class="field">
+              <label for="drone-on">Drone on</label>
+              <select id="drone-on">
+                <option value="bass">Bass note</option>
+                <option value="tonic">Lydian tonic</option>
+                <option value="root">Chord root</option>
+                <option value="other">Other note…</option>
+              </select>
+            </div>
+            <div class="field" id="drone-other-field" hidden>
+              <label for="drone-other">Note</label>
+              <select id="drone-other"></select>
+            </div>
             <button class="btn" id="chord-loop" type="button" aria-pressed="false"><span aria-hidden="true">↻</span> Chord loop</button>
             <button class="btn" id="stop" type="button"><span aria-hidden="true">■</span> Stop</button>
           </div>
@@ -161,6 +176,12 @@
         </table>
         </div>
       </div>
+    </section>
+
+    <section class="view" id="view-learn" aria-labelledby="h-learn" hidden>
+      <h1 id="h-learn" tabindex="-1">Learn: tonal gravity</h1>
+      <p class="lede">Why some notes feel like home and others lean away, told in six short stops. Press play on each example and listen before you read too hard.</p>
+      <div class="learn" id="learn-root"></div>
     </section>
 
     <section class="view" id="view-reference" aria-labelledby="h-reference" hidden>

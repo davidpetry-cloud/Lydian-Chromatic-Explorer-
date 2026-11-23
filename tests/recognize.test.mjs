@@ -9,7 +9,7 @@ test('recognizes a root-position chord', () => {
 });
 
 test('recognizes an inversion by trying other roots after the bass', () => {
-  assert.equal(sym([64, 67, 71, 72]), 'Cmaj7');
+  assert.equal(sym([64, 67, 71, 72]), 'Cmaj7/E');
 });
 
 test('the bass decides between twin chords (C6 vs Am7)', () => {
@@ -36,7 +36,7 @@ test('fewer than three pitch classes is not a chord yet', () => {
 
 test('unknown note sets get a friendly message', () => {
   assert.equal(recognizeChord([60, 62, 64, 65]).error, "C D E F isn't a chord I know yet.");
-  assert.equal(sym([60, 64, 67, 68]), 'A♭maj7#5'); // C E G A♭ is really A♭maj7♯5
+  assert.equal(sym([60, 64, 67, 68]), 'A♭maj7#5/C'); // C E G A♭ is really A♭maj7♯5, here over C
 });
 
 test('chords still waiting on sources are not named', () => {
@@ -85,4 +85,10 @@ test('MIDI recognizes the new chord types', () => {
   assert.equal(sym([60, 64, 67, 71, 74]), 'Cmaj9');
   assert.equal(sym([60, 63, 67, 70, 74]), 'Cm9');
   assert.equal(sym([60, 64, 67, 74]), 'Cadd9');
+});
+
+test('MIDI: a non-root bass becomes a slash chord', () => {
+  assert.equal(sym([64, 67, 71, 72]), 'Cmaj7/E');
+  assert.equal(sym([60, 64, 67, 71]), 'Cmaj7');
+  assert.equal(sym([57, 60, 64, 67]), 'Am7');
 });
