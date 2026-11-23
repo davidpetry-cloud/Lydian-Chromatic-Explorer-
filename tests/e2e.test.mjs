@@ -377,6 +377,32 @@ test('changing the chord type keeps the slash bass', async () => {
   await page.close();
 });
 
+test('Learn: six sections, each example plays and shows where it is', async () => {
+  const { page, problems } = await open('/#learn');
+  assert.equal(await page.locator('#view-learn h2').count(), 6);
+  const section = page.locator('#learn-horizontal');
+  await section.locator('.learn-play').click();
+  await page.waitForFunction(() => /Dm7/.test(document.querySelector('#learn-horizontal .learn-now').textContent));
+  await page.waitForFunction(() => document.querySelectorAll('#learn-horizontal [aria-current="true"]').length === 1);
+  await section.locator('.learn-stop').click();
+  await page.waitForFunction(() => document.getElementById('live').textContent === 'Stopped');
+  assert.equal(await page.locator('#learn-horizontal [aria-current="true"]').count(), 0);
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('Learn: an example replaces whatever Practice was playing', async () => {
+  const { page } = await open();
+  await page.click('#play-scale');
+  await page.click('#tab-learn');
+  await page.locator('#learn-vertical .learn-play').click();
+  await page.waitForFunction(() => /Cm7/.test(document.querySelector('#learn-vertical .learn-now').textContent));
+  await page.click('#tab-practice');
+  assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
+  await page.click('#stop');
+  await page.close();
+});
+
 // ---------- MIDI (simulated keyboard) ----------
 
 // Runs inside the page: Playwright passes only the function's text, so

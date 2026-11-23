@@ -253,3 +253,7 @@ test('a pattern can hold a step for several beats', () => {
   assert.ok(f.engine.notes.length >= 2);
   assert.ok(f.engine.notes.every((n) => n.dur === 2), JSON.stringify(f.engine.notes));
 });
+
+test('router knows the Learn view', () => {
+  assert.equal(viewFromHash('#learn'), 'learn');
+});
