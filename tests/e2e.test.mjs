@@ -349,6 +349,34 @@ test('scale cards show the notes from the chord root, with the familiar mode nam
   await page.close();
 });
 
+test('the drone plays the bass note by default, and the picker changes it', async () => {
+  const { page } = await open();
+  assert.equal(await page.inputValue('#drone-on'), 'bass');
+  await enterChord(page, 'Cmaj7/E');
+  await page.click('#drone');
+  assert.match(await page.textContent('#now-playing'), /Drone on E\b/);
+  await page.selectOption('#drone-on', 'tonic');
+  await enterChord(page, 'Cm7');
+  await page.click('#drone');
+  assert.match(await page.textContent('#now-playing'), /Drone on E♭/);
+  assert.equal(await page.isVisible('#drone-other'), false);
+  await page.selectOption('#drone-on', 'other');
+  assert.equal(await page.isVisible('#drone-other'), true);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('changing the chord type keeps the slash bass', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Cmaj7/E');
+  await page.selectOption('#chord-quality', 'm7');
+  assert.equal(await page.inputValue('#chord-text'), 'Cm7/E');
+  await enterChord(page, 'G7');
+  await page.selectOption('#chord-quality', 'maj7');
+  assert.equal(await page.inputValue('#chord-text'), 'Gmaj7');
+  await page.close();
+});
+
 // ---------- MIDI (simulated keyboard) ----------
 
 // Runs inside the page: Playwright passes only the function's text, so

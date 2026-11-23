@@ -9,7 +9,9 @@ import { QUALITIES, chordNotes, lydianAnalysis } from '../theory/chords.js';
 import { mountChordInput } from '../input/chord-input.js';
 import { createKeyboard } from './keyboard.js';
 import { createFlashGate } from './flash-gate.js';
-import { writePref, volumePref } from '../prefs.js';
+import { writePref, volumePref, dronePref } from '../prefs.js';
+import { resolveDrone } from '../audio/drone.js';
+import { parseNote } from '../theory/notes.js';
 
 const $ = (id) => document.getElementById(id);
 const names = (notes) => notes.map(noteName).join(' ');
@@ -31,10 +33,14 @@ export function mountPractice({ app, announce, initialText }) {
   const keyboard = createKeyboard($('keyboard'), { onKey: playKey });
   const ladder = $('ladder');
 
-  function tonicMidis() {
-    const root = 48 + pc(state.analysis.tonic);
+  const DRONE_WORDS = { bass: 'the bass note', tonic: 'the Lydian tonic', root: 'the chord root', other: 'your chosen note' };
+  const droneChoice = () => ({ mode: $('drone-on').value, note: $('drone-other').value });
+  const droneNote = () => resolveDrone(droneChoice(), state.chord, state.analysis.tonic);
+  function droneMidis() {
+    const root = 48 + pc(droneNote());
     return [root, root + 7];
   }
+
 
   // The selected scale read from the chord root, when "Start on: Chord root" is chosen and the root is in it.
   function fromRoot() {
@@ -88,16 +94,17 @@ export function mountPractice({ app, announce, initialText }) {
   function playScale() {
     const bpm = state.bpm;
     const label = scaleRunLabel(bpm);
-    start({ kind: 'scale', steps: scaleSteps(), bpm, loop: true, label, drone: $('hold-tonic').checked ? tonicMidis() : null });
+    start({ kind: 'scale', steps: scaleSteps(), bpm, loop: true, label, drone: $('hold-tonic').checked ? droneMidis() : null });
   }
 
   function playDrone() {
-    const label = `Drone on ${noteName(state.analysis.tonic)}, the Lydian tonic`;
-    start({ kind: 'drone', steps: [tonicMidis()], bpm: state.bpm, loop: true, label });
+    const label = `Drone on ${noteName(droneNote())}, ${DRONE_WORDS[droneChoice().mode]}`;
+    start({ kind: 'drone', steps: [droneMidis()], bpm: state.bpm, loop: true, label });
   }
 
   function playChordLoop() {
-    const tones = ascendingMidis(chordNotes(state.chord), 3).slice(0, -1);
+    // The bass note sounds lowest (octave 2), the chord above it.
+    const tones = [36 + pc(state.chord.bass), ...ascendingMidis(chordNotes(state.chord), 3).slice(0, -1)];
     const label = chordLoopLabel(state.bpm);
     start({ kind: 'chordLoop', steps: [tones, [], [], []], bpm: state.bpm, loop: true, label });
   }
@@ -239,6 +246,20 @@ export function mountPractice({ app, announce, initialText }) {
   $('stop').addEventListener('click', () => app.transport.stop('user'));
   $('direction').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
   $('hold-tonic').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
+  for (const r of ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']) $('drone-other').add(new Option(noteName(parseNote(r)), r));
+  const savedDrone = dronePref();
+  $('drone-on').value = savedDrone.mode;
+  $('drone-other').value = savedDrone.note;
+  $('drone-other-field').hidden = savedDrone.mode !== 'other';
+  function droneChanged() {
+    $('drone-other-field').hidden = $('drone-on').value !== 'other';
+    writePref('lce.drone', droneChoice());
+    const kind = app.transport.current()?.kind;
+    if (kind === 'drone') playDrone();
+    else if (kind === 'scale' && $('hold-tonic').checked) playScale();
+  }
+  $('drone-on').addEventListener('change', droneChanged);
+  $('drone-other').addEventListener('change', droneChanged);
   $('start-on').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
 
   $('bpm').addEventListener('input', () => {

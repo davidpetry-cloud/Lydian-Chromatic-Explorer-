@@ -6,7 +6,9 @@ import { QUALITIES, SUPPORTED_QUALITIES, parseChord } from '../theory/chords.js'
 import { writePref } from '../prefs.js';
 
 const ROOTS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
-const symbolFor = (rootText, qualityId) => rootText + QUALITIES[qualityId].aliases[0];
+const symbolFor = (rootText, qualityId, slash = '') => rootText + QUALITIES[qualityId].aliases[0] + slash;
+// "/E" when the chord has a bass other than its root, "" otherwise.
+const slashOf = (chord) => (chord.bass && pc(chord.bass) !== pc(chord.root) ? `/${asciiName(chord.bass)}` : '');
 
 export function mountChordInput({ rootSelect, qualitySelect, text, error, initial, onChord }) {
   for (const r of ROOTS) rootSelect.add(new Option(noteName(parseNote(r)), r));
@@ -46,8 +48,10 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
     const typed = parseChord(text.value);
     const sameRoot = !typed.error && pc(typed.root) === pc(parseNote(rootSelect.value));
     const rootText = sameRoot ? asciiName(typed.root) : rootSelect.value;
-    const result = parseChord(symbolFor(rootText, qualitySelect.value));
-    if (!result.error) text.value = symbolFor(rootText, qualitySelect.value);
+    // ...and keep a slash bass the player chose (Cmaj7/E → Dm7/E).
+    const slash = typed.error ? '' : slashOf(typed);
+    const result = parseChord(symbolFor(rootText, qualitySelect.value, slash));
+    if (!result.error) text.value = symbolFor(rootText, qualitySelect.value, slash);
     if (!result.error) accept(result);
   }
 
@@ -66,7 +70,7 @@ export function mountChordInput({ rootSelect, qualitySelect, text, error, initia
     setChord(chord, source) {
       if (current && current.symbol === chord.symbol) return false;
       clearTimeout(timer);
-      text.value = symbolFor(asciiName(chord.root), chord.quality);
+      text.value = symbolFor(asciiName(chord.root), chord.quality, slashOf(chord));
       error.textContent = '';
       text.removeAttribute('aria-invalid');
       syncPickers(chord);

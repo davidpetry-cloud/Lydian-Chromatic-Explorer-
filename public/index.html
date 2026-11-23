@@ -86,10 +86,23 @@
                 <option value="root">Chord root</option>
               </select>
             </div>
-            <label class="check"><input type="checkbox" id="hold-tonic" checked> Hold the tonic underneath</label>
+            <label class="check"><input type="checkbox" id="hold-tonic" checked> Hold the drone underneath</label>
           </div>
           <div class="control-row">
             <button class="btn" id="drone" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> Drone</button>
+            <div class="field">
+              <label for="drone-on">Drone on</label>
+              <select id="drone-on">
+                <option value="bass">Bass note</option>
+                <option value="tonic">Lydian tonic</option>
+                <option value="root">Chord root</option>
+                <option value="other">Other note…</option>
+              </select>
+            </div>
+            <div class="field" id="drone-other-field" hidden>
+              <label for="drone-other">Note</label>
+              <select id="drone-other"></select>
+            </div>
             <button class="btn" id="chord-loop" type="button" aria-pressed="false"><span aria-hidden="true">↻</span> Chord loop</button>
             <button class="btn" id="stop" type="button"><span aria-hidden="true">■</span> Stop</button>
           </div>
