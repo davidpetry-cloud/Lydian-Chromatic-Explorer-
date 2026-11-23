@@ -32,12 +32,13 @@ stands, so any future session (or person) can pick up from here.
 | Each scale card also reads "From C: … · C Dorian" (major-mode names), with Start on: Chord root for playback | #9 |
 | MIDI accepts seventh-family chords without the 5th (G B F = G7, G B F A = G9) | #9 |
 | Site `CLAUDE.md`: new apps go on Cloudflare Workers; the Explorer's live address | david-petry-site#27 |
+| 7 more chord types: 7♯11, maj9, add9, maj13, m9, m11, m13 (19 in all) | chord-types PR |
 
 ## Decisions to remember
 
 - **Dominant chords** take the Lydian scale a whole step below the root
   (G7 → F Lydian), following two sources on Russell's derivation.
-- **Only chords with two agreeing sources ship (12 types).** The rest are
+- **Only chords with two agreeing sources ship (19 types).** The rest are
   listed in the app under "Sources differ". See `docs/theory-sources.md`.
 - **Hosting is Cloudflare, never Netlify,** because David's Netlify plan
   limits deploys.

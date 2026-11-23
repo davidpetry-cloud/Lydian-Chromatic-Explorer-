@@ -79,3 +79,10 @@ test('rootless voicings are still not guessed', () => {
 test('the heard line lists only the notes actually played', () => {
   assert.equal(recognizeChord([55, 59, 65, 69]).heard, 'G B F A');
 });
+
+test('MIDI recognizes the new chord types', () => {
+  assert.equal(sym([60, 64, 67, 70, 66]), 'C7#11');
+  assert.equal(sym([60, 64, 67, 71, 74]), 'Cmaj9');
+  assert.equal(sym([60, 63, 67, 70, 74]), 'Cm9');
+  assert.equal(sym([60, 64, 67, 74]), 'Cadd9');
+});
