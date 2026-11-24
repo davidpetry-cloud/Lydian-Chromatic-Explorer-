@@ -21,10 +21,30 @@ test('every verified voicing cites two known sources', () => {
   }
 });
 
-test('the list, in order, with drop 2 & 4 and spread waiting for sources', () => {
+test('the list, in order, with only spread waiting for sources', () => {
   assert.deepEqual(VOICINGS.map((v) => v.id), ['close', 'drop2', 'drop3', 'drop24', 'spread', 'quartal', 'cluster', 'rootlessA', 'rootlessB']);
-  assert.deepEqual(VOICINGS.filter((v) => v.status !== 'verified').map((v) => v.id), ['drop24', 'spread']);
-  assert.deepEqual(voicingsFor(c('Cmaj7')).map((v) => v.id), ['close', 'drop2', 'drop3', 'quartal', 'cluster', 'rootlessA', 'rootlessB']);
+  assert.deepEqual(VOICINGS.filter((v) => v.status !== 'verified').map((v) => v.id), ['spread']);
+  assert.deepEqual(voicingsFor(c('Cmaj7')).map((v) => v.id), ['close', 'drop2', 'drop3', 'drop24', 'quartal', 'cluster', 'rootlessA', 'rootlessB']);
+});
+
+// Textbooks and university pages first (CLAUDE.md, 2026-11-24). Drop 2 and
+// drop 3 wait for one: Open Music Theory, which defines them, refuses
+// automated reading, so their rows still rest on Wikipedia and lesson sites.
+test('every verified voicing cites a textbook or university source, except drop 2 and drop 3 for now', () => {
+  const kind = new Map(SOURCES.map((s) => [s.id, s.kind]));
+  for (const v of VOICINGS.filter((x) => x.status === 'verified' && !['drop2', 'drop3'].includes(x.id))) {
+    assert.ok(v.sources.some((s) => kind.get(s) === 'textbook'), `${v.id}: ${v.sources}`);
+  }
+});
+
+test('drop 2 & 4 lowers the 2nd and 4th voices from the top of a close voicing', () => {
+  for (const t of ['Cmaj7', 'Dm7', 'G7', 'Bbm7b5', 'F#dim7']) {
+    const m = voiceAs('drop24', c(t));
+    assert.deepEqual(pcs(m), pcs(voiceAs('close', c(t))), t);
+    const raised = [m[0] + 12, m[1] + 12, ...m.slice(2)].sort((a, b) => a - b);
+    assert.ok(raised.at(-1) - raised[0] <= 11, `${t}: raising the two lowest gives close position: ${raised}`);
+    assert.deepEqual([raised.indexOf(m[0] + 12), raised.indexOf(m[1] + 12)].map((i) => 4 - i), [4, 2], `${t}: ${m}`);
+  }
 });
 
 test('close Cmaj7: its four tones inside an octave, the top note nearest G4', () => {
