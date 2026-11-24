@@ -128,3 +128,16 @@ test('smooth falls back to the plain chord tones where the voicing type does not
   const to = smoothInto(voiceAs('rootlessA', c('Dm7')), c('Caug'), 'rootlessA');
   assert.deepEqual(pcs(to), pcs(fourTones(c('Caug'))));
 });
+
+test('smooth from a five-note spread into a triad keeps five voices, doubling the new root', () => {
+  const from = voiceAs('spread', parseChord('Cmaj7'));
+  const to = smoothInto(from, parseChord('F'), 'spread');
+  assert.equal(to?.length, 5, String(to));
+  assert.ok(to.every((m, i) => i === 0 || m > to[i - 1]), `rising: ${to}`);
+  assert.deepEqual(new Set(to.map((m) => m % 12)), new Set([5, 9, 0]));
+});
+
+test('smooth from spread into another seventh chord aims at its spread notes', () => {
+  const to = smoothInto(voiceAs('spread', parseChord('Dm7')), parseChord('G7'), 'spread');
+  assert.deepEqual(new Set(to.map((m) => m % 12)), new Set(voiceAs('spread', parseChord('G7')).map((m) => m % 12)));
+});
