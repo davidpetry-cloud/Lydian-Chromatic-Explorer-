@@ -120,15 +120,15 @@
             <div class="field">
               <label for="stop-after">Stop after</label>
               <select id="stop-after" class="stop-after" aria-describedby="stop-after-hint">
-                <option value="30">30 seconds</option>
-                <option value="60">1 minute</option>
-                <option value="120">2 minutes</option>
-                <option value="300">5 minutes</option>
+                <option value="2">2 bars</option>
+                <option value="4">4 bars</option>
+                <option value="6">6 bars</option>
+                <option value="8">8 bars</option>
                 <option value="0">Until I press Stop</option>
               </select>
             </div>
           </div>
-          <p class="hint" id="stop-after-hint">Drones, chord loops and scale runs fade out on their own after this long.</p>
+          <p class="hint" id="stop-after-hint">Drones, chord loops and scale runs fade out after this many bars.</p>
           <p class="now-playing" id="now-playing" aria-hidden="true">Silent. Press a play button to start.</p>
         </section>
 
@@ -173,15 +173,15 @@
               <div class="field">
                 <label for="gravity-stop-after">Stop after</label>
                 <select id="gravity-stop-after" class="stop-after" aria-describedby="gravity-stop-after-hint">
-                  <option value="30">30 seconds</option>
-                  <option value="60">1 minute</option>
-                  <option value="120">2 minutes</option>
-                  <option value="300">5 minutes</option>
+                  <option value="2">2 bars</option>
+                  <option value="4">4 bars</option>
+                  <option value="6">6 bars</option>
+                  <option value="8">8 bars</option>
                   <option value="0">Until I press Stop</option>
                 </select>
               </div>
             </div>
-            <p class="hint" id="gravity-stop-after-hint">The drone fades out after this long. Each tone you play restarts the clock.</p>
+            <p class="hint" id="gravity-stop-after-hint">The drone fades out after this many bars, at 80 bpm. Each tone you play restarts the count.</p>
             <div class="control-row">
               <button class="btn" id="gravity-stop" type="button"><span aria-hidden="true">■</span> Stop</button>
               <p class="now-playing" id="gravity-status" aria-hidden="true">Silent.</p>

@@ -46,10 +46,10 @@ const stopAfter = [...document.querySelectorAll('.stop-after')];
 for (const select of stopAfter) {
   select.value = String(stopAfterPref());
   select.addEventListener('change', () => {
-    const seconds = Number(select.value);
-    if (!STOP_AFTER_CHOICES.includes(seconds)) return;
-    app.transport.setLimit(seconds);
-    writePref('lce.stopAfter', seconds);
+    const bars = Number(select.value);
+    if (!STOP_AFTER_CHOICES.includes(bars)) return;
+    app.transport.setLimit(bars);
+    writePref('lce.stopAfterBars', bars);
     for (const other of stopAfter) other.value = select.value;
   });
 }

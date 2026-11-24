@@ -160,49 +160,63 @@ test('a scale run can hold a drone underneath, struck on each bar and stopped wi
   assert.ok(f.engine.notes.every((n) => n.midi >= 62), 'no drone after switching');
 });
 
-test('looping patterns fade out on their own after the limit', () => {
+test('looping patterns fade out at the end of the bar limit, striking nothing after it', () => {
   const f = fakes();
-  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 }); // 2 bars = 8 beats = 8 s at 60 bpm
   const reasons = [];
   t.onStop((r) => reasons.push(r));
-  t.play(pattern(60, { loop: true }));
-  f.clock.t = 29.9; f.tick();
+  t.play(pattern(60, { loop: true, bpm: 60 }));
+  for (const at of [2, 4, 6, 7.9, 7.99]) { f.clock.t = at; f.tick(); }
   assert.equal(t.isPlaying(), true);
-  f.clock.t = 30.1; f.tick();
+  assert.ok(f.engine.notes.every((n) => n.at < 8), JSON.stringify(f.engine.notes.map((n) => n.at)));
+  f.clock.t = 8.1; f.tick();
   assert.equal(t.isPlaying(), false);
   assert.deepEqual(reasons, ['limit']);
   assert.equal(f.engine.fades.at(-1), 2, 'a two-second fade, not a cut');
 });
 
-test('a drone also stops at the limit', () => {
+test('a tempo change mid-loop still stops on the right bar line', () => {
   const f = fakes();
-  const t = createTransport(f.engine, { ...f.opts, limit: 60 });
-  t.play({ kind: 'drone', steps: [[48]], bpm: 80, loop: true, label: 'd' });
-  f.clock.t = 59; f.tick();
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
+  t.play(pattern(60, { loop: true, bpm: 60 }));
+  f.clock.t = 4; f.tick(); // 4 beats at 60 bpm
+  t.setBpm(120);
+  f.clock.t = 5.9; f.tick(); // 4 + 3.8 beats
   assert.equal(t.isPlaying(), true);
-  f.clock.t = 61; f.tick();
+  f.clock.t = 6.1; f.tick(); // 4 + 4.2 beats
   assert.equal(t.isPlaying(), false);
 });
 
-test('the limit counts from the latest play, and can be changed or switched off', () => {
+test('a drone also stops at the bar limit', () => {
   const f = fakes();
-  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
-  t.play(pattern(60, { loop: true }));
-  f.clock.t = 20; t.play(pattern(62, { loop: true }));
-  f.clock.t = 45; f.tick();
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
+  t.play({ kind: 'drone', steps: [[48]], bpm: 80, loop: true, label: 'd' }); // 8 beats = 6 s
+  f.clock.t = 5.9; f.tick();
   assert.equal(t.isPlaying(), true);
-  assert.equal(t.limit(), 30);
-  t.setLimit(null);
-  f.clock.t = 600; f.tick();
-  assert.equal(t.isPlaying(), true, 'until Stop');
-  t.setLimit(120);
-  f.clock.t = 601; f.tick();
-  assert.equal(t.isPlaying(), false, 'a shorter new limit applies at once');
+  f.clock.t = 6.1; f.tick();
+  assert.equal(t.isPlaying(), false);
 });
 
-test('a one-shot example is never cut short by the limit', () => {
+test('the bar limit counts from the latest play, and can be changed or switched off', () => {
   const f = fakes();
-  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
+  t.play(pattern(60, { loop: true, bpm: 60 }));
+  f.clock.t = 5; t.play(pattern(62, { loop: true, bpm: 60 }));
+  f.clock.t = 12; f.tick();
+  assert.equal(t.isPlaying(), true);
+  assert.equal(t.limit(), 2);
+  t.setLimit(0);
+  assert.equal(t.limit(), null);
+  f.clock.t = 600; f.tick();
+  assert.equal(t.isPlaying(), true, 'until Stop');
+  t.setLimit(8);
+  f.clock.t = 601; f.tick();
+  assert.equal(t.isPlaying(), false, 'a new limit already passed applies at once');
+});
+
+test('a one-shot example is never cut short by the bar limit', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
   t.play({ kind: 'progression', steps: [[60], [62]], durations: [40, 4], bpm: 60, loop: false, label: 'long' });
   f.tick();
   f.clock.t = 35; f.tick();
@@ -211,7 +225,7 @@ test('a one-shot example is never cut short by the limit', () => {
 
 test('a user stop releases at the normal speed', () => {
   const f = fakes();
-  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
   t.play(pattern(60, { loop: true }));
   t.stop('user');
   assert.equal(f.engine.fades.at(-1), undefined);
@@ -263,14 +277,14 @@ test('a pattern ending on its own does not cancel a press waiting to play', asyn
   assert.equal(await pending, true);
 });
 
-test('renew restarts the Stop after clock (Gravity: each tone keeps its drone going)', () => {
+test('renew restarts the bar count (Gravity: each tone keeps its drone going)', () => {
   const f = fakes();
-  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
-  t.play({ kind: 'drone', steps: [[48]], bpm: 80, loop: true, label: 'd' });
-  f.clock.t = 25; t.renew();
-  f.clock.t = 50; f.tick();
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
+  t.play(pattern(60, { loop: true, bpm: 60 }));
+  f.clock.t = 6; f.tick(); t.renew();
+  f.clock.t = 13; f.tick();
   assert.equal(t.isPlaying(), true);
-  f.clock.t = 56; f.tick();
+  f.clock.t = 14.1; f.tick();
   assert.equal(t.isPlaying(), false);
 });
 
@@ -285,20 +299,24 @@ test('when two presses wait for loading, only the latest counts', async () => {
   assert.deepEqual([await first, await second], [false, true]);
 });
 
-test('stopAfterPref reads the saved limit in seconds, defaulting to 30 (0 = until Stop)', async () => {
-  const { stopAfterPref, STOP_AFTER_CHOICES } = await import('../public/js/prefs.js');
-  assert.deepEqual(STOP_AFTER_CHOICES, [30, 60, 120, 300, 0]);
+test('stopAfterPref reads the saved limit in bars, defaulting to 8 (0 = until Stop)', async () => {
+  const { stopAfterPref, STOP_AFTER_CHOICES, describeLimit } = await import('../public/js/prefs.js');
+  assert.deepEqual(STOP_AFTER_CHOICES, [2, 4, 6, 8, 0]);
+  assert.equal(describeLimit(8), '8 bars');
+  assert.equal(describeLimit(2), '2 bars');
   const box = {};
   withStorage({ getItem: (k) => box[k] ?? null, setItem: (k, v) => { box[k] = v; } }, () => {
-    assert.equal(stopAfterPref(), 30);
-    box['lce.stopAfter'] = '120';
-    assert.equal(stopAfterPref(), 120);
-    box['lce.stopAfter'] = '0';
+    assert.equal(stopAfterPref(), 8);
+    box['lce.stopAfter'] = '30'; // the old seconds setting is ignored
+    assert.equal(stopAfterPref(), 8);
+    box['lce.stopAfterBars'] = '4';
+    assert.equal(stopAfterPref(), 4);
+    box['lce.stopAfterBars'] = '0';
     assert.equal(stopAfterPref(), 0);
-    box['lce.stopAfter'] = '7';
-    assert.equal(stopAfterPref(), 30);
-    box['lce.stopAfter'] = '"long"';
-    assert.equal(stopAfterPref(), 30);
+    box['lce.stopAfterBars'] = '30';
+    assert.equal(stopAfterPref(), 8);
+    box['lce.stopAfterBars'] = '"x"';
+    assert.equal(stopAfterPref(), 8);
   });
 });
 

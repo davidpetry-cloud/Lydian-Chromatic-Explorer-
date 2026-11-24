@@ -417,16 +417,16 @@ test('a note plays the recorded piano from this site: it strikes, rings and dies
   await page.close();
 });
 
-test('Stop after defaults to 30 seconds, is shared with Gravity, and is remembered', async () => {
+test('Stop after defaults to 8 bars, is shared with Gravity, and is remembered', async () => {
   const { page } = await open();
-  assert.equal(await page.inputValue('#stop-after'), '30');
+  assert.equal(await page.inputValue('#stop-after'), '8');
   const labels = await page.$$eval('#stop-after option', (os) => os.map((o) => o.textContent));
-  assert.deepEqual(labels, ['30 seconds', '1 minute', '2 minutes', '5 minutes', 'Until I press Stop']);
-  await page.selectOption('#stop-after', '120');
-  assert.equal(await page.inputValue('#gravity-stop-after'), '120');
+  assert.deepEqual(labels, ['2 bars', '4 bars', '6 bars', '8 bars', 'Until I press Stop']);
+  await page.selectOption('#stop-after', '4');
+  assert.equal(await page.inputValue('#gravity-stop-after'), '4');
   await page.reload();
   await page.waitForFunction(() => document.getElementById('tonic')?.textContent.length > 0);
-  assert.equal(await page.inputValue('#stop-after'), '120');
+  assert.equal(await page.inputValue('#stop-after'), '4');
   await page.goto(server.url + '/#gravity');
   await page.selectOption('#gravity-stop-after', '0');
   assert.equal(await page.inputValue('#stop-after'), '0');
