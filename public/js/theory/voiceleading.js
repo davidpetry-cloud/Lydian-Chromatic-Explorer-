@@ -47,8 +47,8 @@ const near = (from, p) => [-12, 0, 12].map((o) => from + o + mod12(p - from)).co
  * (David: rootless stays rootless, keeping its 9th and 13th), or at the
  * chord's four main tones where that voicing doesn't fit.
  */
-export function smoothInto(fromMidis, next, voicingId = null) {
-  const shape = voicingId ? voiceAs(voicingId, next) : null;
+export function smoothInto(fromMidis, next, voicingId = null, { centre = null } = {}) {
+  const shape = voicingId ? voiceAs(voicingId, next, { centre }) : null;
   const goal = shape ? shape.map((m) => ((m % 12) + 12) % 12) : fourTones(next);
   // More voices than target tones (a five-note spread into a triad): fill with
   // the chord's own tones, the least-used first, root then 5th then the rest.
@@ -84,13 +84,13 @@ export function smoothInto(fromMidis, next, voicingId = null) {
  * chord's own voicing of this type, at the octave nearest the current one.
  * Null when the voicing doesn't apply to the next chord.
  */
-export function planeInto(voicingId, fromMidis, current, next) {
+export function planeInto(voicingId, fromMidis, current, next, { centre = null } = {}) {
   if (current.quality === next.quality) {
     let shift = mod12(pc(next.root) - pc(current.root));
     if (shift > 6) shift -= 12;
     return { midis: fromMidis.map((m) => m + shift), parallel: true, shift };
   }
-  const shape = voiceAs(voicingId, next);
+  const shape = voiceAs(voicingId, next, { centre });
   if (!shape) return null;
   let best = null;
   for (let k = -2; k <= 2; k++) {

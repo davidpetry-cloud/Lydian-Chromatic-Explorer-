@@ -28,14 +28,14 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
 
   function render() {
     const chord = getChord();
-    const parentNotes = lydianAnalysis(chord).parentNotes;
+    const centre = getCentre();
+    const parentNotes = lydianAnalysis(chord, { centre }).parentNotes;
     const tones = chordNotes(chord);
     const spell = (m) => {
       const known = [...tones, ...parentNotes].find((n) => pc(n) === m % 12);
       return known ? noteName(known) : SHARPS[m % 12];
     };
-    const centre = getCentre();
-    list = voicingsFor(chord);
+    list = voicingsFor(chord, { centre });
     $('h-voicings').textContent = `Voicings of ${chord.symbol}`;
     const colour = gravityReading([pc(centre) + 60], centre, parentNotes, tones).colour;
     $('voicings-heard').textContent = `Ranks are counted from your drone note, ${noteName(centre)}${colour ? `; heard from ${noteName(centre)}, the parent scale sounds as ${colour}` : ''}. Change “Drone on” to hear the chord from another centre.`;

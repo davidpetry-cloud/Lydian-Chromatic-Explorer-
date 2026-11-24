@@ -69,3 +69,30 @@ test('sus names: sus means sus4, 7sus means 7sus4; all four are verified with so
   }
   assert.deepEqual(chordNotes(c('C7sus2')).map(noteName), ['C', 'D', 'G', 'B♭']);
 });
+
+// Task 2: everything follows the tonic heard.
+import { voiceAs, voicingsFor } from '../public/js/theory/voicings.js';
+import { smoothInto, planeInto } from '../public/js/theory/voiceleading.js';
+import { resolveDrone } from '../public/js/audio/drone.js';
+
+test('voicings draw their extra notes from the parent heard (F Lydian has B, B♭ Lydian has B♭)', () => {
+  const sus4 = c('Csus4');
+  const pcsOf = (ms) => new Set(ms.map((m) => m % 12));
+  assert.ok(pcsOf(voiceAs('quartal', sus4)).has(11) || !pcsOf(voiceAs('quartal', sus4)).has(10), 'from F Lydian: no B♭');
+  const fromBb = voiceAs('quartal', sus4, { centre: parseNote('Bb') });
+  assert.ok(fromBb && !pcsOf(fromBb).has(11), `from B♭ Lydian: no B natural: ${fromBb}`);
+  assert.deepEqual(voicingsFor(sus4, { centre: parseNote('Bb') }).find((v) => v.id === 'quartal').midis, fromBb);
+});
+
+test('leading into a sus chord uses the next chord’s own centre', () => {
+  const from = voiceAs('quartal', c('Cmaj7'));
+  const to = smoothInto(from, c('Csus4'), 'quartal', { centre: parseNote('Bb') });
+  assert.ok(to && !to.some((m) => m % 12 === 11), `aims at B♭ Lydian's quartal: ${to}`);
+  const planed = planeInto('quartal', from, c('Cmaj7'), c('Csus4'), { centre: parseNote('Bb') });
+  assert.deepEqual(new Set(planed.midis.map((m) => m % 12)), new Set(voiceAs('quartal', c('Csus4'), { centre: parseNote('Bb') }).map((m) => m % 12)));
+});
+
+test('Drone on: Lydian tonic means the most ingoing tonic of a sus chord', () => {
+  const sus4 = c('Csus4');
+  assert.equal(noteName(resolveDrone({ mode: 'tonic' }, sus4, lydianAnalysis(sus4).tonic)), 'F');
+});

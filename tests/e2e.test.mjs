@@ -169,6 +169,19 @@ test('reference search filters the glossary as you type', async () => {
   await page.close();
 });
 
+test('a sus chord is heard from the drone note when it is one of its Lydian tonics', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Csus4');
+  await page.waitForFunction(() => /F Lydian/.test(document.getElementById('parent-name').textContent));
+  await page.selectOption('#drone-on', 'other');
+  await page.selectOption('#drone-other', 'Bb');
+  await page.waitForFunction(() => /B♭ Lydian/.test(document.getElementById('parent-name').textContent));
+  assert.match(await page.textContent('#voicings-heard'), /B♭/);
+  await page.selectOption('#drone-other', 'D');
+  await page.waitForFunction(() => /^F Lydian/.test(document.getElementById('parent-name').textContent));
+  await page.close();
+});
+
 test('the chord table lists verified chords and the book citation is there', async () => {
   const { page } = await open('/#reference');
   assert.ok(await page.locator('#chord-table tbody tr').count() >= 12);

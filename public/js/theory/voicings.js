@@ -207,8 +207,9 @@ function spread(chord, parent) {
 }
 
 /** One voicing of the chord, as rising MIDI notes inside C3–B4; null if it doesn't apply. */
-export function voiceAs(id, chord) {
-  const parent = lydianAnalysis(chord).parentNotes.map(pc);
+export function voiceAs(id, chord, { centre = null } = {}) {
+  // A sus chord's parent follows the centre heard (see chords.js lydianAnalysis).
+  const parent = lydianAnalysis(chord, { centre }).parentNotes.map(pc);
   const tones = fourTones(chord);
   // Close position: each rotation stacked upward, kept only if it fits inside an octave.
   const closeShapes = rotations(tones).map((t) => stack(t)).filter((s) => s.at(-1) - s[0] <= 12);
@@ -227,6 +228,6 @@ export function voiceAs(id, chord) {
 }
 
 /** The verified voicings of a chord, with their notes (null where one doesn't apply). */
-export function voicingsFor(chord) {
-  return VOICINGS.filter((x) => x.status === 'verified').map((x) => ({ ...x, midis: voiceAs(x.id, chord) }));
+export function voicingsFor(chord, opts = {}) {
+  return VOICINGS.filter((x) => x.status === 'verified').map((x) => ({ ...x, midis: voiceAs(x.id, chord, opts) }));
 }

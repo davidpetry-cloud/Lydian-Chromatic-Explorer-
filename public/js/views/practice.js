@@ -223,7 +223,9 @@ export function mountPractice({ app, announce, initialText }) {
   let firstChord = true;
   function onChord({ chord }) {
     state.chord = chord;
-    state.analysis = lydianAnalysis(chord);
+    // A sus chord has no single parent: the drone note picks the tonic heard
+    // ("Drone on: Lydian tonic" means its most ingoing one).
+    state.analysis = lydianAnalysis(chord, { centre: resolveDrone(droneChoice(), chord, lydianAnalysis(chord).tonic) });
     const tones = chordNotes(chord);
     $('tonic').textContent = noteName(state.analysis.tonic);
     $('tonic-spoken').textContent = spokenName(state.analysis.tonic);
@@ -290,9 +292,12 @@ export function mountPractice({ app, announce, initialText }) {
   $('drone-other').value = savedDrone.note;
   $('drone-other-field').hidden = savedDrone.mode !== 'other';
   function droneChanged() {
-    voicings.refresh();
     $('drone-other-field').hidden = $('drone-on').value !== 'other';
     writePref('lce.drone', droneChoice());
+    // For a sus chord the drone picks the parent: analyse it again, which also
+    // redraws the card and restarts whatever plays.
+    if (state.analysis.noSingleParent) { onChord({ chord: state.chord }); return; }
+    voicings.refresh();
     const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'drone') playDrone();
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
