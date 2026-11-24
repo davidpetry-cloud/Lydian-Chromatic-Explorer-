@@ -47,7 +47,7 @@ stands, so any future session (or person) can pick up from here.
   limits deploys.
 - **Sound** is the Salamander Grand Piano V3 (Alexander Holm, CC BY 3.0,
   credited in the footer and `THIRD-PARTY-NOTICES.md`): 25 notes, every
-  three semitones from C1 to C7, about 1.5 MB, loaded from the app's own
+  three semitones from C1 to C7, 8 seconds each (so a bar at 40 bpm never drops out), about 2.3 MB, loaded from the app's own
   address on the first press (`connect-src 'self'`). Natural (stretch)
   tuning kept, as a real piano is tuned. Logic Pro's sounds can't be used:
   Apple's licence forbids redistributing them as samples.
@@ -75,8 +75,9 @@ stands, so any future session (or person) can pick up from here.
 ## Next step
 
 1. **#13** (piano + Stop after): GitHub tests and the Cloudflare build pass;
-   David asked to merge once the checks pass. Waiting only on the fresh
-   whole-branch review; fix any important findings test-first, then merge.
+   David asked to merge once the checks pass. Fresh review done: its two
+   important findings (keyboard clicks during loading; drone dropouts below
+   48 bpm) and the useful minor ones are fixed, test-first.
 2. **More chord types** (David, 2026-11-24): diminished, dim7, m7♭5, 7♭9,
    7♯9, 7♯5, minor-major 7, m6, 7sus4, altered. First check what each
    needs (two agreeing sources, ideally Russell's book with page numbers;

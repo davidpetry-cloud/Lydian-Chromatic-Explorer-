@@ -26,7 +26,7 @@ Creative Commons Attribution 3.0 Unported:
 https://creativecommons.org/licenses/by/3.0/
 
 **Changes made:** 25 notes (C, D♯, F♯ and A from C1 to C7) at velocity
-layer 8 of 16; leading silence removed; trimmed to 5 seconds with a fade;
+layer 8 of 16; leading silence removed; trimmed to 8 seconds with a 1.5-second fade (the top notes are shorter, as recorded);
 mixed to mono; level evened out about halfway between notes; encoded as
 96 kbps MP3. The app also credits the recordings in its footer.
 

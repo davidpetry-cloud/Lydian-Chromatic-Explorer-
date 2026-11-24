@@ -59,14 +59,17 @@ export function mountGravity({ app, announce }) {
     const n = nodes[rank - 1];
     const text = `${noteName(n.note)}: rank ${rank} of 12, ${MEANING[rank - 1]}.`;
     note.textContent = text;
+    // Wait for the piano first, so "Loading the piano" can't drown out the tone's description.
+    const ok = await app.transport.whenReady(app.engine.resume());
     announce(text);
-    if (!(await app.transport.whenReady(app.engine.resume()))) return;
+    if (!ok) return;
     const drone = 48 + pc(tonic);
     const label = `Drone on ${noteName(tonic)}, the Lydian tonic`;
     if (app.transport.current()?.label !== label) {
       app.transport.play({ kind: 'drone', owner: 'gravity', steps: [[drone, drone + 7]], bpm: 80, loop: true, label });
     }
     app.transport.poke();
+    app.transport.renew(); // exploring keeps the drone going; it fades only once you stop
     const midi = 60 + pc(n.note);
     app.engine.note(midi, app.engine.now() + 0.02, 1.2, { gain: 0.25 });
     n.g.classList.add('is-sounding');

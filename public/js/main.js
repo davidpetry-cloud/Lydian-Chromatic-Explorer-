@@ -17,10 +17,11 @@ const DEFAULT_CHORD = 'Cmaj7';
 // While the piano recordings load (once, on the first press), every
 // "now playing" line says so; each line gets its own text back afterwards.
 const waiting = new Map();
+let fellBack = false;
 function soundChanged(sound) {
   if (sound === 'loading') {
     for (const el of document.querySelectorAll('.now-playing')) {
-      waiting.set(el, el.textContent);
+      if (!waiting.has(el)) waiting.set(el, el.textContent);
       el.textContent = 'Loading the piano…';
     }
     announce('Loading the piano');
@@ -29,6 +30,8 @@ function soundChanged(sound) {
   for (const [el, text] of waiting) if (el.textContent === 'Loading the piano…') el.textContent = text;
   waiting.clear();
   if (sound === 'electric') announce("The piano recordings didn't load, so you're hearing the built-in electric piano instead.");
+  if (sound === 'piano' && fellBack) announce('The piano has loaded after all.');
+  if (sound === 'electric') fellBack = true;
 }
 
 export const app = {

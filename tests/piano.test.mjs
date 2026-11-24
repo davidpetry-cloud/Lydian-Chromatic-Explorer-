@@ -1,7 +1,7 @@
 // The sampled piano: which recording plays each key, and how it loads.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { PIANO_SAMPLES, pickSample, loadPiano } from '../public/js/audio/piano.js';
 import { createEngine } from '../public/js/audio/engine.js';
 
@@ -12,6 +12,14 @@ test('the piano is recorded every three semitones from C1 to C7', () => {
 test('every recording is in public/audio/piano', () => {
   for (const m of PIANO_SAMPLES) {
     assert.ok(existsSync(new URL(`../public/audio/piano/${m}.mp3`, import.meta.url)), `${m}.mp3`);
+  }
+});
+
+test('recordings up to D♯5 ring for 7.5 s or more, so a bar at 40 bpm (6 s) never drops out', () => {
+  // The files are 96 kbps constant bit rate: 12,000 bytes per second.
+  for (const m of PIANO_SAMPLES.filter((x) => x <= 75)) {
+    const seconds = statSync(new URL(`../public/audio/piano/${m}.mp3`, import.meta.url)).size / 12000;
+    assert.ok(seconds >= 7.5, `${m}.mp3 lasts ${seconds.toFixed(2)} s`);
   }
 });
 
@@ -75,4 +83,28 @@ test('a load that never finishes falls back after the timeout', async () => {
   const engine = createEngine({ AudioContextCtor: FakeCtx, loadSamples: () => new Promise(() => {}), loadTimeout: 0.05 });
   await engine.resume();
   assert.equal(engine.sound(), 'electric');
+});
+
+test('a slow load that arrives after the fallback still switches to the piano', async () => {
+  let arrive;
+  const sounds = [];
+  const engine = createEngine({ AudioContextCtor: FakeCtx, loadSamples: () => new Promise((r) => { arrive = r; }), loadTimeout: 0.05, onSound: (s) => sounds.push(s) });
+  await engine.resume();
+  assert.equal(engine.sound(), 'electric');
+  arrive(new Map());
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(engine.sound(), 'piano');
+  assert.deepEqual(sounds, ['loading', 'electric', 'piano']);
+});
+
+test('a second press while still loading says so again', async () => {
+  let arrive;
+  const sounds = [];
+  const engine = createEngine({ AudioContextCtor: FakeCtx, loadSamples: () => new Promise((r) => { arrive = r; }), onSound: (s) => sounds.push(s) });
+  const first = engine.resume();
+  const second = engine.resume();
+  assert.deepEqual(sounds, ['loading', 'loading']);
+  arrive(new Map());
+  await Promise.all([first, second]);
+  assert.deepEqual(sounds, ['loading', 'loading', 'piano']);
 });

@@ -231,6 +231,49 @@ test('Stop while the sound is still loading cancels the waiting press', async ()
   assert.deepEqual(reasons, ['user'], 'the cancel is reported, so the screen can say so');
 });
 
+test('key clicks wait in their own lane: they don’t cancel a waiting Play, but Stop cancels both', async () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  let finish;
+  const ready = new Promise((r) => { finish = r; });
+  const play = t.whenReady(ready);
+  const key1 = t.whenReady(ready, 'key');
+  const key2 = t.whenReady(ready, 'key');
+  finish();
+  assert.deepEqual([await play, await key1, await key2], [true, false, true]);
+  let again;
+  const later = new Promise((r) => { again = r; });
+  const play2 = t.whenReady(later);
+  const key3 = t.whenReady(later, 'key');
+  t.stop('user');
+  again();
+  assert.deepEqual([await play2, await key3], [false, false]);
+});
+
+test('a pattern ending on its own does not cancel a press waiting to play', async () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play(pattern(60));
+  let finish;
+  const ready = new Promise((r) => { finish = r; });
+  const pending = t.whenReady(ready);
+  f.tick(); f.clock.t = 5; f.tick(); // the one-shot run ends: 'done'
+  assert.equal(t.isPlaying(), false);
+  finish();
+  assert.equal(await pending, true);
+});
+
+test('renew restarts the Stop after clock (Gravity: each tone keeps its drone going)', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  t.play({ kind: 'drone', steps: [[48]], bpm: 80, loop: true, label: 'd' });
+  f.clock.t = 25; t.renew();
+  f.clock.t = 50; f.tick();
+  assert.equal(t.isPlaying(), true);
+  f.clock.t = 56; f.tick();
+  assert.equal(t.isPlaying(), false);
+});
+
 test('when two presses wait for loading, only the latest counts', async () => {
   const f = fakes();
   const t = createTransport(f.engine, f.opts);

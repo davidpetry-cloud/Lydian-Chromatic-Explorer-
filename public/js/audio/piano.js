@@ -1,5 +1,5 @@
 // The recorded piano: Salamander Grand Piano V3 by Alexander Holm (a Yamaha
-// C5), CC BY 3.0, trimmed to five mono seconds per note (see
+// C5), CC BY 3.0, trimmed to eight mono seconds per note (see
 // THIRD-PARTY-NOTICES.md). One recording every three semitones from C1 to
 // C7; every other key plays the nearest one, retuned by a semitone at most.
 

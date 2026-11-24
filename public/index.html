@@ -172,7 +172,7 @@
             <div class="control-row">
               <div class="field">
                 <label for="gravity-stop-after">Stop after</label>
-                <select id="gravity-stop-after" class="stop-after">
+                <select id="gravity-stop-after" class="stop-after" aria-describedby="gravity-stop-after-hint">
                   <option value="30">30 seconds</option>
                   <option value="60">1 minute</option>
                   <option value="120">2 minutes</option>
@@ -181,6 +181,7 @@
                 </select>
               </div>
             </div>
+            <p class="hint" id="gravity-stop-after-hint">The drone fades out after this long. Each tone you play restarts the clock.</p>
             <div class="control-row">
               <button class="btn" id="gravity-stop" type="button"><span aria-hidden="true">■</span> Stop</button>
               <p class="now-playing" id="gravity-status" aria-hidden="true">Silent.</p>

@@ -19,8 +19,10 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   const playListeners = new Set();
   let current = null;
   let limit = startLimit || null; // seconds, or null for "until Stop"
-  // Presses waiting for the sound to be ready: the latest one wins, and Stop cancels them all.
-  let ticket = 0;
+  // Presses waiting for the sound to be ready, in lanes ('play' for patterns,
+  // 'key' for single notes): the latest press in a lane wins, and Stop (or
+  // hiding the tab) cancels every lane.
+  const tickets = new Map();
   let waiting = 0;
 
   function halt(fade) {
@@ -31,8 +33,8 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   }
 
   function stop(reason = 'user') {
-    const cancelled = waiting > 0;
-    ticket += 1;
+    const cancelled = waiting > 0 && (reason === 'user' || reason === 'hidden');
+    if (reason === 'user' || reason === 'hidden') for (const lane of tickets.keys()) tickets.set(lane, tickets.get(lane) + 1);
     if (!current) {
       engine.stopAll(); // still cut any ringing key
       if (cancelled) stopListeners.forEach((cb) => cb(reason));
@@ -96,12 +98,15 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
      * Waits for `ready` (the engine loading), then says whether this press
      * still counts: false if Stop or a later press came in meanwhile.
      */
-    async whenReady(ready) {
-      const mine = ++ticket;
+    async whenReady(ready, lane = 'play') {
+      const mine = (tickets.get(lane) ?? 0) + 1;
+      tickets.set(lane, mine);
       waiting += 1;
       try { await ready; } finally { waiting -= 1; }
-      return mine === ticket;
+      return mine === tickets.get(lane);
     },
+    /** Restarts the "Stop after" clock: the player is still actively using this sound. */
+    renew() { if (current) current.started = engine.now(); },
     isPlaying: () => current !== null,
     current: () => current?.pattern ?? null,
     onStep(cb) { stepListeners.add(cb); return () => stepListeners.delete(cb); },

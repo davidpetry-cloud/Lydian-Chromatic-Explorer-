@@ -123,7 +123,7 @@ export function mountPractice({ app, announce, initialText }) {
   }
 
   async function playKey(midi) {
-    await app.engine.resume();
+    if (!(await app.transport.whenReady(app.engine.resume(), 'key'))) return;
     app.transport.poke();
     app.engine.note(midi, app.engine.now() + 0.01, 0.6);
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) keyboard.flash(midi, 600);

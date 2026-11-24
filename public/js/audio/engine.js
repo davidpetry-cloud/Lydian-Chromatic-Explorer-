@@ -45,13 +45,18 @@ export function createEngine({
 
   function setSound(s) { sound = s; onSound(s); }
 
+  // Waits up to loadTimeout for the recordings, then falls back to the
+  // electric piano; if they arrive later after all, the piano takes over.
   function load() {
     setSound('loading');
+    const real = loadSamples(ctx).then(
+      (map) => { samples = map; setSound('piano'); },
+      () => { if (sound === 'loading') setSound('electric'); },
+    );
     let timer;
-    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), loadTimeout * 1000); });
-    return Promise.race([loadSamples(ctx), timeout])
-      .then((map) => { samples = map; setSound('piano'); }, () => setSound('electric'))
-      .finally(() => clearTimeout(timer));
+    const timeout = new Promise((resolve) => { timer = setTimeout(resolve, loadTimeout * 1000); })
+      .then(() => { if (sound === 'loading') setSound('electric'); });
+    return Promise.race([real, timeout]).finally(() => clearTimeout(timer));
   }
 
   // One struck piano key: the nearest recording, retuned, at the given loudness.
@@ -140,6 +145,8 @@ export function createEngine({
         ceiling.curve = softClipCurve();
         master.connect(ceiling).connect(ctx.destination);
         loading = load();
+      } else if (sound === 'loading') {
+        onSound('loading'); // another press while still loading: say so again
       }
       // Resume first, while still inside the press, then wait for the piano.
       const resumed = ctx.state === 'suspended' ? ctx.resume() : null;

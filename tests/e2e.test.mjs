@@ -88,11 +88,24 @@ test('pressing Play twice then Stop leaves silence', async () => {
   await page.close();
 });
 
-test('Stop pressed while the piano loads keeps it silent', async () => {
+test('Stop pressed while the piano loads keeps it silent (scale and keyboard key)', async () => {
   const { page } = await open();
+  // Hold the recordings back until after Stop, so Stop really lands mid-load.
+  const held = [];
+  await page.route('**/audio/piano/**', (route) => { held.push(route); });
   await page.click('#play-scale');
+  await page.locator('#keyboard [role="button"][tabindex="0"]').press('Enter');
+  await page.waitForFunction(() => document.getElementById('now-playing').textContent === 'Loading the piano…');
   await page.click('#stop');
+  for (let i = 0; i < 50 && held.length < 25; i++) await page.waitForTimeout(50);
+  assert.equal(held.length, 25, 'every recording was held back until after Stop');
+  for (const r of held) await r.continue();
   await page.waitForTimeout(1500);
+  const state = await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    return { playing: app.transport.isPlaying(), sound: app.engine.sound() };
+  });
+  assert.deepEqual(state, { playing: false, sound: 'piano' });
   assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
   assert.doesNotMatch(await page.textContent('#now-playing'), /Playing|Loading/);
   await page.close();
