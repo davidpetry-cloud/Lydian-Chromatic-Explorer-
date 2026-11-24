@@ -131,6 +131,35 @@ this name. This is one more reason for the book check.
 David Baker's *Techniques of Improvisation, Vol. 1: The Lydian Chromatic
 Concept* (Russell's former sideman) would make a strong second source.
 
+## Voicings (2026-11-24)
+
+**How this was checked:** Wikipedia's "Voicing (music)", "Quartal and
+quintal harmony" and "Tone cluster" articles were read in full. The other
+rows rest on search summaries of the pages, as in the earlier rounds. The
+definitions are written in my own words in `public/js/theory/voicings.js`;
+nothing is copied.
+
+| Voicing | Definition used | Sources | What they say | Verdict |
+|---|---|---|---|---|
+| Close | The four tones as compact as possible, inside an octave | wikipedia-voicing, tjps-close | "close position (the most compact voicing)"; four-way close = a four-note close-position chord | Verified |
+| Drop 2 | From a four-note close voicing, the 2nd voice from the top moves down an octave | wikipedia-voicing, pianogroove-drop2 | "A drop-2 voicing lowers the second voice by an octave"; begin with a 4-note closed voicing, drop the 2nd note from the top an octave | Verified |
+| Drop 3 | Same, with the 3rd voice from the top | wikipedia-voicing, bonedo-drop3 | Voices are numbered from the top, and "drop-3" lowers the third; drop 3 drops the third-highest note | Verified |
+| Drop 2 & 4 | Same, with the 2nd and 4th voices | wikipedia-voicing | Gives the four drop-2-and-4 voicings of G7; no second source defines it | **Waiting for sources** |
+| Spread | — | pianogroove-spread, (open position: wikipedia-voicing) | One source: root with 3rd and 7th spread apart; another: any tones spaced wider than a third | **Sources differ**, so not shipped |
+| Quartal | Four notes stacked in fourths, using the parent scale's tones (a fourth may be augmented where the scale has it) | wikipedia-quartal, pianogroove-quartal | Quartal harmony is built mainly from fourths rather than thirds; quartal comping voicings for jazz piano | Verified |
+| Cluster | Four parent-scale tones in consecutive steps (seconds), spanning no more than a fifth, holding **one** of the 3rd and 7th: here the 3rd, from the step below it | pianogroove-cluster, pianowithjonny-cluster | Built from seconds, usually within a fifth; clusters don't contain both the 3rd and 7th. Sizes differ (three notes in one source, more in the other); the app uses four | Verified (the size is the app's choice) |
+| Rootless A / B | A: 3–5–7–9; B: 7–9–3–5. On dominant chords the 13th replaces the 5th (A: 3–13–7–9; B: 7–9–3–13). Only on major 7, minor 7 and dominant chord families | pianowithjonny-rootless, tjps-rootless | Type A 3-5-7-9, Type B 7-9-3-5; B is A with the bottom two notes moved to the top; dominants commonly use the 13th for the 5th | Verified |
+
+**The app's own conventions** (no source states them; labelled as such):
+- **Four tones for drop voicings:** a chord with four distinct tones uses
+  them; a triad doubles its root; a larger chord keeps, in this order, the
+  3rd, the 7th (or 6th), the extensions from the top down, then the 5th, then
+  the root. The bass note sounds the root anyway.
+- **Extra notes** (9ths, 13ths, the steps of a cluster, the fourths of a
+  quartal stack) come from the chord's Russell parent scale (David's
+  decision).
+- **Placement:** inside C3–B4, with the top note as near G4 as possible.
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.
