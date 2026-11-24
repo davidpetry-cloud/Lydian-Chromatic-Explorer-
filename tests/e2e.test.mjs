@@ -280,6 +280,23 @@ test('no key flashes after Stop', async () => {
   await page.close();
 });
 
+test('scale runs play in octave 3, inside the on-screen keyboard (C3–B4)', async () => {
+  const { page } = await open();
+  for (const chord of ['Cmaj7', 'Bm7']) {
+    await enterChord(page, chord);
+    await page.click('#play-scale');
+    await playing(page);
+    const notes = await page.evaluate(async () => {
+      const { app } = await import('/js/main.js');
+      return app.transport.current().steps.flat();
+    });
+    assert.ok(notes[0] >= 48 && notes[0] < 60, `${chord} starts in octave 3: ${notes[0]}`);
+    assert.ok(notes.every((m) => m >= 48 && m <= 71), `${chord} stays on the keyboard: ${notes}`);
+    await page.click('#stop');
+  }
+  await page.close();
+});
+
 test('the now-playing line follows a tempo change', async () => {
   const { page } = await open();
   await page.click('#play-scale');

@@ -50,7 +50,7 @@ export function mountPractice({ app, announce, initialText }) {
 
   function scaleSteps() {
     const rooted = fromRoot();
-    const up = ascendingMidis(rooted ? rooted.notes : scaleNotes(state.analysis.tonic, state.scaleId), 4);
+    const up = ascendingMidis(rooted ? rooted.notes : scaleNotes(state.analysis.tonic, state.scaleId), 3); // octave 3: on the keyboard (C3–B4)
     const dir = $('direction').value;
     const seq = dir === 'down' ? [...up].reverse() : dir === 'updown' ? [...up, ...up.slice(1, -1).reverse()] : up;
     return seq.map((m) => [m]);
