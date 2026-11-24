@@ -40,10 +40,17 @@ function permutations(list) {
 // Every note of pitch class p within an octave of `from`.
 const near = (from, p) => [-12, 0, 12].map((o) => from + o + mod12(p - from)).concat(from - mod12(from - p) - 12).filter((m) => Math.abs(m - from) <= 12);
 
-/** The next chord's four tones, each voice moving as little as possible, rising and never crossing. */
-export function smoothInto(fromMidis, next) {
+/**
+ * The next chord, each voice moving as little as possible, rising and never
+ * crossing. It aims at the notes of the same voicing type on the next chord
+ * (David: rootless stays rootless, keeping its 9th and 13th), or at the
+ * chord's four main tones where that voicing doesn't fit.
+ */
+export function smoothInto(fromMidis, next, voicingId = null) {
+  const shape = voicingId ? voiceAs(voicingId, next) : null;
+  const goal = shape ? shape.map((m) => ((m % 12) + 12) % 12) : fourTones(next);
   let best = null;
-  for (const targets of permutations(fourTones(next))) {
+  for (const targets of permutations(goal)) {
     const walk = (i, acc) => {
       if (i === fromMidis.length) {
         if (!best || better(fromMidis, acc, best) < 0) best = acc;

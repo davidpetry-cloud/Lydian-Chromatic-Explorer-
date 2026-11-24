@@ -58,7 +58,7 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
       head.append(make('span', 'lead-name', way.name));
       let to = null;
       let note = '';
-      if (way.id === 'smooth') to = smoothInto(from.midis, next);
+      if (way.id === 'smooth') to = smoothInto(from.midis, next, from.id);
       else {
         const r = planeInto(from.id, from.midis, chord, next);
         if (r) { to = r.midis; note = r.parallel ? 'The shape moves in parallel.' : 'Same voicing type; the chord type changes.'; }

@@ -135,3 +135,8 @@ or a plain label as the app's convention:
    chord (planned as its own task). A held organ or pad drone is released
    and held anew on the next chord's drone notes; a re-struck drone strikes
    the step's notes.
+
+5. **Smooth's targets (David, after the final review):** the notes of the same
+   voicing type on the next chord, so rootless stays rootless and keeps its
+   9th and 13th (Dm7 rootless A → G7: F A C E → F A B E). Where that voicing
+   doesn't fit the next chord, the chord's four main tones.

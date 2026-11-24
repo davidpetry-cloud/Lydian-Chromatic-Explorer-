@@ -109,3 +109,22 @@ test('the move words describe and never prescribe', () => {
 test('smooth keeps a shared note when holding it costs no more (C6 into Gmaj7 keeps G)', () => {
   assert.deepEqual(smoothInto([57, 60, 64, 67], c('Gmaj7')), [59, 62, 66, 67]);
 });
+
+test('smooth aims at the same voicing type: rootless A of Dm7 into G7 gives the textbook F A B E', () => {
+  const from = voiceAs('rootlessA', c('Dm7')); // F A C E
+  const to = smoothInto(from, c('G7'), 'rootlessA');
+  assert.deepEqual(to.map((m) => m % 12), [5, 9, 11, 4]);
+  assert.equal(motion(from, to), 1, 'only C moves, down to B');
+});
+
+test('smooth into the same chord holds every voice, for every voicing type', () => {
+  for (const id of ['close', 'drop2', 'drop3', 'quartal', 'cluster', 'rootlessA', 'rootlessB']) {
+    const from = voiceAs(id, c('Dm7'));
+    assert.deepEqual(smoothInto(from, c('Dm7'), id), from, id);
+  }
+});
+
+test('smooth falls back to the plain chord tones where the voicing type does not fit the next chord', () => {
+  const to = smoothInto(voiceAs('rootlessA', c('Dm7')), c('Caug'), 'rootlessA');
+  assert.deepEqual(pcs(to), pcs(fourTones(c('Caug'))));
+});
