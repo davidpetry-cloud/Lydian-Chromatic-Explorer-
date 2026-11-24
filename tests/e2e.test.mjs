@@ -241,6 +241,8 @@ test('playing state stays true across views', async () => {
   await page.click('#play-scale');
   await page.click('#tab-gravity');
   await page.locator('#gravity-circle .gnode[data-rank="3"]').click();
+  // The first press loads the piano, so wait for the drone to start.
+  await playing(page, '#gravity-status');
   assert.match(await page.textContent('#gravity-status'), /Drone on C/);
   await page.click('#tab-practice');
   assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
@@ -270,6 +272,7 @@ test('no key flashes after Stop', async () => {
   const { page } = await open();
   await page.$eval('#bpm', (el) => { el.value = '200'; el.dispatchEvent(new Event('input')); });
   await page.click('#play-scale');
+  await playing(page);
   await page.waitForTimeout(500);
   await page.click('#stop');
   await page.waitForTimeout(150);
@@ -296,6 +299,7 @@ test('keys do not flash at all when motion is reduced', async () => {
       .observe(document.getElementById('keyboard'), { subtree: true, attributes: true, attributeFilter: ['class'] });
   });
   await page.click('#play-scale');
+  await playing(page);
   await page.waitForTimeout(900);
   await page.click('#stop');
   assert.equal(await page.evaluate(() => window.__flashes), 0);
@@ -510,6 +514,7 @@ test('Learn: an example replaces whatever Practice was playing', async () => {
 test('Learn: the first chord is highlighted as soon as an example starts', async () => {
   const { page } = await open('/#learn');
   await page.locator('#learn-home-away .learn-play').click();
+  await playing(page); // the piano loads on the first press; then the highlight must be immediate
   await page.waitForFunction(() => document.querySelector('#learn-home-away .learn-chords li')?.getAttribute('aria-current') === 'true', null, { timeout: 1500 });
   await page.locator('#learn-home-away .learn-stop').click();
   await page.close();
@@ -518,6 +523,7 @@ test('Learn: the first chord is highlighted as soon as an example starts', async
 test('Learn: changing the Practice chord does not replace a playing example', async () => {
   const { page } = await open('/#learn');
   await page.locator('#learn-horizontal .learn-play').click();
+  await playing(page);
   await page.click('#tab-practice');
   await enterChord(page, 'G7');
   await page.waitForTimeout(300);
@@ -617,6 +623,7 @@ test('MIDI: one clear announcement per chord, and the heard line is not a second
   await page.click('#midi-connect');
   await page.waitForFunction(() => /Listening/.test(document.getElementById('midi-status').textContent));
   await page.click('#play-scale');
+  await playing(page);
   await page.evaluate(() => window.__midi.play([55, 59, 62, 65]));
   await page.waitForFunction(() => /G7: Lydian tonic F/.test(document.getElementById('live').textContent));
   assert.match(await page.textContent('#live'), /Playing F Lydian/);
