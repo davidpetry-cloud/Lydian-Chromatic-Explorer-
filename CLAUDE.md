@@ -34,9 +34,9 @@ step) served from `public/` on Cloudflare Workers
   a Permissions-Policy that turns off devices. Keep it that strict.
 - No inline `<script>`, `on…=` attributes, `<style>` blocks or `style=""`.
   Scripts go in `public/js/`; wire events with `addEventListener`.
-- The only network requests are the app's own piano recordings
-  (`public/audio/piano/`, fetched by `public/js/audio/piano.js` on the
-  first press). Never fetch from another site; data lives in JS modules.
+- The only network requests are the app's own recordings
+  (`public/audio/piano/` on the first press, `public/audio/bass/` when the
+  bass is chosen), fetched through `public/js/audio/samples.js`. Never fetch from another site; data lives in JS modules.
   `localStorage` only via
   `public/js/prefs.js`, and the app must work without it.
 - Sound starts only after a user press, shows its state on screen and in

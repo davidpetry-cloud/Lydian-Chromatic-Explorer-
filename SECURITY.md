@@ -11,9 +11,10 @@ Every page is served with these headers (set in `public/_headers`):
 | X-Content-Type-Options, Referrer-Policy, Cross-Origin-Opener-Policy | `nosniff`, `strict-origin-when-cross-origin`, `same-origin` | Standard hardening. |
 
 The app uses no cookies, accounts, analytics or trackers and collects no
-personal data. Its only network requests fetch its own piano recordings
-(`public/audio/piano/`) from this site, once, on the first press of a play
-button; the site is static, so there is nothing there that could receive
+personal data. Its only network requests fetch its own recordings from
+this site: the piano (`public/audio/piano/`) once, on the first press of a
+play button, and the upright bass (`public/audio/bass/`) only if someone
+chooses it as the drone sound; the site is static, so there is nothing there that could receive
 data. If they fail to load, the built-in electric piano plays instead. It
 keeps a few preferences in your browser's `localStorage` (theme, last
 chord, volume, drone note, "Stop after"), and works without them.

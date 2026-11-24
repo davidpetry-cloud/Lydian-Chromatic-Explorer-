@@ -5,7 +5,9 @@
 // tone is brightened by a second sine at the same pitch, fading after the
 // attack, with a short high "tine" partial for the ping.
 import { midiToFreq } from '../theory/notes.js';
-import { loadPiano, pickSample } from './piano.js';
+import { loadPiano, PIANO_SAMPLES } from './piano.js';
+import { loadBass, BASS_SAMPLES } from './bass.js';
+import { pickNearest } from './samples.js';
 import { organVoice, padVoice, SYNTH_RELEASE } from './synths.js';
 
 const SYNTHS = { organ: organVoice, pad: padVoice };
@@ -35,6 +37,7 @@ export function createEngine({
   AudioContextCtor = globalThis.AudioContext,
   volume: startVolume = 0.7,
   loadSamples = loadPiano,
+  loadBass: loadBassSamples = loadBass,
   loadTimeout = LOAD_TIMEOUT,
   onSound = () => {},
 } = {}) {
@@ -44,6 +47,10 @@ export function createEngine({
   let samples = null;
   let sound = 'off'; // 'off' → 'loading' → 'piano' or 'electric'
   let loading = null;
+  // The bass loads on its first use: 'off' → 'loading' → 'ready' or 'failed'.
+  let bass = null;
+  let bassState = 'off';
+  let bassLoading = null;
   const voices = new Set();
 
   function setSound(s) { sound = s; onSound(s); }
@@ -62,11 +69,11 @@ export function createEngine({
     return Promise.race([real, timeout]).finally(() => clearTimeout(timer));
   }
 
-  // One struck piano key: the nearest recording, retuned, at the given loudness.
-  function pianoVoice(midi, at, gain) {
-    const { sample, rate } = pickSample(midi);
+  // One struck key of a recorded instrument: the nearest recording, retuned.
+  function sampleVoice(bank, keys, midi, at, gain) {
+    const { sample, rate } = pickNearest(keys, midi);
     const src = ctx.createBufferSource();
-    src.buffer = samples.get(sample);
+    src.buffer = bank.get(sample);
     src.playbackRate.value = rate;
     const out = ctx.createGain();
     out.gain.value = 0;
@@ -178,8 +185,17 @@ export function createEngine({
         v.oscs.forEach((o) => o.stop(off + SYNTH_RELEASE[instrument] * 6));
         return;
       }
+      if (instrument === 'bass') {
+        if (bassState === 'failed') { this.note(midi, at, dur, { gain, instrument: 'organ' }); return; }
+        if (!bass) return; // ensure('bass') loads it before anything plays
+        const v = sampleVoice(bass, BASS_SAMPLES, midi, at, gain);
+        const off = at + Math.max(0.05, dur - DAMPER);
+        v.out.gain.setTargetAtTime(0, off, DAMPER / 2);
+        v.oscs[0].stop(off + DAMPER * 4);
+        return;
+      }
       if (samples) {
-        const v = pianoVoice(midi, at, gain);
+        const v = sampleVoice(samples, PIANO_SAMPLES, midi, at, gain);
         // Let go of the key: the damper comes down.
         const off = at + Math.max(0.05, dur - DAMPER);
         v.out.gain.setTargetAtTime(0, off, DAMPER / 2);
@@ -191,6 +207,24 @@ export function createEngine({
       const off = at + Math.max(ATTACK * 2, dur - RELEASE);
       v.out.gain.setTargetAtTime(0, off, RELEASE / 4);
       v.oscs.forEach((o) => o.stop(off + RELEASE + 0.05));
+    },
+    /**
+     * Makes an instrument ready to play: loads the bass recordings on their
+     * first use. Resolves 'ready', or 'fallback' when the bass couldn't load
+     * and the organ plays in its place (said once through onSound).
+     */
+    async ensure(instrument) {
+      if (instrument !== 'bass' || !ctx) return 'ready';
+      if (bassState === 'off') {
+        bassState = 'loading';
+        let timer;
+        const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), loadTimeout * 1000); });
+        bassLoading = Promise.race([loadBassSamples(ctx), timeout])
+          .then((map) => { bass = map; bassState = 'ready'; }, () => { bassState = 'failed'; onSound('bass-fallback'); })
+          .finally(() => clearTimeout(timer));
+      }
+      await bassLoading;
+      return bassState === 'ready' ? 'ready' : 'fallback';
     },
     /**
      * Holds notes on a sustaining instrument (organ or pad) until the returned

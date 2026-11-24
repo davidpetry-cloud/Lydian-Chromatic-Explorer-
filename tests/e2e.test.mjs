@@ -422,6 +422,29 @@ test('organ and pad drones hold steadily, then fall silent when released (real a
   await page.close();
 });
 
+test('the upright bass plays its recordings from this site: plucked, then gone', async () => {
+  const { page, problems } = await open();
+  const shape = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    class Offline extends OfflineAudioContext {
+      constructor() { super(1, 44100 * 3, 44100); }
+      get state() { return 'running'; }
+    }
+    const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
+    await engine.resume();
+    const ready = await engine.ensure('bass');
+    engine.note(36, 0, 1.5, { gain: 0.12, instrument: 'bass' });
+    const x = (await engine.context().startRendering()).getChannelData(0);
+    const rms = (a, b) => { const w = x.subarray(a * 44100, b * 44100); return Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length); };
+    return { ready, early: rms(0.02, 0.3), after: rms(2.4, 2.8) };
+  });
+  assert.equal(shape.ready, 'ready');
+  assert.ok(shape.early > 0.005, JSON.stringify(shape));
+  assert.ok(shape.after < 0.001, JSON.stringify(shape));
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
 test('a note plays the recorded piano from this site: it strikes, rings and dies away', async () => {
   const { page, problems } = await open();
   const shape = await page.evaluate(async () => {
