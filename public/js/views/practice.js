@@ -82,7 +82,9 @@ export function mountPractice({ app, announce, initialText }) {
     return {
       ...pattern,
       droneSound: 'organ',
-      ...(pattern.kind === 'drone' ? { steps: [midis] } : { drone: midis }),
+      // A lead carries a drone per chord: each becomes the organ's root and fifth.
+      ...(pattern.stepDrones ? { stepDrones: pattern.stepDrones.map((d) => (d?.length ? droneMidisFor('organ', d[0] % 12) : d)) }
+        : pattern.kind === 'drone' ? { steps: [midis] } : { drone: midis }),
       label: pattern.label.endsWith(words) ? `${pattern.label.slice(0, -words.length)}, ${BASS_FALLBACK_WORDS}` : `${pattern.label}; drone: ${BASS_FALLBACK_WORDS}`,
     };
   }

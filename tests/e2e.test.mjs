@@ -429,7 +429,7 @@ test('Voicings card: each sourced voicing of the chord, its notes, and the centr
   assert.match(await row(page, 'Close').textContent(), /B C E G over C/);
   assert.match(await row(page, 'Spread').textContent(), /C B E A D over C/);
   assert.match(await page.textContent('#voicings-heard'), /heard from C.*C Lydian/);
-  assert.equal(await page.textContent('#voicings-pending'), '');
+  assert.notEqual(await page.getAttribute('#voicings-pending', 'hidden'), null, 'nothing waits for sources, so the line is hidden');
   await enterChord(page, 'Dm7/G');
   assert.match(await page.textContent('#voicings-heard'), /heard from G.*G Mixolydian/);
   assert.deepEqual(problems, []);
@@ -443,8 +443,10 @@ test('a voicing plays and stops from the same button; another switches to it', a
   await playing(page);
   assert.deepEqual(await now(page), { kind: 'voicing', voicingId: 'drop2', voicingIds: undefined, label: 'Drop 2 of Cmaj7' });
   assert.equal(await drop2.getAttribute('aria-pressed'), 'true');
-  assert.match(await drop2.textContent(), /Stop/);
-  assert.equal(await drop2.getAttribute('aria-label'), 'Stop drop 2');
+  // A toggle keeps its name; its state is aria-pressed (and the row's aria-current).
+  assert.equal(await drop2.getAttribute('aria-label'), 'Play drop 2');
+  assert.match(await drop2.textContent(), /Play/);
+  assert.equal(await row(page, 'Drop 2').getAttribute('aria-current'), 'true');
   await row(page, 'Close').locator('button').click();
   await page.waitForFunction(() => /Close of Cmaj7/.test(document.getElementById('now-playing').textContent));
   assert.equal(await drop2.getAttribute('aria-pressed'), 'false');
@@ -520,9 +522,12 @@ test('a voicing that does not fit the chord says so and is skipped by Play all',
   assert.equal(p.kind, 'voicings');
   assert.ok(!p.voicingIds.includes('rootlessA') && p.voicingIds.includes('close'), JSON.stringify(p));
   assert.equal(await page.getAttribute('#voicings-all', 'aria-pressed'), 'true');
+  assert.match(await page.textContent('#voicings-all'), /Play all/);
+  await page.waitForFunction(() => /^Now: Close\.$/.test(document.getElementById('voicings-now').textContent));
   await page.click('#voicings-all');
   await page.waitForFunction(async () => !(await import('/js/main.js')).app.transport.isPlaying());
   assert.equal(await page.getAttribute('#voicings-all', 'aria-pressed'), 'false');
+  assert.equal(await page.textContent('#voicings-now'), '');
   await page.close();
 });
 
@@ -570,8 +575,65 @@ test('Next chord: a chord the app does not know shows the reason and no rows', a
   for (const text of ['C7sus4', 'zz']) {
     await nextChord(page, text);
     assert.match(await page.textContent('#next-chord-error'), /\w/);
+    assert.equal(await page.getAttribute('#next-chord', 'aria-invalid'), 'true');
     assert.equal(await page.locator('#leads li').count(), 0);
   }
+  await nextChord(page, 'G7');
+  assert.equal(await page.getAttribute('#next-chord', 'aria-invalid'), null);
+  await page.close();
+});
+
+test('Next chord: same shape onto the same chord says nothing moves', async () => {
+  const { page } = await open();
+  await nextChord(page, 'Cmaj7');
+  const same = await lead(page, 'Same shape').textContent();
+  assert.match(same, /Same chord: nothing moves\./);
+  assert.doesNotMatch(same, /moves in parallel/);
+  await page.close();
+});
+
+test('a MIDI chord change keeps focus without scrolling the page', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 700 } });
+  await page.goto(server.url + '/');
+  await page.waitForFunction(() => document.querySelectorAll('#voicings li').length > 0);
+  await row(page, 'Drop 2').locator('button').focus();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const before = await page.evaluate(() => window.scrollY);
+  await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    const { parseChord } = await import('/js/theory/chords.js');
+    app.practice.setChord(parseChord('Dm7'), 'midi');
+  });
+  await page.waitForFunction(() => document.getElementById('h-voicings').textContent === 'Voicings of Dm7');
+  // Content above may change height (the browser's scroll anchoring keeps the view steady);
+  // what mustn't happen is the page being pulled up to the focused button.
+  const after = await page.evaluate(() => window.scrollY);
+  assert.ok(after >= before - 50, `the page isn't pulled back to the Voicings card: ${before} → ${after}`);
+  assert.ok(!(await row(page, 'Drop 2').locator('button').isVisible()) || (await page.evaluate(() => { const r = document.activeElement.getBoundingClientRect(); return r.bottom < 0 || r.top > innerHeight; })), 'the focused button stays out of view');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Play drop 2');
+  await page.close();
+});
+
+test('Next chord: same shape onto an inversion says the bass moves', async () => {
+  const { page } = await open();
+  await nextChord(page, 'Cmaj7/E');
+  const same = await lead(page, 'Same shape').textContent();
+  assert.doesNotMatch(same, /nothing moves/);
+  assert.match(same, /The upper voices stay put; the bass moves to E\./);
+  await page.close();
+});
+
+test('a chord change keeps focus on the same voicing’s button', async () => {
+  const { page } = await open();
+  await row(page, 'Drop 2').locator('button').focus();
+  await page.evaluate(() => { const t = document.getElementById('chord-text'); t.value = 'Dm7'; t.dispatchEvent(new Event('input')); });
+  await page.waitForFunction(() => document.getElementById('h-voicings').textContent === 'Voicings of Dm7');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Play drop 2');
+  await nextChord(page, 'G7');
+  await lead(page, 'Same shape').locator('button').focus();
+  await page.evaluate(() => { const t = document.getElementById('chord-text'); t.value = 'Em7'; t.dispatchEvent(new Event('input')); });
+  await page.waitForFunction(() => document.getElementById('h-voicings').textContent === 'Voicings of Em7');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Play same shape lead');
   await page.close();
 });
 
@@ -594,6 +656,9 @@ test('Next chord: Play toggles the lead, and a new next chord restarts it', asyn
   let p = await page.evaluate(async () => { const c = (await import('/js/main.js')).app.transport.current(); return { kind: c.kind, way: c.way, label: c.label }; });
   assert.deepEqual([p.kind, p.way], ['lead', 'smooth']);
   assert.equal(await btn.getAttribute('aria-pressed'), 'true');
+  assert.equal(await btn.getAttribute('aria-label'), 'Play smooth lead');
+  assert.equal(await lead(page, 'Smooth').getAttribute('aria-current'), 'true');
+  assert.equal(await lead(page, 'Same shape').getAttribute('aria-current'), null);
   await nextChord(page, 'G7');
   await page.waitForFunction(() => /→ G7/.test(document.getElementById('now-playing').textContent));
   await lead(page, 'Smooth').locator('button').click();
@@ -772,6 +837,43 @@ test('organ and pad drones hold steadily, then fall silent when released (real a
   await page.close();
 });
 
+test('a pad note shorter than its swell still sounds (it swells faster to fit)', async () => {
+  const { page } = await open();
+  const r = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    class Offline extends OfflineAudioContext {
+      constructor() { super(1, 44100 * 3, 44100); }
+      get state() { return 'running'; }
+    }
+    const e = createEngine({ AudioContextCtor: Offline, volume: 0.7 });
+    await e.resume();
+    e.note(48, 0, 1, { gain: 0.12, instrument: 'pad' });
+    const x = (await e.context().startRendering()).getChannelData(0);
+    const rms = (a, b) => { const w = x.subarray(a * 44100, b * 44100); return Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length); };
+    return { during: rms(0.3, 0.9), after: rms(2.5, 2.9) };
+  });
+  assert.ok(r.during > 0.005, `a one-second pad note is heard: ${JSON.stringify(r)}`);
+  assert.ok(r.after < r.during / 20, `and lets go: ${JSON.stringify(r)}`);
+  await page.close();
+});
+
+test('if the bass cannot load during a lead, each chord’s drone is the organ’s root and fifth', async () => {
+  const { page } = await open();
+  await page.route('**/audio/bass/**', (route) => route.fulfill({ status: 404, body: '' }));
+  await page.selectOption('#drone-sound', 'bass');
+  assert.equal(await page.isChecked('#hold-tonic'), true);
+  await nextChord(page, 'Dm7');
+  await lead(page, 'Smooth').locator('button').click();
+  await playing(page);
+  await page.waitForFunction(async () => (await import('/js/main.js')).app.transport.current()?.droneSound === 'organ');
+  const p = await page.evaluate(async () => { const c = (await import('/js/main.js')).app.transport.current(); return { drones: c.stepDrones, drone: c.drone ?? null }; });
+  assert.deepEqual(p.drones.map((d) => d.length), [2, 2], JSON.stringify(p));
+  assert.ok(p.drones.every((d) => d[0] >= 48), `organ drones sit in octave 3, not the bass's octave 2: ${JSON.stringify(p)}`);
+  assert.equal(p.drone, null, 'a lead carries its drones per chord');
+  await page.click('#stop');
+  await page.close();
+});
+
 test('the upright bass plays its recordings from this site: plucked, then gone', async () => {
   const { page, problems } = await open();
   const shape = await page.evaluate(async () => {
@@ -795,24 +897,27 @@ test('the upright bass plays its recordings from this site: plucked, then gone',
   await page.close();
 });
 
-test('the drone sounds sit at a similar loudness: each bass note within 6 dB of the organ', async () => {
+test('the drone sounds sit at a similar loudness: pad, piano and each bass note within 6 dB of the organ', async () => {
   const { page } = await open();
   const db = await page.evaluate(async () => {
     const { createEngine } = await import('/js/audio/engine.js');
-    async function level(instrument, midis) {
+    const { INSTRUMENTS } = await import('/js/audio/instruments.js');
+    // Each at its drone gain. Held sounds are measured once they've swelled in (the pad takes 1.5 s).
+    async function level(instrument, midis, from = 0, to = 0.5) {
       class Offline extends OfflineAudioContext {
-        constructor() { super(1, 44100, 44100); }
+        constructor() { super(1, 44100 * 3, 44100); }
         get state() { return 'running'; }
       }
       const e = createEngine({ AudioContextCtor: Offline, volume: 0.7 });
       await e.resume();
       await e.ensure(instrument);
-      if (instrument === 'organ') e.hold(midis, 0, { gain: 0.12, instrument });
-      else midis.forEach((m) => e.note(m, 0, 0.9, { gain: 0.12, instrument }));
-      const w = (await e.context().startRendering()).getChannelData(0).subarray(0, 22050);
+      const gain = 0.12 * INSTRUMENTS[instrument].droneLevel;
+      if (instrument === 'organ' || instrument === 'pad') e.hold(midis, 0, { gain, instrument });
+      else midis.forEach((m) => e.note(m, 0, 0.9, { gain, instrument }));
+      const w = (await e.context().startRendering()).getChannelData(0).subarray(from * 44100, to * 44100);
       return 20 * Math.log10(Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length));
     }
-    const out = { organ: await level('organ', [48, 55]) };
+    const out = { organ: await level('organ', [48, 55]), pad: await level('pad', [48, 55], 1.8, 2.3), piano: await level('piano', [48, 55]) };
     for (const m of [36, 38, 40, 42, 45, 47]) out[`bass${m}`] = await level('bass', [m]);
     return out;
   });

@@ -6,12 +6,14 @@
 //   restrikeBeats: a sound that dies away is struck again this often.
 //   level: a loudness trim, so the instruments sit together at one gain
 //     (measured: tests/e2e.test.mjs, "similar loudness").
+//   droneLevel: an extra trim for the drone only (a struck piano dies away
+//     under a held organ, so its drone is struck louder).
 
-const i = (id, name, kind, holds, restrikeBeats, credit, level = 1) =>
-  Object.freeze({ id, name, kind, holds, restrikeBeats, credit, level });
+const i = (id, name, kind, holds, restrikeBeats, credit, level = 1, droneLevel = 1) =>
+  Object.freeze({ id, name, kind, holds, restrikeBeats, credit, level, droneLevel });
 
 export const INSTRUMENTS = Object.freeze({
-  piano: i('piano', 'Piano', 'recorded', false, 4, 'Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0)'),
+  piano: i('piano', 'Piano', 'recorded', false, 4, 'Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0)', 1, 1.4),
   organ: i('organ', 'Organ', 'synth', true, null, null),
   pad: i('pad', 'Synth pad', 'synth', true, null, null),
   bass: i('bass', 'Upright bass', 'recorded', false, 2, 'VSCO 2 Community Edition by Versilian Studios (CC0 1.0)', 3.3),

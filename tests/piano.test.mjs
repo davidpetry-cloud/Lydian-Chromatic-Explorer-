@@ -108,3 +108,34 @@ test('a second press while still loading says so again', async () => {
   await Promise.all([first, second]);
   assert.deepEqual(sounds, ['loading', 'loading', 'piano']);
 });
+
+test('a bass that failed to load is tried again in the background, without holding up the press', async () => {
+  let tries = 0;
+  let arrive;
+  const engine = createEngine({
+    AudioContextCtor: FakeCtx, loadSamples: async () => new Map(), bassRetryAfter: 0,
+    loadBass: () => { tries += 1; if (tries === 1) return Promise.reject(new Error('offline')); return new Promise((r) => { arrive = r; }); },
+  });
+  await engine.resume();
+  assert.equal(await engine.ensure('bass'), 'fallback');
+  const t0 = Date.now();
+  assert.equal(await engine.ensure('bass'), 'fallback', 'the press plays the organ at once while the retry runs');
+  assert.ok(Date.now() - t0 < 50, 'no wait for the retry');
+  assert.equal(await engine.ensure('bass'), 'fallback', 'a press during the retry starts no second one');
+  assert.equal(tries, 2);
+  arrive(new Map());
+  await new Promise((r) => setTimeout(r, 5));
+  assert.equal(await engine.ensure('bass'), 'ready', 'the next press after the retry gets the bass');
+});
+
+test('a failed bass is not retried before the wait is over', async () => {
+  let tries = 0;
+  const engine = createEngine({
+    AudioContextCtor: FakeCtx, loadSamples: async () => new Map(), bassRetryAfter: 60,
+    loadBass: async () => { tries += 1; throw new Error('offline'); },
+  });
+  await engine.resume();
+  assert.equal(await engine.ensure('bass'), 'fallback');
+  assert.equal(await engine.ensure('bass'), 'fallback');
+  assert.equal(tries, 1, 'no second try for a press soon after');
+});

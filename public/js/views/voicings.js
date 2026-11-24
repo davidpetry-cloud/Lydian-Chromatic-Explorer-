@@ -39,6 +39,8 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
     $('h-voicings').textContent = `Voicings of ${chord.symbol}`;
     const colour = gravityReading([pc(centre) + 60], centre, parentNotes, tones).colour;
     $('voicings-heard').textContent = `Ranks are counted from your drone note, ${noteName(centre)}${colour ? `; heard from ${noteName(centre)}, the parent scale sounds as ${colour}` : ''}. Change “Drone on” to hear the chord from another centre.`;
+    // Rows are rebuilt for the new chord: keep focus on the same voicing's button.
+    const focused = document.activeElement?.closest?.('#voicings li')?.dataset.voicing;
     buttons.clear();
     $('voicings').replaceChildren(...list.map((v) => {
       const li = make('li', 'voicing');
@@ -66,7 +68,9 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
     }));
     const pending = VOICINGS.filter((v) => v.status !== 'verified').map((v) => v.name);
     $('voicings-pending').textContent = pending.length ? `Waiting for sources: ${pending.join(', ')}.` : '';
+    $('voicings-pending').hidden = !pending.length;
     showState();
+    if (focused) buttons.get(focused)?.focus({ preventScroll: true }); // a MIDI chord change mustn't move the page
     lead.refresh();
   }
 
@@ -105,14 +109,15 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
     for (const [id, b] of buttons) {
       const on = id === activeId && playingId() === id;
       const name = list.find((v) => v.id === id).name;
+      // A toggle keeps its name; aria-pressed (and the row's aria-current) carry the state.
       b.setAttribute('aria-pressed', String(on));
-      b.setAttribute('aria-label', `${on ? 'Stop' : 'Play'} ${name.toLowerCase()}`);
-      b.textContent = on ? '■ Stop' : '▶ Play';
+      b.setAttribute('aria-label', `Play ${name.toLowerCase()}`);
+      b.textContent = '▶ Play';
     }
     const all = ours() && app.transport.current()?.kind === 'voicings';
     $('voicings-all').setAttribute('aria-pressed', String(all));
-    $('voicings-all').lastChild.textContent = all ? ' Stop all' : ' Play all';
-    $('voicings-all').firstChild.textContent = all ? '■' : '▶';
+    // Play all names the voicing sounding, in text (not announced each bar).
+    $('voicings-now').textContent = all && activeId ? `Now: ${list.find((v) => v.id === activeId)?.name}.` : '';
     for (const li of $('voicings').children) {
       if (li.dataset.voicing === activeId) li.setAttribute('aria-current', 'true');
       else li.removeAttribute('aria-current');
