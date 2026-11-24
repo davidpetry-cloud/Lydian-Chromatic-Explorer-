@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (#15 built: Stop after in bars, drone sounds, scale an octave lower; checks running, fresh review in progress).
+Last updated: 2026-11-24 (paused after #16, the Voicings card; voice-leading layer designed, 3 questions open).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -38,6 +38,7 @@ stands, so any future session (or person) can pick up from here.
 | Recorded grand piano (Salamander, CC BY 3.0) with the electric piano as fallback; **Stop after** (default 30 s) fades out drones, chord loops and scale runs; drones re-strike each bar; the chord loop holds its chord for the bar; Stop cancels a press still waiting for the piano | #13 |
 | 9 more chord types from Russell's Chart A: m6, m7♭5, dim (inferred), 7♯5, 7alt, m(maj7), dim7, 7♭9, 7♯9 (28 in all; 7sus4 waits) | #14 |
 | Scale runs an octave lower (octave 3, on the keyboard); **Stop after** in bars (2, 4, 6, 8 or until Stop; default 8); **Drone sound**: organ (default), synth pad, upright bass (VSCO 2 CE, CC0), piano, through a shared instrument format | #15 |
+| **Voicings card** in Practice: your chord in sourced piano voicings (close, drop 2, drop 3, quartal, cluster, rootless A and B; drop 2 & 4 and spread wait for sources), extra notes from the Russell parent scale, Play/Stop toggles, Play all, and a tonal-gravity reading counted from the drone note (D-7 over G: G Mixolydian) | #16 |
 
 ## Decisions to remember
 
@@ -59,6 +60,12 @@ stands, so any future session (or person) can pick up from here.
 - **Instruments** (`public/js/audio/instruments.js`) are the start of the
   future sound and arranging library: each says whether it holds or dies
   away. Organ and pad drones are one held voice; piano and bass re-strike.
+- **Voicings** (David): piano first; extra notes from the Russell parent
+  scale; Play is a toggle; gravity ranks are counted from the drone note,
+  which is the app's convention (David's modal lens), labelled as such in
+  `docs/theory-sources.md`; the wording describes and never prescribes
+  ("if it's going outward, it's not necessarily going somewhere
+  immediately").
 - **Chords with two homes on Chart A** use the most ingoing one (David,
   2026-11-24), and the Reference table names the other. The two-source rule
   still comes first: 7♯9 uses the home both sources share (Auxiliary
@@ -87,17 +94,23 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **#15** (Stop after in bars, drone sounds, scale octave): all four
-   tasks built and tested (234 pass). David asked to merge once the checks
-   pass; waiting on CI and the fresh whole-branch review, whose important
-   findings get fixed test-first first.
-2. **Sound and arranging library** (David, 2026-11-24): instruments, ranges,
-   voicings (drop 2, clusters, big band section writing) and textures tied
-   to tension and release, and to inside and outside on the chromatic tonal
-   gravity; later score writing, an improviser and performance tools.
-   Brainstorm first. Open questions for David: what a player should do with
-   it first, and what he means by "coupled" and "entangled".
+1. **Voice-leading layer** (sound and arranging library, layer 2): a Next
+   chord field on the Voicings card, with Smooth and Same shape (planing)
+   ways in, each chord heard from its own drone note (David). The design is
+   in `docs/superpowers/specs/2026-11-24-voice-leading-design.md`; settle
+   its three open questions with David, then plan and build.
+2. **Later library layers:** instrument ranges and timbres, horn sections,
+   and the tension map.
 3. **Form & Gravity lab** and the **book check** (see "Open ideas" 1).
+4. **Deferred minors from the #15/#16 reviews:**
+   - the octave-2 bass lights a phantom key on the keyboard
+   - no text names the voicing sounding during Play all
+   - rows rebuild on each chord change, so focus is lost
+   - the toggle changes both its name and `aria-pressed`
+   - a few spelling and wording details
+   - a bass that times out stays on the organ for the session
+   - a pad note shorter than ~1.9 s would be silent
+   - the loudness test covers the bass and organ only
 
 Working notes:
 - The environment "David Petry sites" now allows the research hosts used
