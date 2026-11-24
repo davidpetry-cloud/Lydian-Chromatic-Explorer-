@@ -173,7 +173,7 @@ test('the chord table lists verified chords and the book citation is there', asy
   const { page } = await open('/#reference');
   assert.ok(await page.locator('#chord-table tbody tr').count() >= 12);
   const sharp9 = page.locator('#chord-table tbody tr', { hasText: '7♯9' });
-  assert.match(await sharp9.textContent(), /Sources differ/);
+  assert.match(await sharp9.textContent(), /Auxiliary Diminished.*Lydian Diminished/s);
   assert.match(await page.textContent('#chord-table'), /Cm7b5\s*G♭ \(a tritone above the root\)/);
   assert.deepEqual(await page.$$eval('#pending-list li', (lis) => lis.map((li) => li.textContent)), ['7sus4 (7sus4)']);
   assert.match(await page.textContent('#chord-table'), /Dm7|Cm7/);
@@ -356,6 +356,19 @@ test('if the piano cannot load, a note sounds like a struck electric-piano key: 
   assert.ok(shape.brightEarly > shape.brightLate * 1.5, `attack should be brighter than the ring: ${JSON.stringify(shape)}`);
   assert.ok(shape.late < shape.early, `should fade: ${JSON.stringify(shape)}`);
   assert.ok(shape.late > shape.early * 0.05, `should still ring: ${JSON.stringify(shape)}`);
+  await page.close();
+});
+
+test('the chord table scrolls from the keyboard at phone width, so the Note column is reachable', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 800 } });
+  await page.goto(server.url + '/#reference');
+  const scroller = page.locator('.table-scroll');
+  assert.equal(await scroller.getAttribute('tabindex'), '0');
+  assert.equal(await scroller.getAttribute('role'), 'region');
+  assert.equal(await scroller.getAttribute('aria-labelledby'), 'h-chords');
+  await scroller.focus();
+  for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
+  assert.ok(await scroller.evaluate((el) => el.scrollLeft > 0), 'the arrow keys scroll the table sideways');
   await page.close();
 });
 

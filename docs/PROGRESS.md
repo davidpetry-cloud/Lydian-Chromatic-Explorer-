@@ -55,7 +55,10 @@ stands, so any future session (or person) can pick up from here.
 - **Stop after** (30 s, 1, 2, 5 min, or until Stop; default 30 s, David's
   choice) applies to looping patterns only; Learn examples always finish.
 - **Chords with two homes on Chart A** use the most ingoing one (David,
-  2026-11-24), and the Reference table names the other. The diminished
+  2026-11-24), and the Reference table names the other. The two-source rule
+  still comes first: 7♯9 uses the home both sources share (Auxiliary
+  Diminished, tonic a whole step below), not the more ingoing one. Tonics a
+  tritone or major third away take the spelling with fewer accidentals. The diminished
   triad ships as inferred (from m7♭5). 7sus4 waits: its pentatonic sound
   fits several Lydian tonics.
 - **Two names for one scale:** Russell names a scale from the Lydian tonic
@@ -80,8 +83,9 @@ stands, so any future session (or person) can pick up from here.
 ## Next step
 
 1. **#14** (chord types): GitHub tests and the Cloudflare build pass;
-   David asked to merge once the checks pass. Waiting on the fresh theory
-   review; fix any important findings test-first, then merge.
+   David asked to merge once the checks pass. Fresh theory review done;
+   its findings are fixed test-first (7♯9 home, double-flat tonics, the
+   keyboard-scrollable chord table, MIDI 7♭9/7♯9 without the 5th).
 2. **Book check** (whenever David has the 4th edition or David Baker's
    *Techniques of Improvisation, Vol. 1*): 7♯9's home, the diminished
    triad, and 7sus4. See `docs/theory-sources.md` (2026-11-24).

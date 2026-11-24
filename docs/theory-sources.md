@@ -109,14 +109,14 @@ names them in a Note column.
 | Quality | Tonic | Parent | Chart A cell | Second source | Verdict |
 |---|---|---|---|---|---|
 | minor 6 | ♭3 | Lydian | Lydian VI "min 6th" | mcclimon: p. 29, VI = "minor and altered minor chords" | Verified |
-| half-diminished (m7♭5) | ♭5 (♯4 when ♭5 needs triple flats) | Lydian | Lydian +IV "min 7th ♭5" | mcclimon: p. 29, +IV = "minor seventh ♭5" | Verified |
-| diminished triad | ♭5 | Lydian | Not named. It is m7♭5 without the 7th (Lydian +IV). | — | **Inferred** (David's choice); the app says so |
-| 7♯5 | 3 | Lydian Augmented | LA +V "7th +5" | mcclimon: p. 29, +V = "seventh +5 chords" | Verified |
-| altered (7alt) | 3 | Lydian Augmented | LA +V: "7th +5 ♭9", "+9 +11", "7th +5 +9", "7th +5 +11" | mcclimon (Levine): the altered chord is VII of melodic minor, the same notes | Verified |
-| minor-major 7 | ♭3 | Lydian Augmented | LA VI "min +7"; **also** LD I "Dim Maj 7th" | mcclimon (Levine): CmM7 is I of C melodic minor (= E♭ Lydian Augmented) | Verified; second home named |
-| diminished 7 | ♭5 (♯4 when needed) | Lydian Diminished | LD +IV "Dim tetrachord"; **also** Aux Dim +IV | italianpiano: Russell derives the diminished seventh chord from Lydian Diminished | Verified; second home named |
+| half-diminished (m7♭5) | ♭5 or ♯4, whichever spells the parent with fewer accidentals | Lydian | Lydian +IV "min 7th ♭5" | mcclimon: p. 29, +IV = "minor seventh ♭5" | Verified |
+| diminished triad | ♭5 / ♯4 | Lydian | Not named. It is m7♭5 without the 7th (Lydian +IV). | — | **Inferred**: David chose on 2026-11-24 to ship it so labelled. Its cited sources name m7♭5, not the triad. |
+| 7♯5 | 3 or ♭4, fewer accidentals | Lydian Augmented | LA +V "7th +5"; **also** LD VII, L♭7 II and Aux Aug II, +IV, +V | mcclimon: p. 29, +V = "seventh +5 chords" | Verified; other homes named |
+| altered (7alt) | 3 or ♭4 | Lydian Augmented | LA +V: "7th +5 ♭9", "+9 +11", "7th +5 +9", "7th +5 +11" | mcclimon: p. 29, +V = "seventh +5 chords" fixes the tonic. Levine's table confirms the notes (the altered chord is VII of melodic minor) but not the tonic. | Verified |
+| minor-major 7 | ♭3 | Lydian Augmented | LA VI "min +7"; **also** LD I "Dim Maj 7th" | mcclimon: p. 29, VI = "minor and altered minor chords" fixes the tonic. Levine (CmM7 = C melodic minor = E♭ Lydian Augmented) confirms the notes. | Verified; second home named |
+| diminished 7 | ♭5 / ♯4 | Lydian Diminished | LD +IV "Dim tetrachord"; **also** Aux Dim +IV | italianpiano: Russell derives the diminished seventh chord from Lydian Diminished. It names no mode, and may be reading "Dim Maj 7th" (see below). | Verified on the scale; **the tonic waits for the book check**, and the app says so |
 | 7♭9 | ♭7 | Lydian Diminished | LD II "7th ♭9"; **also** LD VII and the auxiliary diminished scales | mcclimon: p. 29, II = "seventh and altered seventh chords" | Verified; other homes named |
-| 7♯9 | ♭2 | Lydian Diminished | LD VII "7th +9"; **also** Aux Dim II "7th +9 +11" | mcclimon: p. 29 puts altered sevenths on **II**, which would favour Aux Dim | **Sources differ.** Shipped on the most-ingoing rule; the app says "Sources differ" |
+| 7♯9 | ♭7 | **Auxiliary Diminished** | Aux Dim II "7th +9 +11"; **also** LD VII "7th +9" | mcclimon: p. 29 puts altered sevenths on **II** | Verified on the home **both** sources share. The two-source rule outranks the most-ingoing convention here. The app names the Lydian Diminished home. |
 
 **Russell's naming trap:** on Chart A, "Dim Maj 7th" (Lydian Diminished I)
 means 1 ♭3 5 7, a minor-major seventh, not a diminished seventh chord.

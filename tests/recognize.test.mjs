@@ -102,3 +102,8 @@ test('the new chord types are recognized, the bass deciding twins (Cm6 vs Am7♭
   assert.equal(sym([60, 63, 67, 71]), 'Cm(maj7)');
   assert.equal(sym([60, 63, 66]), 'Cdim');
 });
+
+test('7♭9 and 7♯9 are recognized without their fifth', () => {
+  assert.equal(sym([48, 64, 70, 73]), 'C7b9');
+  assert.equal(sym([48, 64, 70, 75]), 'C7#9');
+});

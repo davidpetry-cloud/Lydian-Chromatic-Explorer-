@@ -12,9 +12,11 @@ import { rankScales } from './gravity.js';
 
 const q = (id, label, aliases, degrees, tonicDegree, parentScale, status = 'pending', sources = [], note = null) =>
   Object.freeze({ id, label, aliases: Object.freeze(aliases), degrees: Object.freeze(degrees), tonicDegree, parentScale, status, sources: Object.freeze(sources), note });
-// A tritone up is spelled ♭5 (C → G♭), unless the scales on that tonic would
-// need triple flats (D♭ → A𝄫); then it is spelled ♯4 (D♭ → G).
-const RESPELL = Object.freeze({ b5: '#4' });
+// A tonic a tritone or a major third from the root has two spellings
+// (C → G♭ or F♯; C → E or F♭). The app takes whichever gives the parent
+// scale fewer accidentals (E♭ → A, not B𝄫), keeping the first on a tie.
+const RESPELL = Object.freeze({ b5: '#4', 3: 'b4' });
+const accidentals = (notes) => notes.reduce((n, note) => n + Math.abs(note.acc), 0);
 const CHART_A = ['french-chart-a', 'mcclimon'];
 
 const ROWS = [
@@ -32,15 +34,16 @@ const ROWS = [
   q('maj7s5', 'maj7♯5', ['maj7#5', 'Δ#5', '+maj7'], ['1', '3', '#5', '7'], '1', 'lydian-augmented', 'verified', ['italianpiano', 'wikipedia-lydian-chord']),
   // From Russell's Chart A (4th ed., inside cover) and his table of primary
   // modal tonics (p. 29); see docs/theory-sources.md (2026-11-24).
-  q('7s5', '7♯5', ['7#5', '+7', '7+'], ['1', '3', '#5', 'b7'], '3', 'lydian-augmented', 'verified', CHART_A),
+  q('7s5', '7♯5', ['7#5', '+7', '7+'], ['1', '3', '#5', 'b7'], '3', 'lydian-augmented', 'verified', CHART_A,
+    'Chart A also lists it in Lydian Diminished, Lydian Flat Seventh and Auxiliary Augmented; this app uses the most ingoing home.'),
   q('7alt', 'altered', ['7alt', 'alt'], ['1', '3', 'b7', 'b2', '#2', '#4', 'b6'], '3', 'lydian-augmented', 'verified', CHART_A,
     'Chart A lists the altered tensions (♯5 with ♭9, ♯9 or ♯11) on this mode; the name “altered” is the common jazz name.'),
   q('dim7', 'diminished 7', ['dim7', '°7', 'o7'], ['1', 'b3', 'b5', 'bb7'], 'b5', 'lydian-diminished', 'verified', ['french-chart-a', 'italianpiano'],
-    'Chart A also lists it in Auxiliary Diminished; this app uses the more ingoing home.'),
+    'Chart A also lists it in Auxiliary Diminished; this app uses the more ingoing home. The second source agrees on Lydian Diminished but names no mode, so the tonic awaits a book check.'),
   q('7b9', '7♭9', ['7b9', '7♭9'], ['1', '3', '5', 'b7', 'b2'], 'b7', 'lydian-diminished', 'verified', CHART_A,
-    'Chart A also lists it on mode VII (Lydian tonic a half step above the root) and in the auxiliary diminished scales; Russell’s p. 29 table puts altered sevenths on II, as here.'),
-  q('7s9', '7♯9', ['7#9', '7♯9'], ['1', '3', '5', 'b7', '#2'], 'b2', 'lydian-diminished', 'verified', CHART_A,
-    'Sources differ: Chart A lists it here (mode VII) and in Auxiliary Diminished (mode II, tonic a whole step below); Russell’s p. 29 table puts altered sevenths on II. This app uses the more ingoing home.'),
+    'Chart A also lists it on Lydian Diminished mode VII (Lydian tonic a half step above the root) and in the auxiliary diminished scales; Russell’s p. 29 table puts altered sevenths on mode II, as here.'),
+  q('7s9', '7♯9', ['7#9', '7♯9'], ['1', '3', '5', 'b7', '#2'], 'b7', 'auxiliary-diminished', 'verified', CHART_A,
+    'Chart A also lists it on Lydian Diminished mode VII (Lydian tonic a half step above the root), a more ingoing home. This app follows the home both sources share: Russell’s p. 29 table puts altered sevenths on mode II.'),
   // Extended chords: every tone lies in the parent scale already verified for
   // the basic chord (as 9 and 13 do for the dominant). See docs/theory-sources.md.
   q('maj9', 'major 9', ['maj9', 'M9', 'Δ9'], ['1', '3', '5', '7', '2'], '1', 'lydian', 'verified', ['italianpiano', 'wikipedia-chord-scale']),
@@ -55,7 +58,7 @@ const ROWS = [
     'Chart A also lists it in Lydian Diminished on the root (“Dim Maj 7th”); this app uses the more ingoing home.'),
   q('m7b5', 'half-diminished', ['m7b5', 'ø', 'ø7', '-7b5'], ['1', 'b3', 'b5', 'b7'], 'b5', 'lydian', 'verified', CHART_A),
   q('dim', 'diminished', ['dim', '°', 'o'], ['1', 'b3', 'b5'], 'b5', 'lydian', 'verified', CHART_A,
-    'Inferred: Chart A doesn’t name the triad; it is the half-diminished chord without its seventh.'),
+    'Inferred (David’s choice): the sources name the half-diminished chord here, not this triad, which is that chord without its seventh.'),
   // No source places a sus chord on Russell's chart, and its open, pentatonic
   // sound fits several Lydian tonics at once (D7sus4 lies in C, F and B♭ Lydian).
   q('7sus4', '7sus4', ['7sus4', '7sus'], ['1', '4', '5', 'b7'], null, null),
@@ -84,13 +87,19 @@ export function lydianAnalysis(chord) {
       ladder: rankScales(tonic, chordPcs),
     };
   };
-  try {
-    return analyse(quality.tonicDegree);
-  } catch (e) {
-    const other = RESPELL[quality.tonicDegree];
-    if (!(e instanceof RangeError) || !other) throw e;
-    return analyse(other);
+  let best = null;
+  let failure = null;
+  for (const degree of [quality.tonicDegree, RESPELL[quality.tonicDegree]].filter(Boolean)) {
+    try {
+      const a = analyse(degree);
+      if (!best || accidentals(a.parentNotes) < accidentals(best.parentNotes)) best = a;
+    } catch (e) {
+      if (!(e instanceof RangeError)) throw e;
+      failure = e;
+    }
   }
+  if (!best) throw failure;
+  return best;
 }
 
 /** "Cmaj7" → { root, quality, symbol }, or { error } in plain words. */
