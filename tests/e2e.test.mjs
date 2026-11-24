@@ -527,6 +527,33 @@ test('the upright bass plays its recordings from this site: plucked, then gone',
   await page.close();
 });
 
+test('the drone sounds sit at a similar loudness: each bass note within 6 dB of the organ', async () => {
+  const { page } = await open();
+  const db = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    async function level(instrument, midis) {
+      class Offline extends OfflineAudioContext {
+        constructor() { super(1, 44100, 44100); }
+        get state() { return 'running'; }
+      }
+      const e = createEngine({ AudioContextCtor: Offline, volume: 0.7 });
+      await e.resume();
+      await e.ensure(instrument);
+      if (instrument === 'organ') e.hold(midis, 0, { gain: 0.12, instrument });
+      else midis.forEach((m) => e.note(m, 0, 0.9, { gain: 0.12, instrument }));
+      const w = (await e.context().startRendering()).getChannelData(0).subarray(0, 22050);
+      return 20 * Math.log10(Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length));
+    }
+    const out = { organ: await level('organ', [48, 55]) };
+    for (const m of [36, 38, 40, 42, 45, 47]) out[`bass${m}`] = await level('bass', [m]);
+    return out;
+  });
+  for (const [k, v] of Object.entries(db)) {
+    if (k !== 'organ') assert.ok(Math.abs(v - db.organ) <= 6, `${k} ${v.toFixed(1)} dB vs organ ${db.organ.toFixed(1)} dB: ${JSON.stringify(db)}`);
+  }
+  await page.close();
+});
+
 test('a note plays the recorded piano from this site: it strikes, rings and dies away', async () => {
   const { page, problems } = await open();
   const shape = await page.evaluate(async () => {

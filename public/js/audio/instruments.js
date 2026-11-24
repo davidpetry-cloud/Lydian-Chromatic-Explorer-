@@ -4,15 +4,17 @@
 // 2026-11-24-bars-and-drone-sounds-design.md).
 //   holds: the sound sustains, so a drone is one held voice.
 //   restrikeBeats: a sound that dies away is struck again this often.
+//   level: a loudness trim, so the instruments sit together at one gain
+//     (measured: tests/e2e.test.mjs, "similar loudness").
 
-const i = (id, name, kind, holds, restrikeBeats, credit) =>
-  Object.freeze({ id, name, kind, holds, restrikeBeats, credit });
+const i = (id, name, kind, holds, restrikeBeats, credit, level = 1) =>
+  Object.freeze({ id, name, kind, holds, restrikeBeats, credit, level });
 
 export const INSTRUMENTS = Object.freeze({
   piano: i('piano', 'Piano', 'recorded', false, 4, 'Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0)'),
   organ: i('organ', 'Organ', 'synth', true, null, null),
   pad: i('pad', 'Synth pad', 'synth', true, null, null),
-  bass: i('bass', 'Upright bass', 'recorded', false, 2, 'VSCO 2 Community Edition by Versilian Studios (CC0 1.0)'),
+  bass: i('bass', 'Upright bass', 'recorded', false, 2, 'VSCO 2 Community Edition by Versilian Studios (CC0 1.0)', 3.3),
 });
 
 /** The choices for the drone's sound, in picker order. */

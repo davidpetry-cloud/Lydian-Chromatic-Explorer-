@@ -9,6 +9,7 @@ import { loadPiano, PIANO_SAMPLES } from './piano.js';
 import { loadBass, BASS_SAMPLES } from './bass.js';
 import { pickNearest } from './samples.js';
 import { organVoice, padVoice, SYNTH_RELEASE } from './synths.js';
+import { INSTRUMENTS } from './instruments.js';
 
 const SYNTHS = { organ: organVoice, pad: padVoice };
 
@@ -175,8 +176,9 @@ export function createEngine({
     context: () => ctx,
     /** Which sound plays: 'off' (not started), 'loading', 'piano' or 'electric'. */
     sound: () => sound,
-    note(midi, at, dur, { gain = 0.18, instrument = 'piano' } = {}) {
+    note(midi, at, dur, { gain: baseGain = 0.18, instrument = 'piano' } = {}) {
       if (!ctx || sound === 'loading' || sound === 'off') return;
+      const gain = baseGain * (INSTRUMENTS[instrument]?.level ?? 1);
       if (SYNTHS[instrument]) {
         const v = synthVoice(instrument, midi, at, gain);
         const off = at + Math.max(0.05, dur - SYNTH_RELEASE[instrument]);
@@ -186,7 +188,7 @@ export function createEngine({
         return;
       }
       if (instrument === 'bass') {
-        if (bassState === 'failed') { this.note(midi, at, dur, { gain, instrument: 'organ' }); return; }
+        if (bassState === 'failed') { this.note(midi, at, dur, { gain: baseGain, instrument: 'organ' }); return; }
         if (!bass) return; // ensure('bass') loads it before anything plays
         const v = sampleVoice(bass, BASS_SAMPLES, midi, at, gain);
         const off = at + Math.max(0.05, dur - DAMPER);
@@ -231,8 +233,9 @@ export function createEngine({
      * function releases them, over `fade` seconds. Stop and stopAll() release
      * them too.
      */
-    hold(midis, at, { gain = 0.12, instrument = 'organ' } = {}) {
+    hold(midis, at, { gain: baseGain = 0.12, instrument = 'organ' } = {}) {
       if (!ctx || !SYNTHS[instrument]) return () => {};
+      const gain = baseGain * INSTRUMENTS[instrument].level;
       const held = midis.map((m) => synthVoice(instrument, m, at, gain));
       return (fade) => held.forEach((v) => { if (voices.has(v)) release(v, ctx.currentTime, fade); });
     },

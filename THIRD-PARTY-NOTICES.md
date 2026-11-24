@@ -40,8 +40,9 @@ footer.
 
 **Changes made:** 14 notes (`_v1_rr1`: E, F♯, G and A♯ in octave 1, then C to
 B in octaves 2 and 3); leading silence removed; trimmed to 4 seconds with a
-0.5-second fade; mixed to mono; raised by one gain for the whole set (loudest
-peak 0.9); encoded as 96 kbps MP3, named by MIDI note.
+0.5-second fade; mixed to mono; each note levelled to the same loudness over
+its first half-second (peaks at most 0.95); encoded as 96 kbps MP3, named by
+MIDI note.
 
 ## Playwright: Apache License 2.0 (development only)
 
