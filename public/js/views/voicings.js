@@ -70,7 +70,7 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
     $('voicings-pending').textContent = pending.length ? `Waiting for sources: ${pending.join(', ')}.` : '';
     $('voicings-pending').hidden = !pending.length;
     showState();
-    if (focused) buttons.get(focused)?.focus();
+    if (focused) buttons.get(focused)?.focus({ preventScroll: true }); // a MIDI chord change mustn't move the page
     lead.refresh();
   }
 

@@ -54,6 +54,7 @@ export function createEngine({
   let bassState = 'off';
   let bassLoading = null;
   let bassFailedAt = 0;
+  let bassRetrying = false;
   const voices = new Set();
 
   function setSound(s) { sound = s; onSound(s); }
@@ -222,7 +223,17 @@ export function createEngine({
      */
     async ensure(instrument) {
       if (instrument !== 'bass' || !ctx) return 'ready';
-      if (bassState === 'failed' && (ctx.currentTime - bassFailedAt >= bassRetryAfter || bassRetryAfter === 0)) bassState = 'off';
+      // A bass that failed is tried again quietly in the background, so the
+      // press plays the organ at once; a later press gets the bass if it came.
+      if (bassState === 'failed' && !bassRetrying && ctx.currentTime - bassFailedAt >= bassRetryAfter) {
+        bassRetrying = true;
+        let timer;
+        const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), loadTimeout * 1000); });
+        Promise.race([loadBassSamples(ctx), timeout])
+          .then((map) => { bass = map; bassState = 'ready'; }, () => { bassFailedAt = ctx.currentTime; })
+          .finally(() => { clearTimeout(timer); bassRetrying = false; });
+      }
+      if (bassState === 'failed') return 'fallback';
       if (bassState === 'loading') onSound('bass-loading');
       if (bassState === 'off') {
         bassState = 'loading';

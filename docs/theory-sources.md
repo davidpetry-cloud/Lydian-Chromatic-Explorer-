@@ -206,8 +206,14 @@ rest on search summaries of these pages; Wikipedia's "Voice leading" and
   (the sources' common-tone rule), then the smaller largest single move,
   then the lower result.
 - **"Toward home / away":** compares each voice's gravity rank, counted from
-  each chord's own drone note (David's lens). A held note "stays", with its
-  rank change shown.
+  each chord's own drone note (David's lens). A held note "is held"; when
+  its rank changes under the new centre, the summary says so ("is held,
+  nearer home under the new centre (rank 11 → 5)"), held notes grouped by
+  that change.
+- **More voices than target notes** (a five-note spread into a triad): the
+  extra voices double the root first (hutchinson-doubling, sfcm-four-part:
+  "double the root"), then the 5th, least-used first. The 5th before the 3rd
+  is the app's convention; neither source ranks them for jazz voicings.
 - **Smooth's target notes:** the same voicing type on the next chord
   (David's choice), else its four main tones by the drop-voicing convention
   (`fourTones`).

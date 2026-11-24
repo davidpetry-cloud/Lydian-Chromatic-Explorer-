@@ -592,6 +592,37 @@ test('Next chord: same shape onto the same chord says nothing moves', async () =
   await page.close();
 });
 
+test('a MIDI chord change keeps focus without scrolling the page', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 700 } });
+  await page.goto(server.url + '/');
+  await page.waitForFunction(() => document.querySelectorAll('#voicings li').length > 0);
+  await row(page, 'Drop 2').locator('button').focus();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const before = await page.evaluate(() => window.scrollY);
+  await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    const { parseChord } = await import('/js/theory/chords.js');
+    app.practice.setChord(parseChord('Dm7'), 'midi');
+  });
+  await page.waitForFunction(() => document.getElementById('h-voicings').textContent === 'Voicings of Dm7');
+  // Content above may change height (the browser's scroll anchoring keeps the view steady);
+  // what mustn't happen is the page being pulled up to the focused button.
+  const after = await page.evaluate(() => window.scrollY);
+  assert.ok(after >= before - 50, `the page isn't pulled back to the Voicings card: ${before} → ${after}`);
+  assert.ok(!(await row(page, 'Drop 2').locator('button').isVisible()) || (await page.evaluate(() => { const r = document.activeElement.getBoundingClientRect(); return r.bottom < 0 || r.top > innerHeight; })), 'the focused button stays out of view');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Play drop 2');
+  await page.close();
+});
+
+test('Next chord: same shape onto an inversion says the bass moves', async () => {
+  const { page } = await open();
+  await nextChord(page, 'Cmaj7/E');
+  const same = await lead(page, 'Same shape').textContent();
+  assert.doesNotMatch(same, /nothing moves/);
+  assert.match(same, /The upper voices stay put; the bass moves to E\./);
+  await page.close();
+});
+
 test('a chord change keeps focus on the same voicing’s button', async () => {
   const { page } = await open();
   await row(page, 'Drop 2').locator('button').focus();

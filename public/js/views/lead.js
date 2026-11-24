@@ -64,7 +64,13 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
       if (way.id === 'smooth') to = smoothInto(from.midis, next, from.id);
       else {
         const r = planeInto(from.id, from.midis, chord, next);
-        if (r) { to = r.midis; note = !r.parallel ? 'Same voicing type; the chord type changes.' : r.shift === 0 ? 'Same chord: nothing moves.' : 'The shape moves in parallel.'; }
+        if (r) {
+          to = r.midis;
+          const sameBass = pc(next.bass) === pc(chord.bass);
+          note = !r.parallel ? 'Same voicing type; the chord type changes.'
+            : r.shift !== 0 ? 'The shape moves in parallel.'
+              : sameBass ? 'Same chord: nothing moves.' : `The upper voices stay put; the bass moves to ${noteName(next.bass)}.`;
+        }
       }
       if (!to) {
         head.append(make('span', 'voicing-na', 'Not for this chord'));
@@ -90,7 +96,7 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
       rows.push({ way: way.id, from, to });
     }
     showState();
-    if (focused) buttons.get(focused)?.focus();
+    if (focused) buttons.get(focused)?.focus({ preventScroll: true });
   }
 
   function patternFor(wayId) {
