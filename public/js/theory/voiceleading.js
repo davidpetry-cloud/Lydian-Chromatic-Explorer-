@@ -49,8 +49,11 @@ const near = (from, p) => [-12, 0, 12].map((o) => from + o + mod12(p - from)).co
 export function smoothInto(fromMidis, next, voicingId = null) {
   const shape = voicingId ? voiceAs(voicingId, next) : null;
   const goal = shape ? shape.map((m) => ((m % 12) + 12) % 12) : fourTones(next);
+  // More voices than target tones (a five-note spread into a triad): double the new root.
+  while (goal.length < fromMidis.length) goal.push(pc(next.root));
+  const orders = new Map(permutations(goal).map((p) => [p.join(), p])); // a doubled tone doesn't double the work
   let best = null;
-  for (const targets of permutations(goal)) {
+  for (const targets of orders.values()) {
     const walk = (i, acc) => {
       if (i === fromMidis.length) {
         if (!best || better(fromMidis, acc, best) < 0) best = acc;

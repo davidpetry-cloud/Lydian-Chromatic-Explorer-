@@ -425,10 +425,11 @@ const row = (page, name) => page.locator('#voicings li', { has: page.locator('.v
 test('Voicings card: each sourced voicing of the chord, its notes, and the centre it is heard from', async () => {
   const { page, problems } = await open();
   assert.equal(await page.textContent('#h-voicings'), 'Voicings of Cmaj7');
-  assert.equal(await page.locator('#voicings li').count(), 8);
+  assert.equal(await page.locator('#voicings li').count(), 9);
   assert.match(await row(page, 'Close').textContent(), /B C E G over C/);
+  assert.match(await row(page, 'Spread').textContent(), /C B E A D over C/);
   assert.match(await page.textContent('#voicings-heard'), /heard from C.*C Lydian/);
-  assert.equal(await page.textContent('#voicings-pending'), 'Waiting for sources: Spread.');
+  assert.equal(await page.textContent('#voicings-pending'), '');
   await enterChord(page, 'Dm7/G');
   assert.match(await page.textContent('#voicings-heard'), /heard from G.*G Mixolydian/);
   assert.deepEqual(problems, []);
@@ -636,6 +637,23 @@ test('the now-playing line follows a tempo change', async () => {
   await page.$eval('#bpm', (el) => { el.value = '120'; el.dispatchEvent(new Event('input')); });
   assert.match(await page.textContent('#now-playing'), /120 bpm/);
   await page.click('#stop');
+  await page.close();
+});
+
+test('a note above or below the keyboard lights no key (the Cmaj7 spread’s D5 is not D3)', async () => {
+  const { page } = await open();
+  await page.evaluate(() => {
+    window.__lit = new Set();
+    new MutationObserver((list) => { for (const m of list) if (m.target.classList?.contains('is-sounding')) window.__lit.add(m.target.getAttribute('aria-label').split(',')[0]); })
+      .observe(document.getElementById('keyboard'), { subtree: true, attributes: true, attributeFilter: ['class'] });
+  });
+  await row(page, 'Spread').getByRole('button').click();
+  await playing(page);
+  await page.waitForTimeout(400);
+  await page.click('#stop');
+  const lit = await page.evaluate(() => [...window.__lit]);
+  assert.ok(lit.length > 0, 'the spread lights its keys');
+  for (const k of lit) assert.ok(['C 3', 'B 3', 'E 4', 'A 4'].includes(k), `lit ${k}: ${lit}`);
   await page.close();
 });
 
