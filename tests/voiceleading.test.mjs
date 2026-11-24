@@ -105,3 +105,7 @@ test('the move words describe and never prescribe', () => {
   const held = describeMoves(compareVoices([60], [60], n('G'), n('Ab')), spell);
   assert.match(held.steps, /C→C held \(rank 11 → 5\)/);
 });
+
+test('smooth keeps a shared note when holding it costs no more (C6 into Gmaj7 keeps G)', () => {
+  assert.deepEqual(smoothInto([57, 60, 64, 67], c('Gmaj7')), [59, 62, 66, 67]);
+});

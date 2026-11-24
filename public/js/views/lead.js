@@ -125,9 +125,11 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
     if (text === applied) return;
     applied = text;
     $('next-chord-error').textContent = '';
-    if (!text) { next = null; refresh(); return; }
+    // No next chord (cleared, or not one the app knows): a playing lead stops with it.
+    const drop = () => { next = null; if (playingWay()) app.transport.stop('user'); refresh(); };
+    if (!text) { drop(); return; }
     const parsed = parseChord(text);
-    if (parsed.error) { next = null; $('next-chord-error').textContent = parsed.error; refresh(); return; }
+    if (parsed.error) { $('next-chord-error').textContent = parsed.error; drop(); return; }
     next = parsed;
     refresh();
     restart();

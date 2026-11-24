@@ -600,6 +600,19 @@ test('Next chord: Play toggles the lead, and a new next chord restarts it', asyn
   await page.close();
 });
 
+test('Next chord: clearing or mistyping the next chord stops a playing lead', async () => {
+  const { page } = await open();
+  for (const text of ['', 'zz']) {
+    await nextChord(page, 'G7');
+    await lead(page, 'Smooth').locator('button').click();
+    await playing(page);
+    await nextChord(page, text);
+    await page.waitForFunction(async () => !(await import('/js/main.js')).app.transport.isPlaying());
+    assert.equal(await page.locator('#leads li').count(), 0);
+  }
+  await page.close();
+});
+
 test('Next chord: a held organ drone follows each chord and leaves nothing ringing after Stop', async () => {
   const { page } = await open();
   await page.selectOption('#drone-sound', 'organ');

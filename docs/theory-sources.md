@@ -182,8 +182,9 @@ rest on search summaries of these pages; Wikipedia's "Voice leading" and
 | Same shape (planing) | Same chord type: the whole shape moves in parallel by the root interval. A different chord type: the same voicing type of the next chord, placed nearest | hutchinson-planing, learnmusictheory-planing | Hutchinson: parallelism, or planing, moves every voice of a chord in parallel (Debussy, Ravel). Feezell: whole chords moving in parallel; chromatic planing keeps the exact intervals, diatonic planing follows a scale | Verified. Exact parallel motion = chromatic planing; "same voicing type" when the chord type changes is the app's reading of the looser, diatonic kind |
 
 **The app's conventions** (labelled as such):
-- **Smooth tie-breaks:** the smaller largest single move, then the lower
-  result.
+- **Smooth tie-breaks:** at equal total motion, more shared notes held
+  (the sources' common-tone rule), then the smaller largest single move,
+  then the lower result.
 - **"Toward home / away":** compares each voice's gravity rank, counted from
   each chord's own drone note (David's lens). A held note "stays", with its
   rank change shown.

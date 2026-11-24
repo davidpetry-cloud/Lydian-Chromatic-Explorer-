@@ -13,7 +13,7 @@ import { rankFrom } from './reading.js';
 const w = (id, name, description, sources) => Object.freeze({ id, name, description, sources: Object.freeze(sources), status: 'verified' });
 
 export const WAYS = Object.freeze([
-  w('smooth', 'Smooth', 'Each voice takes the nearest note of the next chord; shared notes stay put.', ['rwu-part-writing', 'harmony-musicianship-common-tone']),
+  w('smooth', 'Smooth', 'Shared notes stay put; the other voices move as little as possible in total.', ['rwu-part-writing', 'harmony-musicianship-common-tone']),
   w('planing', 'Same shape', 'The whole shape slides in parallel to the next chord (planing).', ['hutchinson-planing', 'learnmusictheory-planing']),
 ]);
 
@@ -21,6 +21,16 @@ const mod12 = (x) => ((x % 12) + 12) % 12;
 const total = (a, b) => a.reduce((s, m, i) => s + Math.abs(b[i] - m), 0);
 const largest = (a, b) => Math.max(...a.map((m, i) => Math.abs(b[i] - m)));
 const sum = (a) => a.reduce((s, m) => s + m, 0);
+const heldCount = (a, b) => a.filter((m, i) => b[i] === m).length;
+
+// Better = less total motion, then more shared notes held, then the smaller
+// largest move, then the lower result (the last three are the app's tie-breaks).
+function better(from, a, b) {
+  return total(from, a) - total(from, b)
+    || heldCount(from, b) - heldCount(from, a)
+    || largest(from, a) - largest(from, b)
+    || sum(a) - sum(b);
+}
 
 function permutations(list) {
   if (list.length <= 1) return [list];
@@ -36,11 +46,7 @@ export function smoothInto(fromMidis, next) {
   for (const targets of permutations(fourTones(next))) {
     const walk = (i, acc) => {
       if (i === fromMidis.length) {
-        const better = !best
-          || total(fromMidis, acc) < total(fromMidis, best)
-          || (total(fromMidis, acc) === total(fromMidis, best) && (largest(fromMidis, acc) < largest(fromMidis, best)
-            || (largest(fromMidis, acc) === largest(fromMidis, best) && sum(acc) < sum(best))));
-        if (better) best = acc;
+        if (!best || better(fromMidis, acc, best) < 0) best = acc;
         return;
       }
       for (const m of new Set(near(fromMidis[i], targets[i]))) {
