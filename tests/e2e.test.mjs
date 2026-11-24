@@ -205,6 +205,48 @@ test('a sus chord shows its Lydian tonics, and Hear from sets the drone (and kee
   await page.close();
 });
 
+test('a sus chord on a double-sharp root renders, and survives a reload', async () => {
+  const { page, problems } = await open();
+  await enterChord(page, 'Exsus4');
+  await page.waitForFunction(() => !document.getElementById('sus-panel').hidden);
+  await page.reload();
+  await page.waitForFunction(() => /E𝄪sus4/.test(document.getElementById('chord-name').textContent));
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('a playing lead into a sus chord follows a drone change even without the held drone', async () => {
+  const { page } = await open();
+  await page.uncheck('#hold-tonic');
+  await page.selectOption('#lead-from', 'quartal');
+  await nextChord(page, 'Csus4');
+  await lead(page, 'Smooth').locator('button').click();
+  await playing(page);
+  const target = () => page.evaluate(async () => (await import('/js/main.js')).app.transport.current()?.steps[1].slice(1));
+  assert.ok((await target()).includes(59), 'heard from F Lydian first: B natural');
+  await page.selectOption('#drone-on', 'other');
+  await page.selectOption('#drone-other', 'Bb');
+  await page.waitForTimeout(300);
+  const now = await target();
+  assert.ok(now.includes(58) && !now.includes(59), `the sound follows the screen (B♭ Lydian): ${now}`);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('Hear from is announced even while another view is playing', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Csus4');
+  await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    await app.engine.resume();
+    app.transport.play({ kind: 'drone', owner: 'gravity', steps: [[60]], durations: [4], loop: true, bpm: 80, label: 'Gravity test' });
+  });
+  await page.locator('#sus-tonics button', { hasText: 'B♭' }).click();
+  await page.waitForFunction(() => /Csus4: Lydian tonic B♭/.test(document.getElementById('live').textContent), null, { timeout: 3000 });
+  await page.evaluate(async () => (await import('/js/main.js')).app.transport.stop('user'));
+  await page.close();
+});
+
 test('Hear from while a scale plays switches it to the new parent', async () => {
   const { page } = await open();
   await enterChord(page, 'Csus4');

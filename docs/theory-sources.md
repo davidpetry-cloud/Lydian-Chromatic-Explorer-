@@ -236,13 +236,14 @@ chord (see the Chart A section).
 - **No single parent (David's reading, 2026-11-24):** a sus chord lies in
   several Lydian scales at once, so the app lists every plain Lydian tonic
   that holds it, most ingoing first, ordered by how far up the ladder of
-  fifths the chord tones sit. This builds on Russell's rule that the Lydian
-  tonic is the lowest note of a ladder of fifths (see the Chart A
-  section). The drone note picks the tonic heard ("Hear from" sets it), and
+  fifths the chord tones sit. This builds on the order of tonal gravity:
+  its first seven tones are the Lydian scale stacked in fifths up from the
+  tonic (french-2018, mcclimon; see "Scales and gravity"). The drone note picks the tonic heard ("Hear from" sets it), and
   "Drone on: Lydian tonic" means the most ingoing one.
-- **The ladder line:** the tonics always run down in fifths; five of them
-  make a major pentatonic, named on the last tonic (Csus4: F B♭ E♭ A♭ D♭ =
-  D♭ major pentatonic). This is arithmetic on the list, not a source claim.
+- **The ladder line:** the tonics always run down in fifths, the way the
+  order of tonal gravity stacks; five of them make a major pentatonic, named
+  on the last tonic (Csus4: F B♭ E♭ A♭ D♭ = D♭ major pentatonic). This is
+  arithmetic on the list, labelled the app's reading, not a source claim.
 - **Also read as:** other names for exactly the same notes, from the four sus
   types and their 7sus forms without the 5th (Csus4 = Fsus2 = G7sus4 with no
   5th).

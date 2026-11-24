@@ -273,7 +273,8 @@ export function mountPractice({ app, announce, initialText }) {
     voicings.refresh();
     app.events.dispatchEvent(new CustomEvent('tonic', { detail: state.analysis.tonic }));
     const message = `${chord.symbol}: Lydian tonic ${noteName(state.analysis.tonic)}, parent scale ${$('parent-name').textContent}.`;
-    if (!firstChord && app.transport.isPlaying()) { pendingChordMessage = message; restartIfPlaying(); }
+    // Only Practice's own sound restarts with the chord; while another view plays, announce now.
+    if (!firstChord && ours()) { pendingChordMessage = message; restartIfPlaying(); }
     else if (!firstChord) announce(message);
     firstChord = false;
   }
@@ -330,7 +331,8 @@ export function mountPractice({ app, announce, initialText }) {
     const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'drone') playDrone();
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
-    else if ((kind === 'voicing' || kind === 'voicings' || kind === 'lead') && $('hold-tonic').checked) voicings.chordChanged();
+    // A lead's next chord may be a sus chord whose parent the drone picks: it follows even without the held drone.
+    else if (kind === 'lead' || ((kind === 'voicing' || kind === 'voicings') && $('hold-tonic').checked)) voicings.chordChanged();
   }
   $('drone-on').addEventListener('change', droneChanged);
   for (const id of DRONE_SOUNDS) $('drone-sound').add(new Option(INSTRUMENTS[id].name, id));

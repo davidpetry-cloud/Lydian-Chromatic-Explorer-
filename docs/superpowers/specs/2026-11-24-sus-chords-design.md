@@ -81,7 +81,7 @@ Hearing it from F: F Lydian.
 - **No single parent:** Russell's Chart A names no sus chord (already
   recorded). Listing every Lydian scale that holds the chord, in gravity
   order, is the **app's convention (David's reading, 2026-11-24)**, built
-  on Russell's ladder-of-fifths rule (scholar.colorado.edu, already cited).
+  on the order of tonal gravity, the Lydian scale stacked in fifths (french-2018, mcclimon).
   The app and `docs/theory-sources.md` label it so.
 - **Spread and cluster:** a sus 4th stands in for the 3rd (Hutchinson
   §31.7, already in the code). *My call:* a sus 2nd stands in for the 3rd
@@ -137,7 +137,7 @@ Hearing it from F: F Lydian.
   over F, and G7sus4 (no 5th) over G. 7sus4 and 7sus2 join the chords
   allowed without their 5th.
 - **"Also read as":** generated from the four sus types and their no-5th
-  forms (C D B♭ is B♭sus2 as well as C7sus2 with no 5th). The line is left
+  forms (C D B♭ is C7sus2 with no 5th). The line is left
   out when there are none.
 - **Spelling:** each tonic gets the spelling with the fewest accidentals,
   matched to the drone picker by pitch class. No tonic is ever dropped.

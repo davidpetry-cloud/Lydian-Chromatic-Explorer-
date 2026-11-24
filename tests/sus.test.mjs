@@ -109,9 +109,9 @@ test('other names for the same notes', () => {
 });
 
 test('the ladder line: five tonics make a major pentatonic', () => {
-  assert.equal(ladderLine(lydianTonics(c('Csus4'))), 'These tonics run down in fifths (Russell’s ladder): together they are the D♭ major pentatonic.');
-  assert.equal(ladderLine(lydianTonics(c('Csus2'))), 'These tonics run down in fifths (Russell’s ladder): together they are the A♭ major pentatonic.');
-  assert.equal(ladderLine(lydianTonics(c('C7sus4'))), 'These tonics run down in fifths (Russell’s ladder).');
+  assert.equal(ladderLine(lydianTonics(c('Csus4'))), 'These tonics run down in fifths, the way the order of tonal gravity stacks: together they are the D♭ major pentatonic.');
+  assert.equal(ladderLine(lydianTonics(c('Csus2'))), 'These tonics run down in fifths, the way the order of tonal gravity stacks: together they are the A♭ major pentatonic.');
+  assert.equal(ladderLine(lydianTonics(c('C7sus4'))), 'These tonics run down in fifths, the way the order of tonal gravity stacks.');
 });
 
 // Task 4: voicings and MIDI.
@@ -135,4 +135,15 @@ test('voicings of sus chords: the sus tone stands in for the 3rd', () => {
 test('MIDI: a 7sus2 without its 5th is named; exact readings still come first', () => {
   assert.equal(recognizeChord([60, 62, 70]).chord.symbol, 'C7sus2');
   assert.equal(recognizeChord([55, 60, 65]).chord.symbol, 'Csus4/G', 'exact match on another root wins over a missing 5th');
+});
+
+// Review fixes (2026-11-24).
+test('double-sharp and double-flat sus roots never throw', () => {
+  for (const t of ['Exsus4', 'Dxsus2', 'Cbbsus2', 'Dbb7sus2', 'C##7sus2', 'Fbb7sus4', 'B#sus4']) {
+    const chord = c(t);
+    if (chord.error) continue;
+    assert.doesNotThrow(() => susReadings(chord), t);
+    assert.doesNotThrow(() => ladderLine(lydianTonics(chord)), t);
+  }
+  assert.ok(Array.isArray(susReadings(c('Exsus4'))));
 });
