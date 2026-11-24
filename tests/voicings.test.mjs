@@ -111,3 +111,14 @@ test('four tones: a triad doubles its root; a 13th chord keeps its 3rd and 7th',
   assert.equal(t13.length, 4);
   assert.ok(t13.includes(4) && t13.includes(10));
 });
+
+test('close voicings stay within an octave, even for a triad with its root doubled', () => {
+  for (const root of ROOTS) {
+    for (const q of ['maj', 'm', 'dim', 'aug', 'maj7', '7']) {
+      const chord = c(root + QUALITIES[q].aliases[0]);
+      const m = voiceAs('close', chord);
+      assert.ok(m && m.at(-1) - m[0] <= 12, `${chord.symbol}: ${m}`);
+    }
+  }
+  assert.deepEqual(voiceAs('close', c('C')).map((x) => x % 12), [0, 4, 7, 0]);
+});

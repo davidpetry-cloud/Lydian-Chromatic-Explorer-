@@ -156,7 +156,8 @@ function cluster(chord, parent) {
 export function voiceAs(id, chord) {
   const parent = lydianAnalysis(chord).parentNotes.map(pc);
   const tones = fourTones(chord);
-  const closeShapes = rotations(tones).map((t) => stack(t));
+  // Close position: each rotation stacked upward, kept only if it fits inside an octave.
+  const closeShapes = rotations(tones).map((t) => stack(t)).filter((s) => s.at(-1) - s[0] <= 12);
   switch (id) {
     case 'close': return bestOf(closeShapes);
     case 'drop2': return bestOf(closeShapes.map((s) => drop(s, [2])));
