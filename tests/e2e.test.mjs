@@ -640,6 +640,23 @@ test('the now-playing line follows a tempo change', async () => {
   await page.close();
 });
 
+test('a note above or below the keyboard lights no key (the Cmaj7 spread’s D5 is not D3)', async () => {
+  const { page } = await open();
+  await page.evaluate(() => {
+    window.__lit = new Set();
+    new MutationObserver((list) => { for (const m of list) if (m.target.classList?.contains('is-sounding')) window.__lit.add(m.target.getAttribute('aria-label').split(',')[0]); })
+      .observe(document.getElementById('keyboard'), { subtree: true, attributes: true, attributeFilter: ['class'] });
+  });
+  await row(page, 'Spread').getByRole('button').click();
+  await playing(page);
+  await page.waitForTimeout(400);
+  await page.click('#stop');
+  const lit = await page.evaluate(() => [...window.__lit]);
+  assert.ok(lit.length > 0, 'the spread lights its keys');
+  for (const k of lit) assert.ok(['C 3', 'B 3', 'E 4', 'A 4'].includes(k), `lit ${k}: ${lit}`);
+  await page.close();
+});
+
 test('keys do not flash at all when motion is reduced', async () => {
   const { page } = await open();
   await page.emulateMedia({ reducedMotion: 'reduce' });

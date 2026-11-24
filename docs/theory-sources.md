@@ -156,7 +156,7 @@ arranging books (Pease and Pullig, *Modern Jazz Voicings*; Lowell and Pullig,
 | Drop 2 | From a four-note close voicing, the 2nd voice from the top moves down an octave | wikipedia-voicing, pianogroove-drop2 | "A drop-2 voicing lowers the second voice by an octave"; begin with a 4-note closed voicing, drop the 2nd note from the top an octave | Verified. **Wikipedia and a lesson site only:** no textbook page defining it could be read (see above) |
 | Drop 3 | Same, with the 3rd voice from the top | wikipedia-voicing, bonedo-drop3 | Voices are numbered from the top, and "drop-3" lowers the third; drop 3 drops the third-highest note | Verified. **Wikipedia and a lesson site only**, as for drop 2 |
 | Drop 2 & 4 | Same, with the 2nd and 4th voices | haupers-berklee, wikipedia-voicing | Haupers: voices two and four of a four-way close chord are dropped an octave; Wikipedia gives the drop-2-and-4 voicings of G7 | **Verified** (now shipped). Wikipedia is the second source because no other readable one was found |
-| Spread | Five notes: the root lowest, then the 7th (or 6th), then the 3rd (or sus 4th) a 10th above the root; then two parent-scale tones that are a 9th, 11th, 5th or 13th of the root, stacked up from the 3rd, preferring fourths and fifths | hutchinson-jazz-voicings, pianogroove-spread | Hutchinson: 5-note "spread" voicings with the root, 3rd and 7th lowest (the root always lowest; the 3rd above or below the 7th) and the rest above, often in fourths or fifths; a 6th stands in for a missing 7th and a sus 4th for a missing 3rd; PianoGroove: a 3-note root–3rd–7th spread | Verified. **Sources differ on the size** (Hutchinson five notes, PianoGroove three); the app uses five and says so in the row |
+| Spread | Five notes: the root lowest, then the 7th (or 6th) and the 3rd (or sus 4th), either way up; then two parent-scale tones that are a 9th, 11th, 5th or 13th of the root, stacked up from the base, keeping the chord's own extensions and altered 5th first | hutchinson-jazz-voicings, pianogroove-spread | Hutchinson: 5-note "spread" voicings with the root, 3rd and 7th as the lowest notes and "other chord members voiced above, often in the interval of a fourth or fifth" (the root always lowest; the 3rd above or below the 7th); voice a sus4 like the 3rd and a 6th like the 7th. PianoGroove: a 3-note root–3rd–7th spread | Verified. **Sources differ on the size** (Hutchinson five notes, PianoGroove three); the app uses five and says so in the row. **Hutchinson puts chord members above; the app takes parent-scale tones** (David's decision), so on a plain seventh chord the top two may not be in the chord symbol (Cmaj7: A and D) |
 | Quartal | Four notes stacked in fourths, using the parent scale's tones; a fourth may be augmented where the scale has one | hutchinson-quartal, acevedo-rush-quartal, brick-fourths | Hutchinson: chords "stacked entirely (or mostly) in fourths"; Acevedo and Rush: built by stacking **perfect** fourths; Brick: a three-note stack may be P4–P4, P4–A4 or A4–P4 | Verified. **Sources differ on the augmented fourth:** the app follows Brick and says so in the row |
 | Cluster | Four parent-scale tones in consecutive steps (seconds), spanning no more than a fifth, holding **one** of the 3rd and 7th: here the 3rd, from the step below it | brick-seconds, feezell-sonorities, pianogroove-cluster, pianowithjonny-cluster | Brick: clusters are chords with most voices a second apart, and diatonic clusters keep to the scale or mode; Feezell: a stack of seconds within one octave; the jazz lesson sites add the within-a-fifth span and keep only one of the 3rd and 7th | Verified. The fifth span and the 3rd-not-7th rule come from the lesson sites; the textbooks allow up to an octave |
 | Rootless A / B | A: 3–5–7–9; B: 7–9–3–5. On dominant chords the 13th replaces the 5th (A: 3–13–7–9; B: 7–9–3–13). Only on major 7, minor 7 and dominant chord families | keller-rootless, hutchinson-jazz-voicings, tjps-rootless | Keller: Type A 3-5-7-9, Type B 7-9-3-5, and on dominants "we substitute the 6 (i.e. 13) for the 5"; Hutchinson: four close notes over the bass, usually with the 7th or 3rd lowest; The Jazz Piano Site gives the same A/B names | Verified |
@@ -170,12 +170,15 @@ arranging books (Pease and Pullig, *Modern Jazz Voicings*; Lowell and Pullig,
   quartal stack) come from the chord's Russell parent scale (David's
   decision).
 - **Placement:** inside C3–B4, with the top note as near G4 as possible.
-- **Spread:** the 7th sits below the 3rd (Hutchinson allows either). The top
-  two notes are tried in steps of a perfect 4th, perfect 5th, augmented 4th,
-  then (as a fallback, since Hutchinson says "often") a minor or major 3rd;
-  the best pair has more fourths and fifths, then more of the chord's own
-  extensions, then the lower top. The root sits in C3–B3, an octave above
-  the octave-2 bass, so a spread can reach above the on-screen keyboard.
+- **Spread:** the best pair of top notes keeps the most of the chord's own
+  extensions and altered 5th, then has the most fourths and fifths (steps of
+  a perfect 4th, perfect 5th or augmented 4th; a minor or major 3rd only as
+  a fallback, since Hutchinson says "often"), then the plain 5th, then the
+  7th below the 3rd (the classic shape), then the lower top. So Cmaj7 is
+  C B E A D, but Cmaj7♯11 is C E B F♯ A, and m7♭5 and dim7 keep their ♭5.
+  The root sits in C3–B3, an octave above the octave-2 bass, so a spread can
+  reach above the on-screen keyboard; keys light only for notes that are on
+  it.
 
 ## Gravity reading from a chosen centre (2026-11-24)
 

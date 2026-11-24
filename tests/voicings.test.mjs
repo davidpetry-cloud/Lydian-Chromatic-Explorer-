@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { VOICINGS, voiceAs, voicingsFor, fourTones } from '../public/js/theory/voicings.js';
-import { parseChord, lydianAnalysis, QUALITIES } from '../public/js/theory/chords.js';
+import { parseChord, lydianAnalysis, QUALITIES, chordNotes } from '../public/js/theory/chords.js';
 import { pc } from '../public/js/theory/notes.js';
 import { SOURCES } from '../public/js/data/sources.js';
 
@@ -40,7 +40,7 @@ test('spread on a 6th chord: the 6th stands in for the 7th, and no 7th is added'
   for (const t of ['C6', 'Cm6']) {
     const m = voiceAs('spread', c(t));
     assert.ok(m, t);
-    assert.equal(m[1] % 12, 9, `${t}: ${names(m)}`);
+    assert.ok([m[1], m[2]].some((x) => x % 12 === 9), `${t}: the 6th is in the base (root, 6th, 3rd either way up): ${names(m)}`);
     assert.ok(m.every((x) => ![10, 11].includes(x % 12)), `${t}: ${names(m)}`);
   }
 });
@@ -199,6 +199,27 @@ test('quartal stacks have four different notes, and exist for maj7, m7 and 7 on 
       const m = voiceAs('quartal', c(root + q.aliases[0]));
       if (m) assert.equal(pcs(m).size, 4, `${root}${q.aliases[0]}: ${m}`);
       else assert.ok(!['maj7', 'm7', '7'].includes(q.id), `${root}${q.aliases[0]} has no quartal`);
+    }
+  }
+});
+
+// Review (2026-11-24): the spread must keep what makes the chord itself, its
+// extensions and an altered 5th, before it looks for fourths and fifths.
+test('spread keeps the chord’s own extensions and altered 5th', () => {
+  const has = (t, p) => assert.ok(voiceAs('spread', c(t)).some((m) => m % 12 === p), `${t}: ${names(voiceAs('spread', c(t)))}`);
+  has('Cm7b5', 6); has('Cdim7', 6); has('Cmaj7#5', 8); has('Cmaj7#11', 6); has('C7#11', 6); has('Cm11', 5);
+  assert.notDeepEqual(voiceAs('spread', c('Cmaj7#11')), voiceAs('spread', c('Cmaj7')));
+  for (const q of Object.values(QUALITIES).filter((x) => x.status === 'verified')) {
+    const i5 = q.degrees.findIndex((d) => ['b5', '#5'].includes(d));
+    const ext = q.degrees.filter((d) => ['2', 'b2', '#2', '4', '#4', '6', 'b6'].includes(d) && !(d === '6' && !q.degrees.some((x) => ['7', 'b7', 'bb7'].includes(x))));
+    for (const root of ROOTS) {
+      const chord = c(root + q.aliases[0]);
+      const m = voiceAs('spread', chord);
+      if (!m) continue;
+      const tones = chordNotes(chord).map(pc);
+      const defining = new Set([...(i5 >= 0 ? [tones[i5]] : []), ...ext.map((d) => tones[q.degrees.indexOf(d)])]);
+      const kept = [...defining].filter((p) => m.some((x) => x % 12 === p)).length;
+      assert.ok(kept >= Math.min(2, defining.size), `${chord.symbol}: keeps ${kept} of ${defining.size}: ${names(m)}`);
     }
   }
 });

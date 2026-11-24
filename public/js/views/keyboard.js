@@ -76,7 +76,8 @@ export function createKeyboard(svg, { onKey }) {
       for (const k of keys) k.g.classList.remove('is-sounding');
     },
     flash(midi, ms = 220) {
-      const k = keys.find((x) => x.midi === midi) ?? keys.find((x) => x.midi % 12 === midi % 12);
+      // Only the key that is sounding: a note above or below the keyboard lights nothing.
+      const k = keys.find((x) => x.midi === midi);
       if (!k) return;
       k.g.classList.add('is-sounding');
       setTimeout(() => k.g.classList.remove('is-sounding'), ms);
