@@ -16,6 +16,20 @@ licence text for each family is in `public/fonts/`.
 | DM Mono | The DM Mono Project Authors | `public/fonts/OFL-dm-mono.txt` |
 | Cormorant Garamond | The Cormorant Project Authors | `public/fonts/OFL-cormorant-garamond.txt` |
 
+## Piano recordings: Creative Commons Attribution 3.0
+
+`public/audio/piano/*.mp3` are from the **Salamander Grand Piano V3** by
+Alexander Holm (a Yamaha C5), as mapped by the sfzinstruments project:
+https://github.com/sfzinstruments/SalamanderGrandPiano (original:
+https://archive.org/details/SalamanderGrandPianoV3). Licensed under
+Creative Commons Attribution 3.0 Unported:
+https://creativecommons.org/licenses/by/3.0/
+
+**Changes made:** 25 notes (C, D♯, F♯ and A from C1 to C7) at velocity
+layer 8 of 16; leading silence removed; trimmed to 5 seconds with a fade;
+mixed to mono; level evened out about halfway between notes; encoded as
+96 kbps MP3. The app also credits the recordings in its footer.
+
 ## Playwright: Apache License 2.0 (development only)
 
 Used only to run the browser tests in `tests/`. It is not part of the

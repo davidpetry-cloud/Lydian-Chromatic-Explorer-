@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { startServer } from './serve.mjs';
 
-export const CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests";
+export const CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests";
 
 const read = (p) => readFile(new URL(`../public/${p}`, import.meta.url), 'utf8');
 
@@ -23,6 +23,7 @@ test('_headers sets the strict CSP', async () => {
   const headers = await read('_headers');
   assert.ok(headers.includes(`Content-Security-Policy: ${CSP}`));
   assert.ok(headers.includes("frame-ancestors 'none'"));
+  assert.ok(!/connect-src[^;]*(https?:|\*)/.test(headers), 'connect-src reaches this site only');
   assert.ok(headers.includes('midi=(self)'), 'MIDI allowed for this site only');
   assert.ok(!headers.includes('midi=()'));
 });

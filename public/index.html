@@ -117,7 +117,18 @@
               <label for="volume">Volume <output id="volume-out" for="volume">70</output>%</label>
               <input id="volume" type="range" min="0" max="100" step="1" value="70">
             </div>
+            <div class="field">
+              <label for="stop-after">Stop after</label>
+              <select id="stop-after" class="stop-after" aria-describedby="stop-after-hint">
+                <option value="30">30 seconds</option>
+                <option value="60">1 minute</option>
+                <option value="120">2 minutes</option>
+                <option value="300">5 minutes</option>
+                <option value="0">Until I press Stop</option>
+              </select>
+            </div>
           </div>
+          <p class="hint" id="stop-after-hint">Drones, chord loops and scale runs fade out on their own after this long.</p>
           <p class="now-playing" id="now-playing" aria-hidden="true">Silent. Press a play button to start.</p>
         </section>
 
@@ -158,6 +169,18 @@
               </div>
             </div>
             <p class="hint" id="gravity-hint">Each tone is placed round the circle of fifths and numbered by its distance from the tonic, 1 to 12. Tab to the circle, use the arrow keys to walk the order, and press Enter to hear a tone against the tonic.</p>
+            <div class="control-row">
+              <div class="field">
+                <label for="gravity-stop-after">Stop after</label>
+                <select id="gravity-stop-after" class="stop-after">
+                  <option value="30">30 seconds</option>
+                  <option value="60">1 minute</option>
+                  <option value="120">2 minutes</option>
+                  <option value="300">5 minutes</option>
+                  <option value="0">Until I press Stop</option>
+                </select>
+              </div>
+            </div>
             <div class="control-row">
               <button class="btn" id="gravity-stop" type="button"><span aria-hidden="true">■</span> Stop</button>
               <p class="now-playing" id="gravity-status" aria-hidden="true">Silent.</p>
@@ -226,6 +249,7 @@
 
   <footer class="app-footer">
     <p>Made by David Petry. Built on ideas from George Russell's <cite>Lydian Chromatic Concept of Tonal Organization</cite> (<a href="#reference">see sources</a>); all explanations here are original.</p>
+    <p>Piano: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano">Salamander Grand Piano V3</a> by Alexander Holm, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>, trimmed and made mono for the web.</p>
     <p><a href="https://github.com/davidpetry-cloud/Lydian-Chromatic-Explorer/blob/main/LICENSE">Licence</a> · <a href="https://david-petry.netlify.app/">david-petry.netlify.app</a></p>
   </footer>
 </body>

@@ -50,12 +50,11 @@ function fakes() {
   const clock = { t: 0 };
   const timers = [];
   const engine = {
-    notes: [], stops: 0, drones: 0,
+    notes: [], stops: 0, fades: [],
     now: () => clock.t,
     resume: async () => {},
-    note(midi, at, dur) { this.notes.push({ midi, at, dur }); },
-    drone() { this.drones += 1; return () => { this.drones -= 1; }; },
-    stopAll() { this.stops += 1; },
+    note(midi, at, dur, opts) { this.notes.push({ midi, at, dur, ...opts }); },
+    stopAll(fade) { this.stops += 1; this.fades.push(fade); },
   };
   const opts = {
     setTimer: (fn) => { timers.push(fn); return timers.length; },
@@ -132,22 +131,132 @@ test('steps are announced to listeners with their time', () => {
   assert.deepEqual(seen.slice(0, 1), [0]);
 });
 
-test('a drone holds until stopped', () => {
+test('a drone is struck again each bar until stopped', () => {
   const f = fakes();
   const t = createTransport(f.engine, f.opts);
-  t.play({ kind: 'drone', steps: [[48, 55]], bpm: 80, loop: true, label: 'drone' });
-  assert.equal(f.engine.drones, 1);
+  t.play({ kind: 'drone', steps: [[48, 55]], bpm: 60, loop: true, label: 'drone' });
+  f.tick();
+  assert.deepEqual(f.engine.notes.map((n) => n.midi), [48, 55]);
+  assert.equal(f.engine.notes[0].dur, 4, 'held for the whole bar');
+  f.clock.t = 4; f.tick();
+  assert.deepEqual(f.engine.notes.map((n) => n.midi), [48, 55, 48, 55]);
+  assert.ok(Math.abs(f.engine.notes[2].at - f.engine.notes[0].at - 4) < 1e-9, 'one bar later');
   t.stop();
-  assert.equal(f.engine.drones, 0);
+  f.clock.t = 8; f.tick();
+  assert.equal(f.engine.notes.length, 4);
 });
 
-test('a scale run can hold a drone underneath, stopped with it', () => {
+test('a scale run can hold a drone underneath, struck on each bar and stopped with it', () => {
   const f = fakes();
   const t = createTransport(f.engine, f.opts);
   t.play(pattern(60, { loop: true, drone: [48, 55] }));
-  assert.equal(f.engine.drones, 1);
+  f.tick();
+  const drone = f.engine.notes.filter((n) => n.midi < 60);
+  assert.deepEqual(drone.map((n) => n.midi), [48, 55]);
+  assert.ok(drone[0].gain < 0.18, 'the drone sits under the scale');
   t.play(pattern(62, { loop: true }));
-  assert.equal(f.engine.drones, 0);
+  f.engine.notes.length = 0;
+  f.clock.t = 10; f.tick();
+  assert.ok(f.engine.notes.every((n) => n.midi >= 62), 'no drone after switching');
+});
+
+test('looping patterns fade out on their own after the limit', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  const reasons = [];
+  t.onStop((r) => reasons.push(r));
+  t.play(pattern(60, { loop: true }));
+  f.clock.t = 29.9; f.tick();
+  assert.equal(t.isPlaying(), true);
+  f.clock.t = 30.1; f.tick();
+  assert.equal(t.isPlaying(), false);
+  assert.deepEqual(reasons, ['limit']);
+  assert.equal(f.engine.fades.at(-1), 2, 'a two-second fade, not a cut');
+});
+
+test('a drone also stops at the limit', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 60 });
+  t.play({ kind: 'drone', steps: [[48]], bpm: 80, loop: true, label: 'd' });
+  f.clock.t = 59; f.tick();
+  assert.equal(t.isPlaying(), true);
+  f.clock.t = 61; f.tick();
+  assert.equal(t.isPlaying(), false);
+});
+
+test('the limit counts from the latest play, and can be changed or switched off', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  t.play(pattern(60, { loop: true }));
+  f.clock.t = 20; t.play(pattern(62, { loop: true }));
+  f.clock.t = 45; f.tick();
+  assert.equal(t.isPlaying(), true);
+  assert.equal(t.limit(), 30);
+  t.setLimit(null);
+  f.clock.t = 600; f.tick();
+  assert.equal(t.isPlaying(), true, 'until Stop');
+  t.setLimit(120);
+  f.clock.t = 601; f.tick();
+  assert.equal(t.isPlaying(), false, 'a shorter new limit applies at once');
+});
+
+test('a one-shot example is never cut short by the limit', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  t.play({ kind: 'progression', steps: [[60], [62]], durations: [40, 4], bpm: 60, loop: false, label: 'long' });
+  f.tick();
+  f.clock.t = 35; f.tick();
+  assert.equal(t.isPlaying(), true);
+});
+
+test('a user stop releases at the normal speed', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 30 });
+  t.play(pattern(60, { loop: true }));
+  t.stop('user');
+  assert.equal(f.engine.fades.at(-1), undefined);
+});
+
+test('Stop while the sound is still loading cancels the waiting press', async () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  const reasons = [];
+  t.onStop((r) => reasons.push(r));
+  let finish;
+  const ready = new Promise((r) => { finish = r; });
+  const pending = t.whenReady(ready);
+  t.stop('user');
+  finish();
+  assert.equal(await pending, false);
+  assert.deepEqual(reasons, ['user'], 'the cancel is reported, so the screen can say so');
+});
+
+test('when two presses wait for loading, only the latest counts', async () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  let finish;
+  const ready = new Promise((r) => { finish = r; });
+  const first = t.whenReady(ready);
+  const second = t.whenReady(ready);
+  finish();
+  assert.deepEqual([await first, await second], [false, true]);
+});
+
+test('stopAfterPref reads the saved limit in seconds, defaulting to 30 (0 = until Stop)', async () => {
+  const { stopAfterPref, STOP_AFTER_CHOICES } = await import('../public/js/prefs.js');
+  assert.deepEqual(STOP_AFTER_CHOICES, [30, 60, 120, 300, 0]);
+  const box = {};
+  withStorage({ getItem: (k) => box[k] ?? null, setItem: (k, v) => { box[k] = v; } }, () => {
+    assert.equal(stopAfterPref(), 30);
+    box['lce.stopAfter'] = '120';
+    assert.equal(stopAfterPref(), 120);
+    box['lce.stopAfter'] = '0';
+    assert.equal(stopAfterPref(), 0);
+    box['lce.stopAfter'] = '7';
+    assert.equal(stopAfterPref(), 30);
+    box['lce.stopAfter'] = '"long"';
+    assert.equal(stopAfterPref(), 30);
+  });
 });
 
 test('volumePref reads the saved volume, clamped, defaulting to 70', async () => {
@@ -170,8 +279,9 @@ test('the engine starts at the volume it is given', async () => {
   class FakeCtx {
     constructor() { this.state = 'running'; this.currentTime = 0; this.destination = {}; }
     createGain() { const g = { gain: { value: 1, setTargetAtTime() {} }, connect: (x) => x }; gains.push(g); return g; }
+    createWaveShaper() { return { curve: null, connect: (x) => x }; }
   }
-  const engine = createEngine({ AudioContextCtor: FakeCtx, volume: 0 });
+  const engine = createEngine({ AudioContextCtor: FakeCtx, volume: 0, loadSamples: async () => new Map() });
   await engine.resume();
   assert.equal(gains[0].gain.value, 0);
 });

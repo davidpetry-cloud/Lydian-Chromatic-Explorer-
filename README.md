@@ -24,6 +24,10 @@ Concept of Tonal Organization*.
 Type slash chords (`Cmaj7/E`, `Dm7/G`) to choose the bass note; the drone
 plays that bass note by default (or the Lydian tonic, the root, or any note).
 
+The sound is a recorded grand piano (the Salamander Grand Piano, CC BY 3.0).
+Drones, chord loops and scale runs fade out after 30 seconds, or whatever
+you choose under **Stop after**.
+
 Every sound is also shown on screen and named in text, everything works
 from the keyboard, and the app works on a phone.
 

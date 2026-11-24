@@ -70,7 +70,7 @@ export function mountLearn({ app, announce }) {
       card.append(ex);
 
       play.addEventListener('click', async () => {
-        await app.engine.resume();
+        if (!(await app.transport.whenReady(app.engine.resume()))) return;
         const voices = voiceProgression(chords.map((c) => c.chord));
         const label = `${s.example.label}: ${chords.map((c) => c.chord.symbol).join(', ')}`;
         // Mark this example active before playing: the first step fires at once.

@@ -1,35 +1,83 @@
-// Sound, made in the browser with the Web Audio API: no sample files.
-// Each voice is a small FM electric piano (Rhodes-style): a sine carrier
-// whose tone is brightened by a second sine at the same pitch. That
-// brightness fades after the attack, so a note starts bell-like and
-// mellows as it rings. A short high "tine" partial adds the ping, and the
-// volume decays like a struck key. The AudioContext is created on the
-// first resume(), which callers make from a user's press.
+// Sound, played with the Web Audio API. The main voice is a recorded grand
+// piano (piano.js), loaded from this site on the first resume(), which
+// callers make from a user's press. If the recordings can't load, a small
+// FM electric piano made in the browser takes over: a sine carrier whose
+// tone is brightened by a second sine at the same pitch, fading after the
+// attack, with a short high "tine" partial for the ping.
 import { midiToFreq } from '../theory/notes.js';
+import { loadPiano, pickSample } from './piano.js';
 
 const ATTACK = 0.005;
 const RELEASE = 0.15;
-// How a struck note settles: [sustain level as a share of the peak, decay time constant in seconds]
-const STRUCK = [0.3, 0.45];
-const HELD = [0.6, 0.9]; // drones: gentler, so they can sit under a scale
+// How a struck note settles: sustain level as a share of the peak, and the decay time constant in seconds
+const SUSTAIN = 0.3;
+const DECAY = 0.45;
 const BRIGHT_INDEX = 2.2; // modulation depth at the attack, in multiples of the pitch
 const MELLOW_INDEX = 0.12; // ... and once the note has settled
 const TINE_RATIO = 7.1; // the tine's slightly inharmonic overtone
+const DAMPER = 0.08; // piano: how quickly the damper silences a let-go key (time constant, s)
+const LOAD_TIMEOUT = 15; // seconds to wait for the recordings before falling back
 
-export function createEngine({ AudioContextCtor = globalThis.AudioContext, volume: startVolume = 0.7 } = {}) {
+function softClipCurve(n = 2049) {
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    const a = Math.abs(x);
+    curve[i] = Math.sign(x) * (a < 0.8 ? a : 0.8 + 0.2 * Math.tanh((a - 0.8) / 0.2));
+  }
+  return curve;
+}
+
+export function createEngine({
+  AudioContextCtor = globalThis.AudioContext,
+  volume: startVolume = 0.7,
+  loadSamples = loadPiano,
+  loadTimeout = LOAD_TIMEOUT,
+  onSound = () => {},
+} = {}) {
   let ctx = null;
   let master = null;
   let volume = startVolume;
+  let samples = null;
+  let sound = 'off'; // 'off' → 'loading' → 'piano' or 'electric'
+  let loading = null;
   const voices = new Set();
 
-  function voice(midi, at, gain, { held = false } = {}) {
+  function setSound(s) { sound = s; onSound(s); }
+
+  function load() {
+    setSound('loading');
+    let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), loadTimeout * 1000); });
+    return Promise.race([loadSamples(ctx), timeout])
+      .then((map) => { samples = map; setSound('piano'); }, () => setSound('electric'))
+      .finally(() => clearTimeout(timer));
+  }
+
+  // One struck piano key: the nearest recording, retuned, at the given loudness.
+  function pianoVoice(midi, at, gain) {
+    const { sample, rate } = pickSample(midi);
+    const src = ctx.createBufferSource();
+    src.buffer = samples.get(sample);
+    src.playbackRate.value = rate;
+    const out = ctx.createGain();
+    out.gain.value = 0;
+    out.gain.setValueAtTime(gain, at);
+    src.connect(out).connect(master);
+    src.start(at);
+    const v = { out, oscs: [src], start: at };
+    voices.add(v);
+    src.onended = () => { voices.delete(v); out.disconnect(); };
+    return v;
+  }
+
+  function voice(midi, at, gain) {
     const f = midiToFreq(midi);
-    const [sustain, decay] = held ? HELD : STRUCK;
     const out = ctx.createGain();
     out.gain.value = 0; // silent until its envelope starts, even if that is cancelled
     out.gain.setValueAtTime(0, at);
     out.gain.linearRampToValueAtTime(gain, at + ATTACK);
-    out.gain.setTargetAtTime(gain * sustain, at + ATTACK, decay);
+    out.gain.setTargetAtTime(gain * SUSTAIN, at + ATTACK, DECAY);
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.value = 4200;
@@ -44,8 +92,8 @@ export function createEngine({ AudioContextCtor = globalThis.AudioContext, volum
     modulator.frequency.value = f;
     const depth = ctx.createGain();
     depth.gain.value = 0;
-    depth.gain.setValueAtTime(f * (held ? BRIGHT_INDEX / 2 : BRIGHT_INDEX), at);
-    depth.gain.setTargetAtTime(f * MELLOW_INDEX, at, held ? 0.6 : 0.25);
+    depth.gain.setValueAtTime(f * BRIGHT_INDEX, at);
+    depth.gain.setTargetAtTime(f * MELLOW_INDEX, at, 0.25);
     modulator.connect(depth).connect(carrier.frequency);
 
     const tine = ctx.createOscillator();
@@ -53,7 +101,7 @@ export function createEngine({ AudioContextCtor = globalThis.AudioContext, volum
     const ping = ctx.createGain();
     ping.gain.value = 0;
     ping.gain.setValueAtTime(0, at);
-    ping.gain.linearRampToValueAtTime(held ? 0.05 : 0.18, at + 0.002);
+    ping.gain.linearRampToValueAtTime(0.18, at + 0.002);
     ping.gain.setTargetAtTime(0, at + 0.002, 0.04);
     tine.connect(ping).connect(filter);
 
@@ -65,7 +113,7 @@ export function createEngine({ AudioContextCtor = globalThis.AudioContext, volum
     return v;
   }
 
-  function release(v, at) {
+  function release(v, at, fade = RELEASE) {
     const g = v.out.gain;
     if (v.start > at) {
       // Scheduled but not started yet: cancel it outright, so it never sounds.
@@ -76,8 +124,8 @@ export function createEngine({ AudioContextCtor = globalThis.AudioContext, volum
     }
     if (g.cancelAndHoldAtTime) g.cancelAndHoldAtTime(at);
     else { g.cancelScheduledValues(at); g.setValueAtTime(g.value, at); }
-    g.linearRampToValueAtTime(0, at + RELEASE);
-    v.oscs.forEach((o) => o.stop(at + RELEASE + 0.02));
+    g.linearRampToValueAtTime(0, at + fade);
+    v.oscs.forEach((o) => o.stop(at + fade + 0.02));
   }
 
   return {
@@ -86,28 +134,42 @@ export function createEngine({ AudioContextCtor = globalThis.AudioContext, volum
         ctx = new AudioContextCtor();
         master = ctx.createGain();
         master.gain.value = volume;
-        master.connect(ctx.destination);
+        // A soft ceiling, so a big chord never clips: untouched below 0.8,
+        // gently rounded above. (A compressor would also lift quiet sounds.)
+        const ceiling = ctx.createWaveShaper();
+        ceiling.curve = softClipCurve();
+        master.connect(ceiling).connect(ctx.destination);
+        loading = load();
       }
-      if (ctx.state === 'suspended') await ctx.resume();
+      // Resume first, while still inside the press, then wait for the piano.
+      const resumed = ctx.state === 'suspended' ? ctx.resume() : null;
+      await resumed;
+      await loading;
     },
     now: () => (ctx ? ctx.currentTime : 0),
     context: () => ctx,
+    /** Which sound plays: 'off' (not started), 'loading', 'piano' or 'electric'. */
+    sound: () => sound,
     note(midi, at, dur, { gain = 0.18 } = {}) {
-      if (!ctx) return;
+      if (!ctx || sound === 'loading' || sound === 'off') return;
+      if (samples) {
+        const v = pianoVoice(midi, at, gain);
+        // Let go of the key: the damper comes down.
+        const off = at + Math.max(0.05, dur - DAMPER);
+        v.out.gain.setTargetAtTime(0, off, DAMPER / 2);
+        v.oscs[0].stop(off + DAMPER * 4);
+        return;
+      }
       const v = voice(midi, at, gain);
       // Let go of the key: fade from wherever the decay has reached.
       const off = at + Math.max(ATTACK * 2, dur - RELEASE);
       v.out.gain.setTargetAtTime(0, off, RELEASE / 4);
       v.oscs.forEach((o) => o.stop(off + RELEASE + 0.05));
     },
-    drone(midis) {
-      if (!ctx) return () => {};
-      const held = midis.map((m) => voice(m, ctx.currentTime, 0.12, { held: true }));
-      return () => held.forEach((v) => release(v, ctx.currentTime));
-    },
-    stopAll() {
+    /** Lets go of every sounding note, over `fade` seconds (a quick release by default). */
+    stopAll(fade) {
       if (!ctx) return;
-      voices.forEach((v) => release(v, ctx.currentTime));
+      voices.forEach((v) => release(v, ctx.currentTime, fade));
     },
     setVolume(v) {
       volume = Math.min(1, Math.max(0, v));
