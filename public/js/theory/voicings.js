@@ -22,7 +22,7 @@ export const VOICINGS = Object.freeze([
   v('drop2', 'Drop 2', 'Close position with the second note from the top moved down an octave: wider, warmer, still easy to hold.', ['wikipedia-voicing', 'pianogroove-drop2']),
   v('drop3', 'Drop 3', 'Close position with the third note from the top moved down an octave: wider still, with a gap in the middle.', ['wikipedia-voicing', 'bonedo-drop3']),
   v('drop24', 'Drop 2 & 4', 'Close position with the second and fourth notes from the top moved down an octave: wide and open, with room between every voice.', ['haupers-berklee', 'wikipedia-voicing']),
-  v('spread', 'Spread', 'Chord tones spread wide across the keyboard.', ['pianogroove-spread'], 'pending'),
+  v('spread', 'Spread', 'The root at the bottom, the 7th and the 3rd above it, then two tones of the parent scale a fourth or fifth apart: both hands, wide open. Textbooks differ on the size; a three-note form (root, 3rd, 7th) also exists.', ['hutchinson-jazz-voicings', 'pianogroove-spread']),
   v('quartal', 'Quartal', 'Four notes stacked in fourths from the parent scale: open, modern and a little ambiguous. One fourth may be augmented where the scale has one; some textbooks stack only perfect fourths.', ['hutchinson-quartal', 'acevedo-rush-quartal', 'brick-fourths']),
   v('cluster', 'Cluster', 'The 9th, the 3rd and the next two steps of the scale, packed in seconds within a fifth.', ['brick-seconds', 'feezell-sonorities', 'pianogroove-cluster', 'pianowithjonny-cluster']),
   v('rootlessA', 'Rootless A', 'The 3rd at the bottom, then 5th (13th on a dominant), 7th and 9th: the root is left to the bass.', ['keller-rootless', 'hutchinson-jazz-voicings', 'tjps-rootless']),
@@ -36,7 +36,8 @@ function roles(chord) {
   const degrees = QUALITIES[chord.quality].degrees;
   const notes = chordNotes(chord).map(pc);
   const find = (...ds) => { const i = degrees.findIndex((d) => ds.includes(d)); return i < 0 ? null : notes[i]; };
-  const third = find('3', 'b3');
+  const third = find('3', 'b3') ?? find('4'); // a sus 4th stands in for a missing 3rd (Hutchinson §31.7)
+  const susFour = find('3', 'b3') === null && third !== null;
   const seventh = find('7', 'b7', 'bb7');
   const sixth = find('6');
   const fifth = find('5', 'b5', '#5');
@@ -45,7 +46,7 @@ function roles(chord) {
   const rank = (d) => ({ 6: 13, b6: 13, 4: 11, '#4': 11, 2: 9, b2: 9, '#2': 9 })[d] ?? 0;
   const extensions = degrees
     .map((d, i) => ({ d, p: notes[i] }))
-    .filter(({ d }) => rank(d) && !(d === '6' && !seventh)) // a 6th with no 7th stands in for the 7th
+    .filter(({ d }) => rank(d) && !(d === '6' && !seventh) && !(d === '4' && susFour)) // stand-ins aren't extensions
     .sort((a, b) => rank(b.d) - rank(a.d))
     .map(({ p }) => p);
   return { root, third, seventh: seventh ?? sixth, fifth, extensions, degrees };
@@ -165,6 +166,40 @@ function cluster(chord, parent) {
   return shape.at(-1) - shape[0] <= 7 ? place(shape) : null;
 }
 
+// Spread (Hutchinson §31.7): the root at the bottom, then the 7th (or 6th) and
+// the 3rd (or sus 4th), then two tones above, often a fourth or fifth apart.
+// The top two are parent-scale tones that are a 9th, 11th, 5th or 13th of
+// the root (never a 7th the chord doesn't have), stacked up from the 3rd.
+// Best pair: more steps of a fourth or fifth, then more of the chord's own
+// extensions, then the lower top (the app's tie-breaks). Null without a 7th
+// or 6th, or if nothing stacks.
+const SPREAD_STEPS = [5, 7, 6, 3, 4];
+const UPPER = new Set([1, 2, 3, 5, 6, 7, 8, 9]);
+// Lexicographic: the first place where two scores differ decides.
+const beats = (x, y) => { const i = x.findIndex((v, k) => v !== y[k]); return i >= 0 && x[i] > y[i]; };
+function spread(chord, parent) {
+  const r = roles(chord);
+  if (r.seventh === null || r.third === null) return null;
+  const base = stack([r.root, r.seventh, r.third]);
+  const used = new Set(base.map(mod12));
+  const ok = (m) => parent.includes(mod12(m)) && UPPER.has(mod12(m - r.root)) && !used.has(mod12(m));
+  const fourthOrFifth = (step) => step >= 5 && step <= 7;
+  let best = null;
+  for (const s1 of SPREAD_STEPS) {
+    const a = base[2] + s1;
+    if (!ok(a)) continue;
+    for (const s2 of SPREAD_STEPS) {
+      const b = a + s2;
+      if (!ok(b) || mod12(b) === mod12(a)) continue;
+      const score = [fourthOrFifth(s1) + fourthOrFifth(s2), [a, b].filter((m) => r.extensions.includes(mod12(m))).length, -b];
+      if (!best || beats(score, best.score)) best = { score, notes: [...base, a, b] };
+    }
+  }
+  // The root sits in C3–B3, an octave above the octave-2 bass: G2–G5 is too narrow
+  // for a five-note spread on every root, and lower would sound the bass twice.
+  return best ? best.notes : null;
+}
+
 /** One voicing of the chord, as rising MIDI notes inside C3–B4; null if it doesn't apply. */
 export function voiceAs(id, chord) {
   const parent = lydianAnalysis(chord).parentNotes.map(pc);
@@ -176,6 +211,7 @@ export function voiceAs(id, chord) {
     case 'drop2': return bestOf(closeShapes.map((s) => drop(s, [2])));
     case 'drop3': return bestOf(closeShapes.map((s) => drop(s, [3])));
     case 'drop24': return bestOf(closeShapes.map((s) => drop(s, [2, 4])));
+    case 'spread': return spread(chord, parent);
     case 'quartal': return quartal(chord, parent);
     case 'cluster': return cluster(chord, parent);
     case 'rootlessA': return rootless(chord, new Set(parent), 'A');

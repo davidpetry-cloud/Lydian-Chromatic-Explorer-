@@ -21,10 +21,47 @@ test('every verified voicing cites two known sources', () => {
   }
 });
 
-test('the list, in order, with only spread waiting for sources', () => {
+test('the list, in order, with every voicing sourced', () => {
   assert.deepEqual(VOICINGS.map((v) => v.id), ['close', 'drop2', 'drop3', 'drop24', 'spread', 'quartal', 'cluster', 'rootlessA', 'rootlessB']);
-  assert.deepEqual(VOICINGS.filter((v) => v.status !== 'verified').map((v) => v.id), ['spread']);
-  assert.deepEqual(voicingsFor(c('Cmaj7')).map((v) => v.id), ['close', 'drop2', 'drop3', 'drop24', 'quartal', 'cluster', 'rootlessA', 'rootlessB']);
+  assert.deepEqual(VOICINGS.filter((v) => v.status !== 'verified').map((v) => v.id), []);
+  assert.deepEqual(voicingsFor(c('Cmaj7')).map((v) => v.id), ['close', 'drop2', 'drop3', 'drop24', 'spread', 'quartal', 'cluster', 'rootlessA', 'rootlessB']);
+});
+
+const names = (ms) => ms.map((m) => ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'][m % 12]);
+
+test("spread: Hutchinson's five notes, root–7th–3rd then two parent-scale tones in fourths", () => {
+  assert.deepEqual(names(voiceAs('spread', c('Cmaj7'))), ['C', 'B', 'E', 'A', 'D']);
+  assert.deepEqual(names(voiceAs('spread', c('Dm7'))), ['D', 'C', 'F', 'B', 'E']);
+  assert.deepEqual(names(voiceAs('spread', c('G7'))), ['G', 'F', 'B', 'E', 'A']);
+  assert.deepEqual(names(voiceAs('spread', c('Dm7/G'))), ['D', 'C', 'F', 'B', 'E'], 'the chord root is lowest; the bass sounds separately');
+});
+
+test('spread on a 6th chord: the 6th stands in for the 7th, and no 7th is added', () => {
+  for (const t of ['C6', 'Cm6']) {
+    const m = voiceAs('spread', c(t));
+    assert.ok(m, t);
+    assert.equal(m[1] % 12, 9, `${t}: ${names(m)}`);
+    assert.ok(m.every((x) => ![10, 11].includes(x % 12)), `${t}: ${names(m)}`);
+  }
+});
+
+test('spread on every verified chord type and root: null or five rising notes, the root lowest in C3–B3', () => {
+  for (const q of Object.values(QUALITIES).filter((x) => x.status === 'verified')) {
+    for (const root of ROOTS) {
+      const chord = c(root + q.aliases[0]);
+      const m = voiceAs('spread', chord);
+      if (['maj7', 'm7', '7', 'm7b5', '6', 'm6'].includes(q.id)) assert.ok(m, `${chord.symbol} has a spread`);
+      if (!m) continue;
+      assert.ok(m.length === 5 && ascending(m) && pcs(m).size === 5, `${chord.symbol}: ${m}`);
+      assert.equal(m[0] % 12, pc(chord.root), `${chord.symbol}: root lowest`);
+      assert.ok(m[0] >= 48 && m[0] <= 59 && m.at(-1) <= 96, `${chord.symbol}: root in C3–B3, above the octave-2 bass, top inside the piano recordings: ${m}`);
+    }
+  }
+  for (const t of ['C', 'Cm', 'Caug', 'Cdim']) assert.equal(voiceAs('spread', c(t)), null, t);
+});
+
+test('the spread row says where the sources differ', () => {
+  assert.ok(VOICINGS.find((v) => v.id === 'spread').description.includes('Textbooks differ on the size; a three-note form (root, 3rd, 7th) also exists.'));
 });
 
 // Textbooks and university pages first (CLAUDE.md, 2026-11-24). Drop 2 and
@@ -71,12 +108,12 @@ test('drop 2 and drop 3 lower the 2nd or 3rd voice from the top of a close voici
   }
 });
 
-test('every verified voicing, on 12 roots and 6 chord types, is null or four notes rising inside C3–B4 (G2–G5 when too wide)', () => {
+test('every verified four-note voicing, on 12 roots and 6 chord types, is null or four notes rising inside C3–B4 (G2–G5 when too wide)', () => {
   for (const root of ROOTS) {
     for (const q of ['maj7', 'm7', '7', 'm7b5', '6', 'maj']) {
       const chord = c(root + QUALITIES[q].aliases[0]);
       for (const v of voicingsFor(chord)) {
-        if (v.midis === null) continue;
+        if (v.midis === null || v.id === 'spread') continue; // five notes, its own test above
         assert.ok(ascending(v.midis) && v.midis[0] >= 43 && v.midis.at(-1) <= 79, `${chord.symbol} ${v.id}: ${v.midis}`);
         if (v.midis.at(-1) - v.midis[0] <= 23 - 12) assert.ok(inRange(v.midis), `${chord.symbol} ${v.id} fits the keyboard: ${v.midis}`);
       }
