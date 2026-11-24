@@ -119,25 +119,19 @@ or a plain label as the app's convention:
 - Exact wording of the summary.
 - Test details.
 
-## Open questions for David (from the builder check, 2026-11-24)
+## Decided (David, 2026-11-24, after the builder check)
 
-Paused here at David's request. These are to settle before planning:
-
-1. **What "toward home", "away" and "stays" measure.**
-   - Each voice is ranked from its own chord's centre, so a held common
-     tone can change rank: C→C in Dm7/G → E♭m7/A♭ goes from rank 11 (from
-     G) to rank 5 (from A♭).
-   - Does "stays" mean the same pitch or the same rank, and does a held
-     note whose rank drops count as "toward home"?
-2. **Which voicing is "selected".**
-   - During Play all: the one sounding this bar?
-   - Does playing a voice-leading row count as "last played"?
-   - If the last-played voicing doesn't fit a new main chord, does the
-     section fall back to Close for now only, or reset?
-3. **If two sources for smooth voice leading or planing can't be found:**
-   hold the feature back as pending, or ship it labelled as the app's
-   convention? The tie-break rules would be labelled as the app's
-   convention either way.
-
-Builder's note, not a question: a drone that changes with each chord needs
-a transport change, to be planned as its own task.
+1. **Held notes:** "stays" means the same pitch. Its rank change is still
+   shown, e.g. "C held: rank 11 → 5, nearer home under the new centre". Any
+   other voice is "toward home" when its rank drops and "away" when it
+   rises. A voice whose rank stays equal is described as such.
+2. **Which voicing:** a **Lead from** picker in the section lists the
+   playable voicings of the current chord. It defaults to Close and is
+   independent of what is playing, so there is no hidden state.
+3. **Sources:** a way in that can't reach two agreeing sources is held back
+   as "Waiting for sources", like drop 2 & 4. The tie-break details are
+   labelled the app's convention either way.
+4. **The drone per chord:** the transport learns to change the drone at each
+   chord (planned as its own task). A held organ or pad drone is released
+   and held anew on the next chord's drone notes; a re-struck drone strikes
+   the step's notes.
