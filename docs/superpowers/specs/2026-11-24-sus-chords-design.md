@@ -117,6 +117,18 @@ Hearing it from F: F Lydian.
 - **B. One default tonic, with the others named in a line.** Simpler, but it
   still puts one home first, which is what David's point argues against.
 
+## Decided (David, 2026-11-24)
+
+- **"Hear from" is a lasting drone setting (A).** It sets Drone on: Other
+  note to that tonic, saved like any drone choice. It stays when the chord
+  changes, and the Drone on picker switches it back.
+- **Sources found:**
+  - sus4 and sus2: Hutchinson §6.5 and the Open Music Theory lead-sheet
+    handout
+  - 7sus4: Hutchinson §31.2 and the Open Music Theory handout
+  - 7sus2: named by neither, so it is built from the sus2 rule on a
+    dominant 7th, labelled so
+
 ## Settled after the builder check (my calls, for David to check)
 
 - **Drone on: Lydian tonic** means the most ingoing tonic for a sus chord. In
