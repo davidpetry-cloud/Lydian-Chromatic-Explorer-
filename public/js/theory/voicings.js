@@ -36,8 +36,11 @@ function roles(chord) {
   const degrees = QUALITIES[chord.quality].degrees;
   const notes = chordNotes(chord).map(pc);
   const find = (...ds) => { const i = degrees.findIndex((d) => ds.includes(d)); return i < 0 ? null : notes[i]; };
-  const third = find('3', 'b3') ?? find('4'); // a sus 4th stands in for a missing 3rd (Hutchinson §31.7)
-  const susFour = find('3', 'b3') === null && third !== null;
+  // A sus 4th stands in for a missing 3rd (Hutchinson §31.7); a sus 2nd does
+  // the same where there is no 4th (the app's convention, by analogy).
+  const realThird = find('3', 'b3');
+  const standIn = realThird !== null ? null : degrees.includes('4') ? '4' : degrees.includes('2') ? '2' : null;
+  const third = realThird ?? (standIn ? find(standIn) : null);
   const seventh = find('7', 'b7', 'bb7');
   const sixth = find('6');
   const fifth = find('5', 'b5', '#5');
@@ -46,10 +49,10 @@ function roles(chord) {
   const rank = (d) => ({ 6: 13, b6: 13, 4: 11, '#4': 11, 2: 9, b2: 9, '#2': 9 })[d] ?? 0;
   const extensions = degrees
     .map((d, i) => ({ d, p: notes[i] }))
-    .filter(({ d }) => rank(d) && !(d === '6' && !seventh) && !(d === '4' && susFour)) // stand-ins aren't extensions
+    .filter(({ d }) => rank(d) && !(d === '6' && !seventh) && d !== standIn) // stand-ins aren't extensions
     .sort((a, b) => rank(b.d) - rank(a.d))
     .map(({ p }) => p);
-  return { root, third, seventh: seventh ?? sixth, fifth, extensions, degrees };
+  return { root, third, seventh: seventh ?? sixth, fifth, extensions, degrees, standIn };
 }
 
 /**
@@ -156,8 +159,9 @@ function quartal(chord, parent) {
 }
 
 function cluster(chord, parent) {
-  const third = roles(chord).third;
-  if (third === null) return null;
+  const { third, standIn } = roles(chord);
+  // A sus 2nd standing in for the 3rd is the cluster's own 9th: no cluster.
+  if (third === null || standIn === '2') return null;
   const at = parent.indexOf(third);
   if (at < 0) return null;
   const n = parent.length;

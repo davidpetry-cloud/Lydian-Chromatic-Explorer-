@@ -113,3 +113,26 @@ test('the ladder line: five tonics make a major pentatonic', () => {
   assert.equal(ladderLine(lydianTonics(c('Csus2'))), 'These tonics run down in fifths (Russell’s ladder): together they are the A♭ major pentatonic.');
   assert.equal(ladderLine(lydianTonics(c('C7sus4'))), 'These tonics run down in fifths (Russell’s ladder).');
 });
+
+// Task 4: voicings and MIDI.
+import { recognizeChord } from '../public/js/input/recognize.js';
+
+test('voicings of sus chords: the sus tone stands in for the 3rd', () => {
+  const n = (ms) => ms.map((m) => ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'][m % 12]);
+  // Root lowest, then the 7th and the sus note either way up (Hutchinson), and no 3rd added.
+  for (const [t, sus] of [['C7sus4', 'F'], ['C7sus2', 'D']]) {
+    const m = n(voiceAs('spread', c(t)));
+    assert.equal(m[0], 'C', `${t}: ${m}`);
+    assert.deepEqual(new Set(m.slice(1, 3)), new Set(['B♭', sus]), `${t}: ${m}`);
+    assert.ok(!m.includes('E'), `${t}: no 3rd added: ${m}`);
+  }
+  assert.equal(voiceAs('spread', c('Csus2')), null, 'a triad has no spread');
+  assert.equal(voiceAs('cluster', c('Csus2')), null, 'the stand-in is the 9th itself');
+  assert.equal(voiceAs('cluster', c('C7sus2')), null);
+  assert.equal(voiceAs('rootlessA', c('C7sus4')), null);
+});
+
+test('MIDI: a 7sus2 without its 5th is named; exact readings still come first', () => {
+  assert.equal(recognizeChord([60, 62, 70]).chord.symbol, 'C7sus2');
+  assert.equal(recognizeChord([55, 60, 65]).chord.symbol, 'Csus4/G', 'exact match on another root wins over a missing 5th');
+});

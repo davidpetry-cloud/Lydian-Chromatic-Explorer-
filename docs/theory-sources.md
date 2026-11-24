@@ -60,7 +60,7 @@ A second research round (search only) did **not** reach two sources for:
 - **7♯5:** one forum example uses Auxiliary Augmented.
 - **7♭9 and 7♯9:** the sources contradict each other.
 - **dim7:** Lydian Diminished vs Auxiliary Diminished.
-- **m7♭5, altered, minor-major 7, m6, dim and 7sus4:** no source tying them to Russell's system.
+- **m7♭5, altered, minor-major 7, m6, dim and 7sus4:** no source tying them to Russell's system. (The sus chords now ship with no single parent scale; see that section.)
 
 ## Learn tab (2026-11-23)
 
@@ -218,13 +218,46 @@ rest on search summaries of these pages; Wikipedia's "Voice leading" and
   (David's choice), else its four main tones by the drop-voicing convention
   (`fourTones`).
 
+## Sus chords: no single parent scale (2026-11-24)
+
+**How this was checked:** Hutchinson §6.5 and §31.2 (University of Puget
+Sound open textbook) and the Open Music Theory "Lead-Sheet Chord Symbols"
+handout were read in full on 2026-11-24. Russell's Chart A names no sus
+chord (see the Chart A section).
+
+| Chord | Spelling | Sources | What they say | Verdict |
+|---|---|---|---|---|
+| sus4 (also `sus`) | 1–4–5 | hutchinson-sus, omt-lead-sheet | Hutchinson: "a perfect 4th replaces the 3rd" (also labelled simply "sus"); OMT lists Csus(4) with figures 5/4 | Verified |
+| sus2 | 1–2–5 | hutchinson-sus, omt-lead-sheet | Hutchinson: "a major 2nd replaces the 3rd"; OMT lists Csus2 with figures 5/2 | Verified |
+| 7sus4 (also `7sus`) | 1–4–5–♭7 | hutchinson-chord-symbols, omt-lead-sheet | Hutchinson: "sus" means 4, so "C7sus has C–F–G–B♭"; OMT lists C7sus4 | Verified |
+| 7sus2 | 1–2–5–♭7 | hutchinson-sus, omt-lead-sheet | Neither names 7sus2: it is their sus2 rule (a 2nd in place of the 3rd) applied to a dominant 7th | Verified as a composition of two sourced rules, and the chord's note in the app says so |
+
+**The app's conventions** (labelled as such):
+- **No single parent (David's reading, 2026-11-24):** a sus chord lies in
+  several Lydian scales at once, so the app lists every plain Lydian tonic
+  that holds it, most ingoing first, ordered by how far up the ladder of
+  fifths the chord tones sit. This builds on Russell's rule that the Lydian
+  tonic is the lowest note of a ladder of fifths (see the Chart A
+  section). The drone note picks the tonic heard ("Hear from" sets it), and
+  "Drone on: Lydian tonic" means the most ingoing one.
+- **The ladder line:** the tonics always run down in fifths; five of them
+  make a major pentatonic, named on the last tonic (Csus4: F B♭ E♭ A♭ D♭ =
+  D♭ major pentatonic). This is arithmetic on the list, not a source claim.
+- **Also read as:** other names for exactly the same notes, from the four sus
+  types and their 7sus forms without the 5th (Csus4 = Fsus2 = G7sus4 with no
+  5th).
+- **Voicings:** a sus 4th stands in for the 3rd (Hutchinson §31.7); a sus 2nd
+  does the same where there is no 4th, by analogy. A sus2 chord has no
+  cluster, since its stand-in is the cluster's own 9th.
+- **MIDI:** exact matches on any root still come first, so G C F over a G
+  bass reads Csus4/G. 7sus4 and 7sus2 may leave out their 5th (C D B♭ is
+  C7sus2).
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.
-
-| Quality | Why it's pending |
-|---|---|
-| 7sus4 | Chart A names no sus chord. Its open, pentatonic sound (David's point) fits several Lydian tonics at once: D7sus4 (D G A C) lies in C Lydian (II), F Lydian (VI) and B♭ Lydian (III). |
+None is pending now (2026-11-24): 7sus4, the last, ships with the sus chords
+above. Reference hides the list while it is empty.
 
 ## Not yet used
 
