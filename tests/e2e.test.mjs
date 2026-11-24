@@ -533,6 +533,89 @@ test('the Voicings card fits a 320 px screen', async () => {
   await page.close();
 });
 
+async function nextChord(page, text) {
+  await page.fill('#next-chord', text);
+  await page.press('#next-chord', 'Enter');
+}
+const lead = (page, name) => page.locator('#leads li', { has: page.locator('.lead-name', { hasText: new RegExp(`^${name}$`) }) });
+
+test('Next chord: empty shows a hint; same shape planes D-7 to E♭-7 in parallel', async () => {
+  const { page, problems } = await open();
+  assert.equal(await page.locator('#leads li').count(), 0);
+  assert.match(await page.textContent('#lead-hint'), /next chord/i);
+  await enterChord(page, 'Dm7');
+  await page.selectOption('#lead-from', 'drop2');
+  await nextChord(page, 'Ebm7');
+  const same = lead(page, 'Same shape');
+  assert.match(await same.textContent(), /moves in parallel/);
+  assert.equal((await same.locator('.lead-steps').textContent()).match(/↑1/g).length, 4);
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('Next chord: each chord heard from its own drone note, described not prescribed', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Dm7/G');
+  await nextChord(page, 'Ebm7/Ab');
+  assert.match(await page.textContent('#lead-centres'), /G.*A♭/);
+  const smooth = await lead(page, 'Smooth').textContent();
+  assert.doesNotMatch(smooth, /must|should|resolve/i);
+  assert.match(smooth, /rank \d+ → \d+/);
+  await page.close();
+});
+
+test('Next chord: a chord the app does not know shows the reason and no rows', async () => {
+  const { page } = await open();
+  for (const text of ['C7sus4', 'zz']) {
+    await nextChord(page, text);
+    assert.match(await page.textContent('#next-chord-error'), /\w/);
+    assert.equal(await page.locator('#leads li').count(), 0);
+  }
+  await page.close();
+});
+
+test('Next chord: same shape that does not fit says so', async () => {
+  const { page } = await open();
+  await page.selectOption('#lead-from', 'rootlessA');
+  await nextChord(page, 'Caug');
+  const same = lead(page, 'Same shape');
+  assert.match(await same.textContent(), /Not for this chord/);
+  assert.equal(await same.locator('button').count(), 0);
+  await page.close();
+});
+
+test('Next chord: Play toggles the lead, and a new next chord restarts it', async () => {
+  const { page } = await open();
+  await nextChord(page, 'Dm7');
+  const btn = lead(page, 'Smooth').locator('button');
+  await btn.click();
+  await playing(page);
+  let p = await page.evaluate(async () => { const c = (await import('/js/main.js')).app.transport.current(); return { kind: c.kind, way: c.way, label: c.label }; });
+  assert.deepEqual([p.kind, p.way], ['lead', 'smooth']);
+  assert.equal(await btn.getAttribute('aria-pressed'), 'true');
+  await nextChord(page, 'G7');
+  await page.waitForFunction(() => /→ G7/.test(document.getElementById('now-playing').textContent));
+  await lead(page, 'Smooth').locator('button').click();
+  await page.waitForFunction(async () => !(await import('/js/main.js')).app.transport.isPlaying());
+  await page.close();
+});
+
+test('Next chord: a held organ drone follows each chord and leaves nothing ringing after Stop', async () => {
+  const { page } = await open();
+  await page.selectOption('#drone-sound', 'organ');
+  assert.equal(await page.isChecked('#hold-tonic'), true);
+  await enterChord(page, 'Dm7/G');
+  await nextChord(page, 'Ebm7/Ab');
+  await lead(page, 'Smooth').locator('button').click();
+  await playing(page);
+  const drones = await page.evaluate(async () => (await import('/js/main.js')).app.transport.current().stepDrones);
+  assert.deepEqual(drones.map((d) => d[0] % 12), [7, 8], 'G under the first chord, A♭ under the second');
+  await page.click('#stop');
+  await page.waitForTimeout(600);
+  assert.equal(await page.evaluate(async () => (await import('/js/main.js')).app.engine.voiceCount()), 0);
+  await page.close();
+});
+
 test('the now-playing line follows a tempo change', async () => {
   const { page } = await open();
   await page.click('#play-scale');

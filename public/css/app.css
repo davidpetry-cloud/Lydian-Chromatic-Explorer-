@@ -270,3 +270,9 @@ input[type="range"] { min-height: 44px; accent-color: var(--amber); }
 .voicing-na { color: var(--muted2); font-size: var(--fs-sm); }
 .voicing-notes { color: var(--text); }
 .voicing-reading { font-size: var(--fs-sm); color: var(--teal); }
+
+/* Into a next chord (on the Voicings card) */
+.lead { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.lead h3 { margin: 0 0 8px; }
+.lead-name { color: var(--white); font-weight: 600; }
+.lead-steps { font-family: var(--mono); font-size: var(--fs-sm); color: var(--text); overflow-wrap: anywhere; }

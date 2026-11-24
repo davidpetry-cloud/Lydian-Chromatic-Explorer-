@@ -137,7 +137,7 @@ export function mountPractice({ app, announce, initialText }) {
     if (!current || current.owner !== 'practice') return;
     if (current.kind === 'scale') playScale();
     else if (current.kind === 'drone') playDrone();
-    else if (current.kind === 'voicing' || current.kind === 'voicings') voicings.chordChanged();
+    else if (current.kind === 'voicing' || current.kind === 'voicings' || current.kind === 'lead') voicings.chordChanged();
     else playChordLoop();
   }
 
@@ -280,7 +280,7 @@ export function mountPractice({ app, announce, initialText }) {
   $('hold-tonic').addEventListener('change', () => {
     const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'scale') playScale();
-    else if (kind === 'voicing' || kind === 'voicings') voicings.chordChanged();
+    else if (kind === 'voicing' || kind === 'voicings' || kind === 'lead') voicings.chordChanged();
   });
   for (const r of ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']) $('drone-other').add(new Option(noteName(parseNote(r)), r));
   const savedDrone = dronePref();
@@ -294,7 +294,7 @@ export function mountPractice({ app, announce, initialText }) {
     const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'drone') playDrone();
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
-    else if ((kind === 'voicing' || kind === 'voicings') && $('hold-tonic').checked) voicings.chordChanged();
+    else if ((kind === 'voicing' || kind === 'voicings' || kind === 'lead') && $('hold-tonic').checked) voicings.chordChanged();
   }
   $('drone-on').addEventListener('change', droneChanged);
   for (const id of DRONE_SOUNDS) $('drone-sound').add(new Option(INSTRUMENTS[id].name, id));
@@ -306,7 +306,7 @@ export function mountPractice({ app, announce, initialText }) {
     const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'drone') playDrone();
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
-    else if ((kind === 'voicing' || kind === 'voicings') && $('hold-tonic').checked) voicings.chordChanged();
+    else if ((kind === 'voicing' || kind === 'voicings' || kind === 'lead') && $('hold-tonic').checked) voicings.chordChanged();
   });
   $('drone-other').addEventListener('change', droneChanged);
   $('start-on').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
@@ -341,6 +341,11 @@ export function mountPractice({ app, announce, initialText }) {
     getBpm: () => state.bpm,
     start,
     droneFor: () => ($('hold-tonic').checked ? { drone: droneMidis(), droneSound: app.droneSound } : {}),
+    // Each chord's own centre and drone notes, for leading into a next chord.
+    getCentreFor: (chord) => resolveDrone(droneChoice(), chord, lydianAnalysis(chord).tonic),
+    stepDroneFor: (chord) => ($('hold-tonic').checked
+      ? droneMidisFor(app.droneSound, pc(resolveDrone(droneChoice(), chord, lydianAnalysis(chord).tonic)))
+      : null),
   });
 
   const chordInput = mountChordInput({
