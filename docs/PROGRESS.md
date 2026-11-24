@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (#13 live; #14, nine chord types from Russell's Chart A: checks green, theory review in progress).
+Last updated: 2026-11-24 (after #13 and #14 went live: piano, Stop after, 28 chord types).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -82,14 +82,19 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **#14** (chord types): GitHub tests and the Cloudflare build pass;
-   David asked to merge once the checks pass. Fresh theory review done;
-   its findings are fixed test-first (7♯9 home, double-flat tonics, the
-   keyboard-scrollable chord table, MIDI 7♭9/7♯9 without the 5th).
-2. **Book check** (whenever David has the 4th edition or David Baker's
-   *Techniques of Improvisation, Vol. 1*): 7♯9's home, the diminished
-   triad, and 7sus4. See `docs/theory-sources.md` (2026-11-24).
-3. Then the **Form & Gravity lab** (gravity series, project 2).
+1. **Form & Gravity lab** (gravity series, project 2): start with a short
+   brainstorm on how David pictures building a section.
+2. **Book check** whenever David has Russell's 4th edition or David
+   Baker's *Techniques of Improvisation, Vol. 1*. See "Open ideas" 1.
+
+Working notes:
+- The environment "David Petry sites" now allows the research hosts used
+  for theory checks: scholar.colorado.edu, files.mcclimon.org,
+  www.diva-portal.org, jazzimproviser.com, www.italianpiano.com,
+  www.andyfrench.co.uk and en.wikipedia.org.
+- Since #13 the first press loads the piano, so browser tests must wait for
+  playback (`playing(page)` in `tests/e2e.test.mjs`) before reading what
+  plays.
 
 ## Gravity series (agreed order)
 
@@ -102,8 +107,13 @@ stands, so any future session (or person) can pick up from here.
 
 ## Open ideas (not started)
 
-1. **Book check:** with Russell's 4th edition, confirm or correct:
-   - the "Sources differ" chords (10 waiting), then add them;
+1. **Book check:** with Russell's 4th edition (or Baker), confirm or correct:
+   - 7♯9's home (Auxiliary Diminished II in the app; Chart A also lists
+     Lydian Diminished VII);
+   - dim7's tonic (Lydian Diminished +IV; the second source names no mode);
+   - the diminished triad (shipped as inferred, David's choice);
+   - 7sus4, the one chord still pending (its pentatonic sound fits
+     several Lydian tonics);
    - the dominant mapping (G7 → F Lydian);
    - positions 8–11 of the order of tonal gravity (inferred);
    - how Russell analyses a bass outside the parent scale (D/C). The app
