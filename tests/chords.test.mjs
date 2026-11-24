@@ -83,9 +83,9 @@ test('only verified rows are supported', () => {
 });
 
 test('pending qualities are refused by default', () => {
-  const m6 = QUALITIES.m6;
-  assert.equal(m6.status, 'pending');
-  assert.ok(parseChord('Cm6').error);
+  const sus = QUALITIES['7sus4'];
+  assert.equal(sus.status, 'pending');
+  assert.ok(parseChord('C7sus4').error);
 });
 
 test('verified rows cite known sources', () => {
@@ -131,8 +131,51 @@ test('new verified chord types: 7♯11 and extended chords', () => {
   }
 });
 
-test('19 chord types are verified now', () => {
-  assert.equal(SUPPORTED_QUALITIES.length, 19);
+test('Chart A chord types (Russell, 4th ed., inside cover): tonic and parent, most ingoing home', () => {
+  const cases = {
+    'Cm6': ['E♭', 'lydian'], // Lydian VI, "min 6th"
+    'Cm7b5': ['G♭', 'lydian'], // Lydian +IV, "min 7th ♭5"
+    'Cdim': ['G♭', 'lydian'], // inferred: the triad inside m7♭5
+    'C7#5': ['E', 'lydian-augmented'], // Lydian Augmented +V, "7th +5"
+    'C7alt': ['E', 'lydian-augmented'], // Lydian Augmented +V: ♯5 with ♭9, ♯9, ♯11
+    'Cm(maj7)': ['E♭', 'lydian-augmented'], // Lydian Augmented VI, "min +7"
+    'Cdim7': ['G♭', 'lydian-diminished'], // Lydian Diminished +IV, "Dim tetrachord"
+    'C7b9': ['B♭', 'lydian-diminished'], // Lydian Diminished II, "7th ♭9"
+    'C7#9': ['D♭', 'lydian-diminished'], // Lydian Diminished VII, "7th +9"
+  };
+  for (const [text, [tonic, parent]] of Object.entries(cases)) {
+    const c = parseChord(text);
+    assert.ok(!c.error, `${text}: ${c.error}`);
+    const a = lydianAnalysis(c);
+    assert.equal(noteName(a.tonic), tonic, text);
+    assert.equal(a.parentScale, parent, text);
+  }
+});
+
+test('a tritone-up tonic that would need triple flats is spelled with a sharp instead', () => {
+  assert.equal(noteName(lydianAnalysis(parseChord('Dbm7b5')).tonic), 'G');
+  assert.equal(noteName(lydianAnalysis(parseChord('Cm7b5')).tonic), 'G♭');
+  assert.equal(noteName(lydianAnalysis(parseChord('Dbdim7')).tonic), 'G');
+});
+
+test('chords with another home on Chart A, or inferred, say so', () => {
+  for (const id of ['7b9', '7s9', 'mmaj7', 'dim']) assert.match(QUALITIES[id].note ?? '', /\w/, id);
+  assert.match(QUALITIES.dim.note, /inferred/i);
+  assert.match(QUALITIES.mmaj7.note, /Lydian Diminished/);
+});
+
+test('every verified chord parses on every picker root (no impossible spellings)', () => {
+  for (const id of SUPPORTED_QUALITIES) {
+    for (const root of ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']) {
+      const c = parseChord(root + QUALITIES[id].aliases[0]);
+      assert.ok(!c.error, `${root}${QUALITIES[id].aliases[0]}: ${c.error}`);
+    }
+  }
+});
+
+test('28 chord types are verified now; only 7sus4 waits', () => {
+  assert.equal(SUPPORTED_QUALITIES.length, 28);
+  assert.deepEqual(Object.values(QUALITIES).filter((x) => x.status !== 'verified').map((x) => x.id), ['7sus4']);
 });
 
 test('slash chords carry a bass note and keep the analysis', () => {

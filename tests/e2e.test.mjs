@@ -172,6 +172,10 @@ test('reference search filters the glossary as you type', async () => {
 test('the chord table lists verified chords and the book citation is there', async () => {
   const { page } = await open('/#reference');
   assert.ok(await page.locator('#chord-table tbody tr').count() >= 12);
+  const sharp9 = page.locator('#chord-table tbody tr', { hasText: '7♯9' });
+  assert.match(await sharp9.textContent(), /Sources differ/);
+  assert.match(await page.textContent('#chord-table'), /Cm7b5\s*G♭ \(a tritone above the root\)/);
+  assert.deepEqual(await page.$$eval('#pending-list li', (lis) => lis.map((li) => li.textContent)), ['7sus4 (7sus4)']);
   assert.match(await page.textContent('#chord-table'), /Dm7|Cm7/);
   assert.match(await page.textContent('#sources-list'), /Concept Publishing, 2001/);
   assert.ok(await page.locator('#pending-list li').count() >= 1);

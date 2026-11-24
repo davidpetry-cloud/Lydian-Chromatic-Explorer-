@@ -26,6 +26,7 @@ export const SOURCES = Object.freeze([
   s('puget-sound-pedal', 'Music Theory for the 21st-Century Classroom (University of Puget Sound), “Pedal Point.”', 'https://musictheory.pugetsound.edu/mt21c/PedalPoint.html', 'secondary'),
   s('omt-inversion', 'Open Music Theory, “Inversion.”', 'https://viva.pressbooks.pub/openmusictheory/chapter/inversion/', 'secondary'),
   s('wikipedia-first-inversion', 'Wikipedia, “First inversion.”', 'https://en.wikipedia.org/wiki/First_inversion', 'secondary'),
+  s('french-chart-a', 'Andy French, “Lydian Chromatic Concept of Tonal Organization, Part 6” (2018), reproducing Chart A from Russell’s 4th ed. (inside cover; pp. 21–23).', 'https://www.andyfrench.co.uk/2018/06/lydian-chromatic-concept-of-tonal-organization-part-6/', 'secondary'),
   s('mcclimon', 'Michael McClimon, “Reconceptualizing the Lydian Chromatic Concept” (conference slides).', 'https://files.mcclimon.org/projects/lcc-smt-slides.pdf', 'secondary'),
   s('kvr-forum', 'KVR Audio Music Theory Forum, “George Russell’s Lydian Chromatic Concept of Tonal…,” page 2.', 'https://www.kvraudio.com/forum/viewtopic.php?t=227223&start=15', 'secondary'),
 ]);

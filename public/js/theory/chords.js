@@ -3,12 +3,19 @@
 // and which principal scale on that tonic is its parent. A quality ships
 // (status 'verified') only when two independent sources agree; see
 // docs/theory-sources.md. Pending rows are refused by the parser.
+// Where Russell's Chart A lists a chord in more than one scale, the app uses
+// the most ingoing one (nearest plain Lydian), as it does for dominant 7,
+// and says so in `note`; the other homes still appear in the scale ladder.
 import { parseNote, transpose, pc, noteName } from './notes.js';
 import { scaleNotes } from './scales.js';
 import { rankScales } from './gravity.js';
 
-const q = (id, label, aliases, degrees, tonicDegree, parentScale, status = 'pending', sources = []) =>
-  Object.freeze({ id, label, aliases: Object.freeze(aliases), degrees: Object.freeze(degrees), tonicDegree, parentScale, status, sources: Object.freeze(sources) });
+const q = (id, label, aliases, degrees, tonicDegree, parentScale, status = 'pending', sources = [], note = null) =>
+  Object.freeze({ id, label, aliases: Object.freeze(aliases), degrees: Object.freeze(degrees), tonicDegree, parentScale, status, sources: Object.freeze(sources), note });
+// A tritone up is spelled ♭5 (C → G♭), unless the scales on that tonic would
+// need triple flats (D♭ → A𝄫); then it is spelled ♯4 (D♭ → G).
+const RESPELL = Object.freeze({ b5: '#4' });
+const CHART_A = ['french-chart-a', 'mcclimon'];
 
 const ROWS = [
   q('maj', 'major', ['', 'maj', 'M'], ['1', '3', '5'], '1', 'lydian', 'verified', ['italianpiano', 'wikipedia-chord-scale']),
@@ -23,9 +30,17 @@ const ROWS = [
   q('7s11', '7♯11', ['7#11', '7♯11'], ['1', '3', '5', 'b7', '#4'], '1', 'lydian-flat-seventh', 'verified', ['wikipedia-lydian-chord', 'french-lydian-dominant']),
   q('aug', 'augmented', ['aug', '+'], ['1', '3', '#5'], '1', 'lydian-augmented', 'verified', ['italianpiano', 'wikipedia-lydian-chord']),
   q('maj7s5', 'maj7♯5', ['maj7#5', 'Δ#5', '+maj7'], ['1', '3', '#5', '7'], '1', 'lydian-augmented', 'verified', ['italianpiano', 'wikipedia-lydian-chord']),
-  q('7s5', '7♯5', ['7#5', '+7', '7+'], ['1', '3', '#5', 'b7'], '1', 'auxiliary-augmented'),
-  q('dim7', 'diminished 7', ['dim7', '°7', 'o7'], ['1', 'b3', 'b5', 'bb7'], '1', 'auxiliary-diminished'),
-  q('7b9', '7♭9', ['7b9', '7♭9'], ['1', '3', '5', 'b7', 'b2'], '1', 'auxiliary-diminished-blues'),
+  // From Russell's Chart A (4th ed., inside cover) and his table of primary
+  // modal tonics (p. 29); see docs/theory-sources.md (2026-11-24).
+  q('7s5', '7♯5', ['7#5', '+7', '7+'], ['1', '3', '#5', 'b7'], '3', 'lydian-augmented', 'verified', CHART_A),
+  q('7alt', 'altered', ['7alt', 'alt'], ['1', '3', 'b7', 'b2', '#2', '#4', 'b6'], '3', 'lydian-augmented', 'verified', CHART_A,
+    'Chart A lists the altered tensions (♯5 with ♭9, ♯9 or ♯11) on this mode; the name “altered” is the common jazz name.'),
+  q('dim7', 'diminished 7', ['dim7', '°7', 'o7'], ['1', 'b3', 'b5', 'bb7'], 'b5', 'lydian-diminished', 'verified', ['french-chart-a', 'italianpiano'],
+    'Chart A also lists it in Auxiliary Diminished; this app uses the more ingoing home.'),
+  q('7b9', '7♭9', ['7b9', '7♭9'], ['1', '3', '5', 'b7', 'b2'], 'b7', 'lydian-diminished', 'verified', CHART_A,
+    'Chart A also lists it on mode VII (Lydian tonic a half step above the root) and in the auxiliary diminished scales; Russell’s p. 29 table puts altered sevenths on II, as here.'),
+  q('7s9', '7♯9', ['7#9', '7♯9'], ['1', '3', '5', 'b7', '#2'], 'b2', 'lydian-diminished', 'verified', CHART_A,
+    'Sources differ: Chart A lists it here (mode VII) and in Auxiliary Diminished (mode II, tonic a whole step below); Russell’s p. 29 table puts altered sevenths on II. This app uses the more ingoing home.'),
   // Extended chords: every tone lies in the parent scale already verified for
   // the basic chord (as 9 and 13 do for the dominant). See docs/theory-sources.md.
   q('maj9', 'major 9', ['maj9', 'M9', 'Δ9'], ['1', '3', '5', '7', '2'], '1', 'lydian', 'verified', ['italianpiano', 'wikipedia-chord-scale']),
@@ -35,13 +50,15 @@ const ROWS = [
   q('m11', 'minor 11', ['m11', '-11', 'min11'], ['1', 'b3', '5', 'b7', '2', '4'], 'b3', 'lydian', 'verified', ['italianpiano', 'gct-f-lydian']),
   q('m13', 'minor 13', ['m13', '-13', 'min13'], ['1', 'b3', '5', 'b7', '2', '6'], 'b3', 'lydian', 'verified', ['italianpiano', 'gct-f-lydian']),
   q('m', 'minor', ['m', '-', 'mi', 'min'], ['1', 'b3', '5'], 'b3', 'lydian', 'verified', ['italianpiano', 'gct-f-lydian']),
-  q('m6', 'minor 6', ['m6', '-6'], ['1', 'b3', '5', '6'], null, null),
-  q('mmaj7', 'minor-major 7', ['m(maj7)', 'mMaj7', '-Δ7'], ['1', 'b3', '5', '7'], '1', 'lydian-diminished'),
-  q('m7b5', 'half-diminished', ['m7b5', 'ø', 'ø7', '-7b5'], ['1', 'b3', 'b5', 'b7'], null, null),
-  q('dim', 'diminished', ['dim', '°', 'o'], ['1', 'b3', 'b5'], null, null),
+  q('m6', 'minor 6', ['m6', '-6'], ['1', 'b3', '5', '6'], 'b3', 'lydian', 'verified', CHART_A),
+  q('mmaj7', 'minor-major 7', ['m(maj7)', 'mMaj7', '-Δ7'], ['1', 'b3', '5', '7'], 'b3', 'lydian-augmented', 'verified', CHART_A,
+    'Chart A also lists it in Lydian Diminished on the root (“Dim Maj 7th”); this app uses the more ingoing home.'),
+  q('m7b5', 'half-diminished', ['m7b5', 'ø', 'ø7', '-7b5'], ['1', 'b3', 'b5', 'b7'], 'b5', 'lydian', 'verified', CHART_A),
+  q('dim', 'diminished', ['dim', '°', 'o'], ['1', 'b3', 'b5'], 'b5', 'lydian', 'verified', CHART_A,
+    'Inferred: Chart A doesn’t name the triad; it is the half-diminished chord without its seventh.'),
+  // No source places a sus chord on Russell's chart, and its open, pentatonic
+  // sound fits several Lydian tonics at once (D7sus4 lies in C, F and B♭ Lydian).
   q('7sus4', '7sus4', ['7sus4', '7sus'], ['1', '4', '5', 'b7'], null, null),
-  q('7s9', '7♯9', ['7#9', '7♯9'], ['1', '3', '5', 'b7', '#2'], '1', 'auxiliary-diminished-blues'),
-  q('7alt', 'altered', ['7alt', 'alt'], ['1', '3', 'b7', 'b2', '#2', '#4', 'b6'], null, null),
 ];
 
 export const QUALITIES = Object.freeze(Object.fromEntries(ROWS.map((r) => [r.id, r])));
@@ -57,14 +74,23 @@ export function chordNotes(chord) {
 
 export function lydianAnalysis(chord) {
   const quality = QUALITIES[chord.quality];
-  const tonic = transpose(chord.root, quality.tonicDegree);
   const chordPcs = new Set(chordNotes(chord).map(pc));
-  return {
-    tonic,
-    parentScale: quality.parentScale,
-    parentNotes: scaleNotes(tonic, quality.parentScale),
-    ladder: rankScales(tonic, chordPcs),
+  const analyse = (degree) => {
+    const tonic = transpose(chord.root, degree);
+    return {
+      tonic,
+      parentScale: quality.parentScale,
+      parentNotes: scaleNotes(tonic, quality.parentScale),
+      ladder: rankScales(tonic, chordPcs),
+    };
   };
+  try {
+    return analyse(quality.tonicDegree);
+  } catch (e) {
+    const other = RESPELL[quality.tonicDegree];
+    if (!(e instanceof RangeError) || !other) throw e;
+    return analyse(other);
+  }
 }
 
 /** "Cmaj7" → { root, quality, symbol }, or { error } in plain words. */
