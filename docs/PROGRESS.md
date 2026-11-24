@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (piano sound and Stop after, in review). A snapshot of where the Lydian Chromatic Explorer
+Last updated: 2026-11-24 (#13, piano sound and Stop after: checks green, final review in progress; merges when it's clear). A snapshot of where the Lydian Chromatic Explorer
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -35,7 +35,7 @@ stands, so any future session (or person) can pick up from here.
 | 7 more chord types: 7♯11, maj9, add9, maj13, m9, m11, m13 (19 in all) | #10 |
 | Slash chords and a bass-note drone everywhere (Drone on: bass, Lydian tonic, root, other) | #11 |
 | Learn tab: six sourced, playable sections on tonal gravity, voice leading and the bass | #11 |
-| Recorded grand piano (Salamander, CC BY 3.0) with the electric piano as fallback; **Stop after** (default 30 s) fades out drones, chord loops and scale runs; drones re-strike each bar; the chord loop holds its chord for the bar; Stop cancels a press still waiting for the piano | this PR |
+| Recorded grand piano (Salamander, CC BY 3.0) with the electric piano as fallback; **Stop after** (default 30 s) fades out drones, chord loops and scale runs; drones re-strike each bar; the chord loop holds its chord for the bar; Stop cancels a press still waiting for the piano | #13 |
 
 ## Decisions to remember
 
@@ -74,7 +74,9 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. Merge the piano / Stop after PR when David is happy with the preview.
+1. **#13** (piano + Stop after): GitHub tests and the Cloudflare build pass;
+   David asked to merge once the checks pass. Waiting only on the fresh
+   whole-branch review; fix any important findings test-first, then merge.
 2. **More chord types** (David, 2026-11-24): diminished, dim7, m7♭5, 7♭9,
    7♯9, 7♯5, minor-major 7, m6, 7sus4, altered. First check what each
    needs (two agreeing sources, ideally Russell's book with page numbers;
