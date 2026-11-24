@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (deferred minors fixed in #22; next: a sus2 chord in place of 7sus4, and passing diminished chords).
+Last updated: 2026-11-24 (after #22; the sus-chord design is written and waits on one question for David).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -44,6 +44,7 @@ stands, so any future session (or person) can pick up from here.
 | `CLAUDE.md` rule: textbook, university and academic sources first; Wikipedia only when nothing better is found, and say so | #19 |
 | Voicings sources upgraded to textbooks and university pages (Hutchinson, Berklee, SF Conservatory, Harvey Mudd, Stevens, Acevedo & Rush, Feezell); **drop 2 & 4 ships** | #20 |
 | **Spread voicing** (Hutchinson's five notes: root, 7th and 3rd, then two parent-scale tones, keeping the chord's own colour tones); Smooth leads five voices into a triad; keys light only for notes on the keyboard | #21 |
+| Deferred minors fixed: smoother summaries, constant toggle names, Play all names the voicing, focus kept (without scrolling), organ drones in a bass-less lead, background bass retry, short pad notes, piano drone level; inversion wording; doubling sources | #22 |
 
 ## Decisions to remember
 
@@ -99,19 +100,26 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **Later library layers** (the sound and arranging library): instrument
-   ranges and timbres, horn sections (big band section writing), and the
-   tension map (inside/outside, tension and release, coupled with tonal
-   gravity).
-2. **Form & Gravity lab** and the **book check** (see "Open ideas" 1).
-3. **Drop 2 and drop 3 still cite Wikipedia and lesson sites:** Open Music
+1. **Sus chords (sus2, sus4, 7sus2, 7sus4), no single parent scale:**
+   design in `docs/superpowers/specs/2026-11-24-sus-chords-design.md`
+   (approach A, David). The builder check is done; one question is open for
+   David: is "Hear from" a lasting drone setting or for the sus chord only?
+   Then: sources for the four spellings (two textbooks each), plan, build.
+2. **Passing diminished chords** (David's note, "Open ideas" 0): source it,
+   then add it.
+3. **Later library layers:** instrument ranges and timbres, horn sections
+   (big band section writing), and the tension map (inside/outside, tension
+   and release, coupled with tonal gravity).
+4. **Form & Gravity lab** and the **book check** (see "Open ideas" 1).
+5. **Drop 2 and drop 3 still cite Wikipedia and lesson sites:** Open Music
    Theory defines them but blocks automated reading. A page number from a
-   Berklee Press book (Pease & Pullig, *Modern Jazz Voicings*) or a pasted
-   passage would upgrade them.
-4. **Deferred minors:** all fixed in #22 except two kept by design: 7♭9's
-   spread tops out a 3rd apart (the row says "usually a fourth or fifth"),
-   and Same shape from Spread into a triad reads "Not for this chord", as
-   rootless and cluster do.
+   Berklee Press book (Pease & Pullig, *Modern Jazz Voicings*) would
+   upgrade them.
+6. **Deferred minors (from the #22 review):** the summary's inner commas
+   could be semicolons; focus falls to the page when the focused voicing
+   stops applying; "Now: …" sits below the list, far from Play all. Kept by
+   design: 7♭9's spread tops out a 3rd apart; Same shape from Spread into a
+   triad reads "Not for this chord".
 
 Working notes:
 - The environment "David Petry sites" allows the research hosts used for
