@@ -464,9 +464,40 @@ test('changing the chord while a voicing plays keeps the same voicing on the new
   await page.close();
 });
 
+test('if the playing voicing does not fit the new chord, Close plays and the chord is announced', async () => {
+  const { page } = await open();
+  await row(page, 'Rootless A').locator('button').click();
+  await playing(page);
+  await enterChord(page, 'C6');
+  await page.waitForFunction(() => /Close of C6/.test(document.getElementById('now-playing').textContent));
+  await page.waitForFunction(() => /C6: Lydian tonic/.test(document.getElementById('live').textContent));
+  await page.click('#stop');
+  await page.close();
+});
+
+test('with the drone held, changing the drone note restarts the voicing over the new drone', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Dm7/G');
+  assert.equal(await page.isChecked('#hold-tonic'), true);
+  await row(page, 'Close').locator('button').click();
+  await playing(page);
+  const before = await page.evaluate(async () => (await import('/js/main.js')).app.transport.current().drone);
+  await page.selectOption('#drone-on', 'root');
+  await page.waitForFunction(async (b) => {
+    const p = (await import('/js/main.js')).app.transport.current();
+    return p && JSON.stringify(p.drone) !== JSON.stringify(b);
+  }, before);
+  const after = await page.evaluate(async () => (await import('/js/main.js')).app.transport.current());
+  assert.equal(after.voicingId, 'close');
+  assert.equal(after.drone[0] % 12, 2, 'the drone is now on D');
+  await page.click('#stop');
+  await page.close();
+});
+
 test('changing the drone note updates the readings without restarting the voicing', async () => {
   const { page } = await open();
   await enterChord(page, 'Dm7/G');
+  await page.uncheck('#hold-tonic');
   await row(page, 'Close').locator('button').click();
   await playing(page);
   await page.evaluate(async () => { window.__p = (await import('/js/main.js')).app.transport.current(); });

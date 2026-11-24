@@ -277,7 +277,11 @@ export function mountPractice({ app, announce, initialText }) {
   $('chord-loop').addEventListener('click', playChordLoop);
   $('stop').addEventListener('click', () => app.transport.stop('user'));
   $('direction').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
-  $('hold-tonic').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
+  $('hold-tonic').addEventListener('change', () => {
+    const kind = ours() ? app.transport.current().kind : null;
+    if (kind === 'scale') playScale();
+    else if (kind === 'voicing' || kind === 'voicings') voicings.chordChanged();
+  });
   for (const r of ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']) $('drone-other').add(new Option(noteName(parseNote(r)), r));
   const savedDrone = dronePref();
   $('drone-on').value = savedDrone.mode;
@@ -290,6 +294,7 @@ export function mountPractice({ app, announce, initialText }) {
     const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'drone') playDrone();
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
+    else if ((kind === 'voicing' || kind === 'voicings') && $('hold-tonic').checked) voicings.chordChanged();
   }
   $('drone-on').addEventListener('change', droneChanged);
   for (const id of DRONE_SOUNDS) $('drone-sound').add(new Option(INSTRUMENTS[id].name, id));
@@ -301,6 +306,7 @@ export function mountPractice({ app, announce, initialText }) {
     const kind = ours() ? app.transport.current().kind : null;
     if (kind === 'drone') playDrone();
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
+    else if ((kind === 'voicing' || kind === 'voicings') && $('hold-tonic').checked) voicings.chordChanged();
   });
   $('drone-other').addEventListener('change', droneChanged);
   $('start-on').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });

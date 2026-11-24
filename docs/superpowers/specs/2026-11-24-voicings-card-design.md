@@ -106,8 +106,8 @@ or as the sources define them). The bass note still sounds below them.
     tone)
   - **No resolution arrows.** David: "If it's going outward, it's not
     necessarily going somewhere immediately." The wording describes and
-    never tells the player to resolve. Example: "reaches outward to F♯ (♯4);
-    it can stay there."
+    never tells the player to resolve. Example: "reaches outward to C (4 from
+    G), rank 11; it can stay there." (♯4 is rank 7, still inside.)
 - **The centre is the drone note** ("Drone on: Bass note / Lydian tonic /
   Chord root / Other note"; default the bass note).
   - Example: D-7 with the drone on G (or typed D-7/G) is counted from G.

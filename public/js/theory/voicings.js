@@ -3,13 +3,16 @@
 // "Voicings"); the wording here is original. Extra notes (9ths, 13ths, the
 // steps of a cluster, the fourths of a quartal stack) come from the chord's
 // Russell parent scale. Every voicing is placed inside C3–B4 (MIDI 48–71),
-// with its top note as near G4 as it can be; the bass note sounds separately.
+// the on-screen keyboard, with its top note as near G4 as it can be; a wide
+// voicing that can't fit there is placed within G2–G5 instead. The bass note
+// sounds separately.
 import { pc } from './notes.js';
 import { QUALITIES, chordNotes, lydianAnalysis } from './chords.js';
 
 const LOW = 48; // C3
 const HIGH = 71; // B4
 const AIM = 67; // G4
+const WIDE = [43, 79]; // G2–G5, for voicings too wide for the keyboard
 
 const v = (id, name, description, sources, status = 'verified') =>
   Object.freeze({ id, name, description, sources: Object.freeze(sources), status });
@@ -21,7 +24,7 @@ export const VOICINGS = Object.freeze([
   v('drop24', 'Drop 2 & 4', 'Close position with the second and fourth notes from the top moved down an octave.', ['wikipedia-voicing'], 'pending'),
   v('spread', 'Spread', 'Chord tones spread wide across the keyboard.', ['pianogroove-spread'], 'pending'),
   v('quartal', 'Quartal', 'Four notes stacked in fourths from the parent scale: open, modern and a little ambiguous.', ['wikipedia-quartal', 'pianogroove-quartal']),
-  v('cluster', 'Cluster', 'Four neighbouring scale steps from the 9th up through the 3rd, packed in seconds within a fifth.', ['pianogroove-cluster', 'pianowithjonny-cluster']),
+  v('cluster', 'Cluster', 'The 9th, the 3rd and the next two steps of the scale, packed in seconds within a fifth.', ['pianogroove-cluster', 'pianowithjonny-cluster']),
   v('rootlessA', 'Rootless A', 'The 3rd at the bottom, then 5th (13th on a dominant), 7th and 9th: the root is left to the bass.', ['pianowithjonny-rootless', 'tjps-rootless']),
   v('rootlessB', 'Rootless B', 'The 7th at the bottom, then 9th, 3rd and 5th (13th on a dominant): rootless A turned over.', ['pianowithjonny-rootless', 'tjps-rootless']),
 ]);
@@ -57,14 +60,18 @@ function roles(chord) {
 export function fourTones(chord) {
   const r = roles(chord);
   const tones = [...new Set(chordNotes(chord).map(pc))];
-  if (tones.length === 4) return tones;
-  if (tones.length === 3) return [...tones, r.root];
-  const out = [];
-  for (const p of [r.third, r.seventh, ...r.extensions, r.fifth, r.root]) {
-    if (p !== null && !out.includes(p)) out.push(p);
-    if (out.length === 4) break;
+  let out;
+  if (tones.length === 4) out = tones;
+  else if (tones.length === 3) out = [...tones, r.root];
+  else {
+    out = [];
+    for (const p of [r.third, r.seventh, ...r.extensions, r.fifth, r.root]) {
+      if (p !== null && !out.includes(p)) out.push(p);
+      if (out.length === 4) break;
+    }
   }
-  return out;
+  // Rising from the root, so that each rotation is a close-position inversion.
+  return out.sort((a, b) => mod12(a - r.root) - mod12(b - r.root));
 }
 
 // Stack pitch classes upward in the order given, each the next MIDI note above the last.
@@ -77,15 +84,19 @@ function stack(classes, start = LOW) {
   return out;
 }
 
-// Move a shape by octaves into C3–B4, top note nearest G4 (ties go lower); null if it can't fit.
+// Move a shape by octaves into C3–B4 (or, if it's too wide for that, G2–G5),
+// top note nearest G4 (ties go lower); null if it can't fit either.
 function place(shape) {
-  let best = null;
-  for (let k = -4; k <= 4; k++) {
-    const m = shape.map((x) => x + 12 * k);
-    if (m[0] < LOW || m.at(-1) > HIGH) continue;
-    if (!best || Math.abs(m.at(-1) - AIM) < Math.abs(best.at(-1) - AIM)) best = m;
+  for (const [low, high] of [[LOW, HIGH], WIDE]) {
+    let best = null;
+    for (let k = -4; k <= 4; k++) {
+      const m = shape.map((x) => x + 12 * k);
+      if (m[0] < low || m.at(-1) > high) continue;
+      if (!best || Math.abs(m.at(-1) - AIM) < Math.abs(best.at(-1) - AIM)) best = m;
+    }
+    if (best) return best;
   }
-  return best;
+  return null;
 }
 
 // The best-placed of several shapes.
@@ -130,15 +141,17 @@ function quartal(chord, parent) {
     const classes = [start];
     for (let i = 0; i < 3; i++) {
       const prev = classes[classes.length - 1];
-      const next = [5, 6].map((s) => mod12(prev + s)).find((p) => parentPcs.has(p));
+      const next = [5, 6].map((s) => mod12(prev + s)).find((p) => parentPcs.has(p) && !classes.includes(p));
       if (next === undefined) break;
       classes.push(next);
     }
-    if (classes.length < 4) continue;
+    if (classes.length < 4) continue; // a stack that runs out, or circles back on itself
+    const placed = place(stack(classes));
+    if (!placed) continue;
     const kept = classes.filter((p) => chordPcs.has(p)).length;
-    if (!best || kept > best.kept) best = { classes, kept };
+    if (!best || kept > best.kept) best = { placed, kept };
   }
-  return best ? place(stack(best.classes)) : null;
+  return best ? best.placed : null;
 }
 
 function cluster(chord, parent) {

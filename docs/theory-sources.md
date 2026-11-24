@@ -160,6 +160,15 @@ nothing is copied.
   decision).
 - **Placement:** inside C3–B4, with the top note as near G4 as possible.
 
+## Gravity reading from a chosen centre (2026-11-24)
+
+| Claim | Basis | Verdict |
+|---|---|---|
+| The order of tonal gravity (1 5 2 6 3 7 ♯4 ♯5 ♭3 ♭7 4 ♭2) ranks tones from a Lydian tonic | french-2018, mcclimon (see "Scales and gravity") | As shipped since #1 |
+| The Voicings card counts those ranks **from the drone note**, whatever it is | **The app's convention (David's modal lens, 2026-11-24).** Russell counts from the Lydian tonic; treating another note as the centre is like asking "what if this note were the Lydian tonic?". No source states it, and the card never replaces Russell's own analysis, which stays shown | App convention, labelled |
+| "Heard from G, the parent scale sounds as G Mixolydian" | The mode name of the parent scale's notes started on the centre: the major-mode rotation rule already sourced (wikipedia-mode, berklee-modes) | As the mode names |
+| Ranks 1–7 read as "inside" | The first seven ranks are the Lydian scale (french-2018, mcclimon) | Agree |
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.

@@ -125,11 +125,15 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
 
   return {
     refresh: render,
-    /** The chord changed while a voicing played: play the same voicing of the new chord. */
+    /**
+     * The chord or the drone changed while a voicing played: play the same
+     * voicing again (of the new chord, over the new drone). If that voicing
+     * doesn't fit the new chord, Close plays instead.
+     */
     chordChanged() {
       const p = app.transport.current();
       if (!ours()) return;
-      if (p.kind === 'voicing') { const next = patternFor(p.voicingId); if (next) start(next); else app.transport.stop('user'); }
+      if (p.kind === 'voicing') start(patternFor(p.voicingId) ?? patternFor('close'));
       else if (p.kind === 'voicings') start(patternForAll());
     },
   };

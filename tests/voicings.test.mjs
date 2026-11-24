@@ -51,13 +51,14 @@ test('drop 2 and drop 3 lower the 2nd or 3rd voice from the top of a close voici
   }
 });
 
-test('every verified voicing, on 12 roots and 6 chord types, is null or four notes rising inside C3–B4', () => {
+test('every verified voicing, on 12 roots and 6 chord types, is null or four notes rising inside C3–B4 (G2–G5 when too wide)', () => {
   for (const root of ROOTS) {
     for (const q of ['maj7', 'm7', '7', 'm7b5', '6', 'maj']) {
       const chord = c(root + QUALITIES[q].aliases[0]);
       for (const v of voicingsFor(chord)) {
         if (v.midis === null) continue;
-        assert.ok(ascending(v.midis) && inRange(v.midis), `${chord.symbol} ${v.id}: ${v.midis}`);
+        assert.ok(ascending(v.midis) && v.midis[0] >= 43 && v.midis.at(-1) <= 79, `${chord.symbol} ${v.id}: ${v.midis}`);
+        if (v.midis.at(-1) - v.midis[0] <= 23 - 12) assert.ok(inRange(v.midis), `${chord.symbol} ${v.id} fits the keyboard: ${v.midis}`);
       }
     }
   }
@@ -80,7 +81,7 @@ test('rootless voicings are offered only on major 7, minor 7 and dominant chords
   }
 });
 
-test('cluster of Cmaj7: four steps of C Lydian from the 9th through the 3rd (D E F♯ G), within a fifth', () => {
+test('cluster of Cmaj7: the 9th, the 3rd and the next two steps of C Lydian (D E F♯ G), within a fifth', () => {
   const m = voiceAs('cluster', c('Cmaj7'));
   assert.deepEqual(m.map((x) => x % 12), [2, 4, 6, 7]);
   assert.ok(m.at(-1) - m[0] <= 7);
@@ -121,4 +122,26 @@ test('close voicings stay within an octave, even for a triad with its root doubl
     }
   }
   assert.deepEqual(voiceAs('close', c('C')).map((x) => x % 12), [0, 4, 7, 0]);
+});
+
+test('close, drop 2 and drop 3 exist for every chord type on every root', () => {
+  for (const q of Object.values(QUALITIES).filter((x) => x.status === 'verified')) {
+    for (const root of ROOTS) {
+      const chord = c(root + q.aliases[0]);
+      for (const id of ['close', 'drop2', 'drop3']) {
+        const m = voiceAs(id, chord);
+        assert.ok(m && ascending(m), `${chord.symbol} ${id}: ${m}`);
+      }
+    }
+  }
+});
+
+test('quartal stacks have four different notes, and exist for maj7, m7 and 7 on every root', () => {
+  for (const q of Object.values(QUALITIES).filter((x) => x.status === 'verified')) {
+    for (const root of ROOTS) {
+      const m = voiceAs('quartal', c(root + q.aliases[0]));
+      if (m) assert.equal(pcs(m).size, 4, `${root}${q.aliases[0]}: ${m}`);
+      else assert.ok(!['maj7', 'm7', '7'].includes(q.id), `${root}${q.aliases[0]} has no quartal`);
+    }
+  }
 });
