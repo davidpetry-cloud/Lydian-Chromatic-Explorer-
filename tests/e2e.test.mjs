@@ -31,6 +31,18 @@ async function enterChord(page, text) {
   await page.press('#chord-text', 'Enter');
 }
 
+test('the app carries its maker’s name: in the header, the footer and the page metadata', async () => {
+  const { page, problems } = await open();
+  const by = page.locator('.app-header .brand-by a');
+  assert.equal(await by.textContent(), 'David Petry');
+  assert.equal(await by.getAttribute('href'), 'https://david-petry.netlify.app/');
+  assert.equal(await page.getAttribute('meta[name="author"]', 'content'), 'David Petry');
+  assert.match(await page.textContent('.app-footer'), /Made by David Petry/);
+  assert.equal(await page.getAttribute('.app-footer a[href*="LICENSE"]', 'href'), 'https://github.com/davidpetry-cloud/Lydian-Chromatic-Explorer-/blob/main/LICENSE');
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
 test('the app loads cleanly under the CSP', async () => {
   const { page, problems } = await open();
   assert.deepEqual(problems, []);
