@@ -20,6 +20,11 @@ step) served from `public/` on Cloudflare Workers
 
 - Cite a source for every music-theory claim, and where sources disagree,
   say so rather than guessing.
+- Prefer textbooks, university and academic sources (open textbooks,
+  course pages, journals, teaching handouts by named teachers) and read
+  the page itself where the network allows. Use Wikipedia only when
+  nothing better is found, and say so in `docs/theory-sources.md`
+  (David, 2026-11-24).
 - Scales and the gravity order are computed from intervals in
   `public/js/theory/`; never hand-write note lists.
 - Any change to theory data needs a source per row in
