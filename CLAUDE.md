@@ -34,15 +34,15 @@ step) served from `public/` on Cloudflare Workers
   a Permissions-Policy that turns off devices. Keep it that strict.
 - No inline `<script>`, `on…=` attributes, `<style>` blocks or `style=""`.
   Scripts go in `public/js/`; wire events with `addEventListener`.
-- The only network requests are the app's own piano recordings
-  (`public/audio/piano/`, fetched by `public/js/audio/piano.js` on the
-  first press). Never fetch from another site; data lives in JS modules.
+- The only network requests are the app's own recordings
+  (`public/audio/piano/` on the first press, `public/audio/bass/` when the
+  bass is chosen), fetched through `public/js/audio/samples.js`. Never fetch from another site; data lives in JS modules.
   `localStorage` only via
   `public/js/prefs.js`, and the app must work without it.
 - Sound starts only after a user press, shows its state on screen and in
-  text, and stops on its own: loops and drones fade out after "Stop
-  after" (default 30 s), and everything stops after 20 minutes idle or
-  when the tab is hidden. Stop cancels a press still waiting for the piano.
+  text, and stops on its own: loops and drones fade out at the bar line of
+  "Stop after" (default 8 bars), and everything stops after 20 minutes idle
+  or when the tab is hidden. Stop cancels a press still waiting for the piano.
 - MIDI (`public/js/input/midi-input.js`): connects only after the Connect
   button is pressed, asks for notes only (no SysEx), shows a clear
   "Listening" state, stops after 20 quiet minutes, and refuses inside

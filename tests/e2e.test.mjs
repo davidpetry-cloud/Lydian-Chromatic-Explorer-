@@ -280,6 +280,141 @@ test('no key flashes after Stop', async () => {
   await page.close();
 });
 
+test('scale runs play in octave 3, inside the on-screen keyboard (C3–B4)', async () => {
+  const { page } = await open();
+  for (const chord of ['Cmaj7', 'Bm7']) {
+    await enterChord(page, chord);
+    await page.click('#play-scale');
+    await playing(page);
+    const notes = await page.evaluate(async () => {
+      const { app } = await import('/js/main.js');
+      return app.transport.current().steps.flat();
+    });
+    assert.ok(notes[0] >= 48 && notes[0] < 60, `${chord} starts in octave 3: ${notes[0]}`);
+    assert.ok(notes.every((m) => m >= 48 && m <= 71), `${chord} stays on the keyboard: ${notes}`);
+    await page.click('#stop');
+  }
+  await page.close();
+});
+
+test('Drone sound: organ by default, four choices, and the drone says which', async () => {
+  const { page } = await open();
+  assert.equal(await page.inputValue('#drone-sound'), 'organ');
+  const labels = await page.$$eval('#drone-sound option', (os) => os.map((o) => o.textContent));
+  assert.deepEqual(labels, ['Organ', 'Synth pad', 'Upright bass', 'Piano']);
+  await page.click('#drone');
+  await playing(page);
+  assert.match(await page.textContent('#now-playing'), /Drone on C, the bass note, organ/);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('changing the drone sound mid-drone switches cleanly, leaving no organ ringing', async () => {
+  const { page } = await open();
+  await page.click('#drone');
+  await playing(page);
+  await page.selectOption('#drone-sound', 'pad');
+  await page.waitForFunction(() => /synth pad/.test(document.getElementById('now-playing').textContent));
+  await page.waitForTimeout(600); // the organ's release has finished
+  const state = await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    return { sound: app.transport.current()?.droneSound, voices: app.engine.voiceCount() };
+  });
+  assert.deepEqual(state, { sound: 'pad', voices: 2 }, 'just the pad: root and fifth');
+  await page.click('#stop');
+  await page.close();
+});
+
+test('the scale run and Gravity use the chosen drone sound, and the choice is remembered', async () => {
+  const { page } = await open();
+  await page.selectOption('#drone-sound', 'pad');
+  await page.click('#play-scale');
+  await playing(page);
+  const scaleSound = await page.evaluate(async () => (await import('/js/main.js')).app.transport.current().droneSound);
+  assert.equal(scaleSound, 'pad');
+  await page.click('#tab-gravity');
+  await page.locator('#gravity-circle .gnode[data-rank="3"]').click();
+  await page.waitForFunction(() => /Drone on C/.test(document.getElementById('gravity-status').textContent));
+  const gravitySound = await page.evaluate(async () => (await import('/js/main.js')).app.transport.current().droneSound);
+  assert.equal(gravitySound, 'pad');
+  await page.click('#gravity-stop');
+  await page.reload();
+  await page.waitForFunction(() => document.getElementById('tonic')?.textContent.length > 0);
+  assert.equal(await page.inputValue('#drone-sound'), 'pad');
+  await page.close();
+});
+
+test('choosing the upright bass loads its 14 recordings from this site, on the first drone', async () => {
+  const { page, problems } = await open();
+  const bass = [];
+  page.on('request', (r) => { if (r.url().includes('/audio/bass/')) bass.push(r.url()); });
+  await page.selectOption('#drone-sound', 'bass');
+  assert.equal(bass.length, 0, 'nothing loads until a drone plays');
+  await page.click('#drone');
+  await playing(page);
+  assert.equal(bass.length, 14);
+  assert.ok(bass.every((u) => u.startsWith(server.url)));
+  assert.match(await page.textContent('#now-playing'), /upright bass/);
+  assert.deepEqual(problems, []);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('while the bass loads, the screen says so', async () => {
+  const { page } = await open();
+  await page.click('#drone');
+  await playing(page);
+  await page.click('#stop');
+  const held = [];
+  await page.route('**/audio/bass/**', (route) => { held.push(route); });
+  await page.selectOption('#drone-sound', 'bass');
+  await page.click('#drone');
+  await page.waitForFunction(() => document.getElementById('now-playing').textContent === 'Loading the upright bass…');
+  for (let i = 0; i < 50 && held.length < 14; i++) await page.waitForTimeout(50);
+  for (const r of held) await r.continue();
+  await playing(page);
+  assert.match(await page.textContent('#now-playing'), /upright bass/);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('if the bass cannot load, the drone plays a held organ and says so in its label', async () => {
+  const { page } = await open();
+  await page.route('**/audio/bass/**', (route) => route.fulfill({ status: 404, body: '' }));
+  await page.selectOption('#drone-sound', 'bass');
+  await page.click('#drone');
+  await playing(page);
+  assert.match(await page.textContent('#now-playing'), /organ \(the upright bass didn’t load\)/);
+  const state = await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    return { sound: app.transport.current().droneSound, notes: app.transport.current().steps[0] };
+  });
+  assert.equal(state.sound, 'organ');
+  assert.equal(state.notes.length, 2, 'root and fifth, held like the organ');
+  await page.waitForFunction(() => /upright bass didn’t load/.test(document.getElementById('live').textContent));
+  await page.click('#stop');
+  await page.close();
+});
+
+test('Stop pressed while the bass recordings load keeps it silent', async () => {
+  const { page } = await open();
+  await page.click('#drone'); // the piano and organ path loads first
+  await playing(page);
+  await page.click('#stop');
+  const held = [];
+  await page.route('**/audio/bass/**', (route) => { held.push(route); });
+  await page.selectOption('#drone-sound', 'bass');
+  await page.click('#drone');
+  for (let i = 0; i < 50 && held.length < 14; i++) await page.waitForTimeout(50);
+  await page.click('#stop');
+  for (const r of held) await r.continue();
+  await page.waitForTimeout(1000);
+  const playingNow = await page.evaluate(async () => (await import('/js/main.js')).app.transport.isPlaying());
+  assert.equal(playingNow, false);
+  assert.doesNotMatch(await page.textContent('#now-playing'), /Playing/);
+  await page.close();
+});
+
 test('the now-playing line follows a tempo change', async () => {
   const { page } = await open();
   await page.click('#play-scale');
@@ -377,6 +512,84 @@ test('the chord table scrolls from the keyboard at phone width, so the Note colu
   await page.close();
 });
 
+test('organ and pad drones hold steadily, then fall silent when released (real audio graph)', async () => {
+  const { page } = await open();
+  const result = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    async function render(instrument) {
+      class Offline extends OfflineAudioContext {
+        constructor() { super(1, 44100 * 4, 44100); }
+        get state() { return 'running'; }
+      }
+      const engine = createEngine({ AudioContextCtor: Offline, volume: 1, loadSamples: async () => new Map() });
+      await engine.resume();
+      const ctx = engine.context();
+      engine.hold([48, 55], 0, { gain: 0.12, instrument });
+      ctx.suspend(3).then(() => { engine.stopAll(0.1); ctx.resume(); });
+      const x = (await ctx.startRendering()).getChannelData(0);
+      const rms = (a, b) => { const w = x.subarray(a * 44100, b * 44100); return Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length); };
+      return { early: rms(instrument === 'pad' ? 1.6 : 0.2, instrument === 'pad' ? 2.0 : 0.6), late: rms(2.5, 2.9), after: rms(3.3, 3.5) };
+    }
+    return { organ: await render('organ'), pad: await render('pad') };
+  });
+  for (const [name, r] of Object.entries(result)) {
+    assert.ok(r.early > 0.01, `${name} sounds: ${JSON.stringify(r)}`);
+    assert.ok(r.late > r.early * 0.5, `${name} holds: ${JSON.stringify(r)}`);
+    assert.ok(r.after < 0.002, `${name} stops: ${JSON.stringify(r)}`);
+  }
+  await page.close();
+});
+
+test('the upright bass plays its recordings from this site: plucked, then gone', async () => {
+  const { page, problems } = await open();
+  const shape = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    class Offline extends OfflineAudioContext {
+      constructor() { super(1, 44100 * 3, 44100); }
+      get state() { return 'running'; }
+    }
+    const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
+    await engine.resume();
+    const ready = await engine.ensure('bass');
+    engine.note(36, 0, 1.5, { gain: 0.12, instrument: 'bass' });
+    const x = (await engine.context().startRendering()).getChannelData(0);
+    const rms = (a, b) => { const w = x.subarray(a * 44100, b * 44100); return Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length); };
+    return { ready, early: rms(0.02, 0.3), after: rms(2.4, 2.8) };
+  });
+  assert.equal(shape.ready, 'ready');
+  assert.ok(shape.early > 0.005, JSON.stringify(shape));
+  assert.ok(shape.after < 0.001, JSON.stringify(shape));
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('the drone sounds sit at a similar loudness: each bass note within 6 dB of the organ', async () => {
+  const { page } = await open();
+  const db = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    async function level(instrument, midis) {
+      class Offline extends OfflineAudioContext {
+        constructor() { super(1, 44100, 44100); }
+        get state() { return 'running'; }
+      }
+      const e = createEngine({ AudioContextCtor: Offline, volume: 0.7 });
+      await e.resume();
+      await e.ensure(instrument);
+      if (instrument === 'organ') e.hold(midis, 0, { gain: 0.12, instrument });
+      else midis.forEach((m) => e.note(m, 0, 0.9, { gain: 0.12, instrument }));
+      const w = (await e.context().startRendering()).getChannelData(0).subarray(0, 22050);
+      return 20 * Math.log10(Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length));
+    }
+    const out = { organ: await level('organ', [48, 55]) };
+    for (const m of [36, 38, 40, 42, 45, 47]) out[`bass${m}`] = await level('bass', [m]);
+    return out;
+  });
+  for (const [k, v] of Object.entries(db)) {
+    if (k !== 'organ') assert.ok(Math.abs(v - db.organ) <= 6, `${k} ${v.toFixed(1)} dB vs organ ${db.organ.toFixed(1)} dB: ${JSON.stringify(db)}`);
+  }
+  await page.close();
+});
+
 test('a note plays the recorded piano from this site: it strikes, rings and dies away', async () => {
   const { page, problems } = await open();
   const shape = await page.evaluate(async () => {
@@ -400,16 +613,16 @@ test('a note plays the recorded piano from this site: it strikes, rings and dies
   await page.close();
 });
 
-test('Stop after defaults to 30 seconds, is shared with Gravity, and is remembered', async () => {
+test('Stop after defaults to 8 bars, is shared with Gravity, and is remembered', async () => {
   const { page } = await open();
-  assert.equal(await page.inputValue('#stop-after'), '30');
+  assert.equal(await page.inputValue('#stop-after'), '8');
   const labels = await page.$$eval('#stop-after option', (os) => os.map((o) => o.textContent));
-  assert.deepEqual(labels, ['30 seconds', '1 minute', '2 minutes', '5 minutes', 'Until I press Stop']);
-  await page.selectOption('#stop-after', '120');
-  assert.equal(await page.inputValue('#gravity-stop-after'), '120');
+  assert.deepEqual(labels, ['2 bars', '4 bars', '6 bars', '8 bars', 'Until I press Stop']);
+  await page.selectOption('#stop-after', '4');
+  assert.equal(await page.inputValue('#gravity-stop-after'), '4');
   await page.reload();
   await page.waitForFunction(() => document.getElementById('tonic')?.textContent.length > 0);
-  assert.equal(await page.inputValue('#stop-after'), '120');
+  assert.equal(await page.inputValue('#stop-after'), '4');
   await page.goto(server.url + '/#gravity');
   await page.selectOption('#gravity-stop-after', '0');
   assert.equal(await page.inputValue('#stop-after'), '0');

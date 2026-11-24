@@ -105,6 +105,10 @@
               <label for="drone-other">Note</label>
               <select id="drone-other"></select>
             </div>
+            <div class="field">
+              <label for="drone-sound">Drone sound</label>
+              <select id="drone-sound"></select>
+            </div>
             <button class="btn" id="chord-loop" type="button" aria-pressed="false"><span aria-hidden="true">↻</span> Chord loop</button>
             <button class="btn" id="stop" type="button"><span aria-hidden="true">■</span> Stop</button>
           </div>
@@ -120,15 +124,15 @@
             <div class="field">
               <label for="stop-after">Stop after</label>
               <select id="stop-after" class="stop-after" aria-describedby="stop-after-hint">
-                <option value="30">30 seconds</option>
-                <option value="60">1 minute</option>
-                <option value="120">2 minutes</option>
-                <option value="300">5 minutes</option>
+                <option value="2">2 bars</option>
+                <option value="4">4 bars</option>
+                <option value="6">6 bars</option>
+                <option value="8">8 bars</option>
                 <option value="0">Until I press Stop</option>
               </select>
             </div>
           </div>
-          <p class="hint" id="stop-after-hint">Drones, chord loops and scale runs fade out on their own after this long.</p>
+          <p class="hint" id="stop-after-hint">Drones, chord loops and scale runs fade out after this many bars.</p>
           <p class="now-playing" id="now-playing" aria-hidden="true">Silent. Press a play button to start.</p>
         </section>
 
@@ -173,15 +177,15 @@
               <div class="field">
                 <label for="gravity-stop-after">Stop after</label>
                 <select id="gravity-stop-after" class="stop-after" aria-describedby="gravity-stop-after-hint">
-                  <option value="30">30 seconds</option>
-                  <option value="60">1 minute</option>
-                  <option value="120">2 minutes</option>
-                  <option value="300">5 minutes</option>
+                  <option value="2">2 bars</option>
+                  <option value="4">4 bars</option>
+                  <option value="6">6 bars</option>
+                  <option value="8">8 bars</option>
                   <option value="0">Until I press Stop</option>
                 </select>
               </div>
             </div>
-            <p class="hint" id="gravity-stop-after-hint">The drone fades out after this long. Each tone you play restarts the clock.</p>
+            <p class="hint" id="gravity-stop-after-hint">The drone fades out after this many bars, at 80 bpm. Each tone you play restarts the count.</p>
             <div class="control-row">
               <button class="btn" id="gravity-stop" type="button"><span aria-hidden="true">■</span> Stop</button>
               <p class="now-playing" id="gravity-status" aria-hidden="true">Silent.</p>
@@ -250,7 +254,7 @@
 
   <footer class="app-footer">
     <p>Made by David Petry. Built on ideas from George Russell's <cite>Lydian Chromatic Concept of Tonal Organization</cite> (<a href="#reference">see sources</a>); all explanations here are original.</p>
-    <p>Piano: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano">Salamander Grand Piano V3</a> by Alexander Holm, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>, trimmed and made mono for the web.</p>
+    <p>Piano: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano">Salamander Grand Piano V3</a> by Alexander Holm, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>, trimmed and made mono for the web. Upright bass: <a href="https://github.com/sgossner/VSCO-2-CE">VSCO 2 Community Edition</a> by Versilian Studios (CC0).</p>
     <p><a href="https://github.com/davidpetry-cloud/Lydian-Chromatic-Explorer/blob/main/LICENSE">Licence</a> · <a href="https://david-petry.netlify.app/">david-petry.netlify.app</a></p>
   </footer>
 </body>

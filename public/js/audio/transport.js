@@ -1,15 +1,20 @@
 // Plays one pattern at a time on the audio engine: a scale run, a looped
 // chord, a drone, or a one-shot example. A look-ahead loop schedules notes
 // slightly ahead on the audio clock so timing stays steady. Starting a
-// pattern always stops the last one. A drone (alone, or under a scale) is
-// struck again on every bar, as a pianist would hold a pedal tone.
-// Looping patterns fade out after the player's "Stop after" limit, and
-// anything stops itself after 20 minutes without input.
+// pattern always stops the last one. A drone (alone, or under a scale)
+// plays on its instrument: a sustaining one (organ, pad) is one held voice;
+// one that dies away (piano, bass) is struck again every few beats.
+// Looping patterns fade out at the bar line of the player's "Stop after"
+// limit. Bars are counted on the note schedule itself (notes already
+// scheduled keep their time when the tempo changes), and anything stops
+// itself after 20 minutes without input.
 
 export const IDLE_SECONDS = 20 * 60;
 export const LIMIT_FADE = 2; // seconds
 export const DRONE_GAIN = 0.12; // quieter than a played note (0.18), so it sits underneath
-const BAR = 4; // beats between drone strikes
+const BAR = 4; // beats in a bar, for the "Stop after" limit
+
+import { INSTRUMENTS } from './instruments.js';
 
 export const stepTimes = (start, bpm, count) => Array.from({ length: count }, (_, i) => start + (i * 60) / bpm);
 
@@ -18,7 +23,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   const stopListeners = new Set();
   const playListeners = new Set();
   let current = null;
-  let limit = startLimit || null; // seconds, or null for "until Stop"
+  let limit = startLimit || null; // bars, or null for "until Stop"
   // Presses waiting for the sound to be ready, in lanes ('play' for patterns,
   // 'key' for single notes): the latest press in a lane wins, and Stop (or
   // hiding the tab) cancels every lane.
@@ -28,6 +33,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   function halt(fade) {
     if (!current) return;
     clearTimer(current.timer);
+    current.release?.(fade);
     engine.stopAll(fade);
     current = null;
   }
@@ -46,21 +52,39 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
 
   const loops = (pattern) => pattern.loop || pattern.kind === 'drone';
 
+  // The beat grid: a point whose time and beat are known exactly. It is the
+  // next scheduled step, or the next drone strike, or (for a held drone,
+  // which schedules nothing) an anchor moved along at each tempo change.
+  function grid(p) {
+    if (p.pattern.kind !== 'drone') return { time: p.nextTime, beat: p.nextBeat };
+    if (p.release) return { time: p.anchorTime, beat: p.anchorBeat };
+    return { time: p.nextDrone, beat: p.nextDroneBeat };
+  }
+
+  // Which beat it is at `now` (fractional between grid points).
+  const beatAt = (p, now) => { const g = grid(p); return g.beat + ((now - g.time) * p.bpm) / 60; };
+
+  // The beat at which a looping pattern ends (Infinity: until Stop).
+  const endBeat = (p) => (limit && loops(p.pattern) ? p.limitFrom + limit * BAR : Infinity);
+
   function run() {
     const p = current;
     const now = engine.now();
     if (now - p.lastPoke > IDLE_SECONDS) { stop('idle'); return; }
-    if (limit && loops(p.pattern) && now - p.started >= limit) { stop('limit'); return; }
+    if (beatAt(p, now) >= endBeat(p)) { stop('limit'); return; }
     const beat = 60 / p.bpm;
-    if (p.held) {
-      while (p.nextDrone < now + lookahead) {
-        for (const midi of p.held) engine.note(midi, p.nextDrone, BAR * beat, { gain: DRONE_GAIN });
-        p.nextDrone += BAR * beat;
+    if (p.held && !p.release) {
+      // A drone that dies away (piano, bass) is struck again every few beats.
+      const every = p.instrument.restrikeBeats;
+      while (p.nextDrone < now + lookahead && p.nextDroneBeat < endBeat(p)) {
+        for (const midi of p.held) engine.note(midi, p.nextDrone, every * beat, { gain: DRONE_GAIN, instrument: p.instrument.id });
+        p.nextDrone += every * beat;
+        p.nextDroneBeat += every;
       }
     }
     if (p.pattern.kind === 'drone') return;
     const { steps, loop } = p.pattern;
-    while (p.nextTime < now + lookahead) {
+    while (p.nextTime < now + lookahead && p.nextBeat < endBeat(p)) {
       if (!loop && p.index >= steps.length) {
         if (now >= p.nextTime) stop('done');
         return;
@@ -73,6 +97,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
       stepListeners.forEach((cb) => cb({ index, midis: steps[index], at: p.nextTime }));
       p.index += 1;
       p.nextTime += beats * beat;
+      p.nextBeat += beats;
     }
   }
 
@@ -80,7 +105,17 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     halt();
     const start = engine.now() + 0.05;
     const held = pattern.kind === 'drone' ? pattern.steps[0] : pattern.drone;
-    current = { pattern, bpm: pattern.bpm, index: 0, nextTime: start, nextDrone: start, held: held ?? null, started: engine.now(), lastPoke: engine.now(), timer: null };
+    const now = engine.now();
+    current = {
+      pattern, bpm: pattern.bpm, index: 0, held: held ?? null, timer: null, lastPoke: now,
+      nextTime: start, nextBeat: 0, nextDrone: start, nextDroneBeat: 0,
+      anchorTime: start, anchorBeat: 0, limitFrom: 0,
+      instrument: INSTRUMENTS[pattern.droneSound] ?? INSTRUMENTS.piano, release: null,
+    };
+    // A sustaining drone (organ, pad) is one held voice for the whole pattern.
+    if (current.held && current.instrument.holds) {
+      current.release = engine.hold(current.held, start, { gain: DRONE_GAIN, instrument: current.instrument.id });
+    }
     current.timer = setTimer(() => current && run(), tick);
     playListeners.forEach((cb) => cb(pattern));
     run();
@@ -89,9 +124,15 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   return {
     play,
     stop,
-    setBpm(bpm) { if (current) current.bpm = bpm; },
-    /** Seconds a looping pattern plays before fading out; null or 0 = until Stop. */
-    setLimit(seconds) { limit = seconds || null; },
+    setBpm(bpm) {
+      if (!current) return;
+      const now = engine.now();
+      current.anchorBeat = beatAt(current, now); // a held drone counts its beats so far at the old tempo
+      current.anchorTime = now;
+      current.bpm = bpm;
+    },
+    /** Bars a looping pattern plays before fading out; null or 0 = until Stop. */
+    setLimit(bars) { limit = bars || null; },
     limit: () => limit,
     poke() { if (current) current.lastPoke = engine.now(); },
     /**
@@ -105,8 +146,10 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
       try { await ready; } finally { waiting -= 1; }
       return mine === tickets.get(lane);
     },
-    /** Restarts the "Stop after" clock: the player is still actively using this sound. */
-    renew() { if (current) current.started = engine.now(); },
+    /** Restarts the "Stop after" bar count: the player is still actively using this sound. */
+    renew() {
+      if (current) current.limitFrom = beatAt(current, engine.now());
+    },
     isPlaying: () => current !== null,
     current: () => current?.pattern ?? null,
     onStep(cb) { stepListeners.add(cb); return () => stepListeners.delete(cb); },

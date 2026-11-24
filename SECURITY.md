@@ -11,12 +11,13 @@ Every page is served with these headers (set in `public/_headers`):
 | X-Content-Type-Options, Referrer-Policy, Cross-Origin-Opener-Policy | `nosniff`, `strict-origin-when-cross-origin`, `same-origin` | Standard hardening. |
 
 The app uses no cookies, accounts, analytics or trackers and collects no
-personal data. Its only network requests fetch its own piano recordings
-(`public/audio/piano/`) from this site, once, on the first press of a play
-button; the site is static, so there is nothing there that could receive
+personal data. Its only network requests fetch its own recordings from
+this site: the piano (`public/audio/piano/`) once, on the first press of a
+play button, and the upright bass (`public/audio/bass/`) only if someone
+chooses it as the drone sound; the site is static, so there is nothing there that could receive
 data. If they fail to load, the built-in electric piano plays instead. It
 keeps a few preferences in your browser's `localStorage` (theme, last
-chord, volume, drone note, "Stop after"), and works without them.
+chord, volume, drone note, drone sound, "Stop after"), and works without them.
 
 **Why `connect-src 'self'` and not `'none'`:** the recordings are decoded
 with `fetch()` and `decodeAudioData()`, which `connect-src` governs.
@@ -34,9 +35,10 @@ Nothing MIDI-related is stored or sent anywhere.
 
 Sound starts only when you press a button, is always shown on screen and
 in text, and stops on its own: drones, chord loops and scale runs fade out
-after the "Stop after" time (30 seconds unless you choose longer), and
-anything stops after 20 minutes without input or when you switch tabs.
-Pressing Stop while the piano is still loading cancels the press.
+at the bar line of the "Stop after" setting (8 bars unless you choose
+otherwise), and anything stops after 20 minutes without input or when you
+switch tabs. Pressing Stop while the piano or the bass is still loading
+cancels the press.
 
 ## How it's tested
 
@@ -59,10 +61,12 @@ headers and attacks it:
 
 Code review (November 2026) found no use of `innerHTML`, `eval`,
 `new Function` or `document.write` in `public/`. The one network call is
-`fetch()` in `public/js/audio/piano.js`, for the app's own recordings, by
+`fetch()` in `public/js/audio/samples.js`, for the app's own recordings, by
 relative path. Values read
 back from storage are re-checked: an unknown chord falls back to Cmaj7, the
-volume is clamped to 0–100, and the theme must be `light` or `dark`.
+volume is clamped to 0–100, the theme must be `light` or `dark`, "Stop
+after" must be 2, 4, 6, 8 or 0 bars (else 8), and the drone sound must be
+organ, pad, bass or piano (else organ).
 
 ## Reporting a vulnerability
 

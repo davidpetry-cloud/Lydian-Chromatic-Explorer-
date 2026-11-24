@@ -30,6 +30,20 @@ layer 8 of 16; leading silence removed; trimmed to 8 seconds with a 1.5-second f
 mixed to mono; level evened out about halfway between notes; encoded as
 96 kbps MP3. The app also credits the recordings in its footer.
 
+## Upright bass recordings: CC0 1.0 (public domain)
+
+`public/audio/bass/*.mp3` are from **VSCO 2 Community Edition** by
+Versilian Studios (solo contrabass, pizzicato):
+https://github.com/sgossner/VSCO-2-CE. Dedicated to the public domain under
+CC0 1.0 Universal; Versilian asks for credit, which the app gives in its
+footer.
+
+**Changes made:** 14 notes (`_v1_rr1`: E, F♯, G and A♯ in octave 1, then C to
+B in octaves 2 and 3); leading silence removed; trimmed to 4 seconds with a
+0.5-second fade; mixed to mono; each note levelled to the same loudness over
+its first half-second (peaks at most 0.95); encoded as 96 kbps MP3, named by
+MIDI note.
+
 ## Playwright: Apache License 2.0 (development only)
 
 Used only to run the browser tests in `tests/`. It is not part of the

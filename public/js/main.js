@@ -2,7 +2,7 @@
 // the saved chord, and the three views.
 import { mountThemeToggle } from './theme-toggle.js';
 import { viewFromHash, isViewHash, VIEWS } from './router.js';
-import { readPref, volumePref, stopAfterPref, writePref, describeLimit, STOP_AFTER_CHOICES } from './prefs.js';
+import { readPref, volumePref, stopAfterPref, writePref, describeLimit, STOP_AFTER_CHOICES, droneSoundPref } from './prefs.js';
 import { parseChord } from './theory/chords.js';
 import { createEngine } from './audio/engine.js';
 import { createTransport } from './audio/transport.js';
@@ -19,15 +19,18 @@ const DEFAULT_CHORD = 'Cmaj7';
 const waiting = new Map();
 let fellBack = false;
 function soundChanged(sound) {
-  if (sound === 'loading') {
+  const loadingText = { loading: 'Loading the piano…', 'bass-loading': 'Loading the upright bass…' }[sound];
+  if (loadingText) {
     for (const el of document.querySelectorAll('.now-playing')) {
       if (!waiting.has(el)) waiting.set(el, el.textContent);
-      el.textContent = 'Loading the piano…';
+      el.textContent = loadingText;
     }
-    announce('Loading the piano');
+    announce(loadingText.slice(0, -1));
     return;
   }
-  for (const [el, text] of waiting) if (el.textContent === 'Loading the piano…') el.textContent = text;
+  // Loaded, or not: each line gets its own text back. (A bass that fell back
+  // to the organ is announced with the drone's own label, by the view.)
+  for (const [el, text] of waiting) if (/^Loading the /.test(el.textContent)) el.textContent = text;
   waiting.clear();
   if (sound === 'electric') announce("The piano recordings didn't load, so you're hearing the built-in electric piano instead.");
   if (sound === 'piano' && fellBack) announce('The piano has loaded after all.');
@@ -40,16 +43,17 @@ export const app = {
   events: new EventTarget(),
 };
 app.transport = createTransport(app.engine, { limit: stopAfterPref() });
+app.droneSound = droneSoundPref(); // shared by Practice and Gravity
 
 // "Stop after" appears in Practice and Gravity; both show one shared setting.
 const stopAfter = [...document.querySelectorAll('.stop-after')];
 for (const select of stopAfter) {
   select.value = String(stopAfterPref());
   select.addEventListener('change', () => {
-    const seconds = Number(select.value);
-    if (!STOP_AFTER_CHOICES.includes(seconds)) return;
-    app.transport.setLimit(seconds);
-    writePref('lce.stopAfter', seconds);
+    const bars = Number(select.value);
+    if (!STOP_AFTER_CHOICES.includes(bars)) return;
+    app.transport.setLimit(bars);
+    writePref('lce.stopAfterBars', bars);
     for (const other of stopAfter) other.value = select.value;
   });
 }
