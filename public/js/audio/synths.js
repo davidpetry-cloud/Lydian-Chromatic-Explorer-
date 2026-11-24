@@ -23,9 +23,10 @@ function envelope(ctx, dest, at, gain, attack) {
   return out;
 }
 
-export function organVoice(ctx, dest, midi, at, gain) {
+// maxAttack (s): a short note's swell is shortened to fit inside it.
+export function organVoice(ctx, dest, midi, at, gain, maxAttack = Infinity) {
   const f = midiToFreq(midi);
-  const out = envelope(ctx, dest, at, gain, ORGAN_ATTACK);
+  const out = envelope(ctx, dest, at, gain, Math.min(ORGAN_ATTACK, maxAttack));
   const tremolo = ctx.createGain();
   tremolo.gain.value = 1;
   tremolo.connect(out);
@@ -48,9 +49,9 @@ export function organVoice(ctx, dest, midi, at, gain) {
   return { out, oscs, start: at };
 }
 
-export function padVoice(ctx, dest, midi, at, gain) {
+export function padVoice(ctx, dest, midi, at, gain, maxAttack = Infinity) {
   const f = midiToFreq(midi);
-  const out = envelope(ctx, dest, at, gain, PAD_ATTACK);
+  const out = envelope(ctx, dest, at, gain, Math.min(PAD_ATTACK, maxAttack));
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
   filter.frequency.value = PAD_CUTOFF;

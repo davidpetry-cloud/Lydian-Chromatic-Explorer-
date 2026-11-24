@@ -223,7 +223,8 @@ test('a piano drone in a lead is struck with each chord on its own notes', () =>
   const t = createTransport(f.engine, f.opts);
   t.play(lead({ stepDrones: [[43, 50], [44, 51]], droneSound: 'piano' }));
   f.clock.t = 4.0; f.tick();
-  const drone = f.engine.notes.filter((n) => n.gain && n.gain < 0.18);
+  const drone = f.engine.notes.filter((n) => [43, 44, 50, 51].includes(n.midi));
+  assert.ok(drone.every((n) => n.gain < 0.18), 'the drone sits under the chords');
   assert.deepEqual(drone.map((n) => [n.midi, Math.round(n.at * 100) / 100]), [[43, 0.05], [50, 0.05], [44, 4.05], [51, 4.05]]);
   assert.equal(f.engine.holds.length, 0);
 });

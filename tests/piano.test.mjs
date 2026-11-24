@@ -108,3 +108,27 @@ test('a second press while still loading says so again', async () => {
   await Promise.all([first, second]);
   assert.deepEqual(sounds, ['loading', 'loading', 'piano']);
 });
+
+test('a bass that failed to load is tried again on a later press, after the retry wait', async () => {
+  let tries = 0;
+  const engine = createEngine({
+    AudioContextCtor: FakeCtx, loadSamples: async () => new Map(), bassRetryAfter: 0,
+    loadBass: async () => { tries += 1; if (tries === 1) throw new Error('offline'); return new Map(); },
+  });
+  await engine.resume();
+  assert.equal(await engine.ensure('bass'), 'fallback');
+  assert.equal(await engine.ensure('bass'), 'ready', 'the second press loads it after all');
+  assert.equal(tries, 2);
+});
+
+test('a failed bass is not retried before the wait is over', async () => {
+  let tries = 0;
+  const engine = createEngine({
+    AudioContextCtor: FakeCtx, loadSamples: async () => new Map(), bassRetryAfter: 60,
+    loadBass: async () => { tries += 1; throw new Error('offline'); },
+  });
+  await engine.resume();
+  assert.equal(await engine.ensure('bass'), 'fallback');
+  assert.equal(await engine.ensure('bass'), 'fallback');
+  assert.equal(tries, 1, 'no second wait for a press soon after');
+});

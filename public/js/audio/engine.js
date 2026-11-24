@@ -40,6 +40,7 @@ export function createEngine({
   loadSamples = loadPiano,
   loadBass: loadBassSamples = loadBass,
   loadTimeout = LOAD_TIMEOUT,
+  bassRetryAfter = 60, // seconds: a bass that failed to load is tried again on a press after this
   onSound = () => {},
 } = {}) {
   let ctx = null;
@@ -52,6 +53,7 @@ export function createEngine({
   let bass = null;
   let bassState = 'off';
   let bassLoading = null;
+  let bassFailedAt = 0;
   const voices = new Set();
 
   function setSound(s) { sound = s; onSound(s); }
@@ -130,8 +132,8 @@ export function createEngine({
   }
 
   // One key of a made-in-the-browser instrument (organ or pad).
-  function synthVoice(instrument, midi, at, gain) {
-    const v = SYNTHS[instrument](ctx, master, midi, at, gain);
+  function synthVoice(instrument, midi, at, gain, maxAttack) {
+    const v = SYNTHS[instrument](ctx, master, midi, at, gain, maxAttack);
     voices.add(v);
     v.oscs[0].onended = () => { voices.delete(v); v.out.disconnect(); };
     return v;
@@ -180,8 +182,9 @@ export function createEngine({
       if (!ctx || sound === 'loading' || sound === 'off') return;
       const gain = baseGain * (INSTRUMENTS[instrument]?.level ?? 1);
       if (SYNTHS[instrument]) {
-        const v = synthVoice(instrument, midi, at, gain);
         const off = at + Math.max(0.05, dur - SYNTH_RELEASE[instrument]);
+        // A short note swells in faster, so it is heard before it lets go.
+        const v = synthVoice(instrument, midi, at, gain, (off - at) * 0.6);
         v.out.gain.cancelScheduledValues(off);
         v.out.gain.setTargetAtTime(0, off, SYNTH_RELEASE[instrument]);
         v.oscs.forEach((o) => o.stop(off + SYNTH_RELEASE[instrument] * 6));
@@ -219,6 +222,7 @@ export function createEngine({
      */
     async ensure(instrument) {
       if (instrument !== 'bass' || !ctx) return 'ready';
+      if (bassState === 'failed' && (ctx.currentTime - bassFailedAt >= bassRetryAfter || bassRetryAfter === 0)) bassState = 'off';
       if (bassState === 'loading') onSound('bass-loading');
       if (bassState === 'off') {
         bassState = 'loading';
@@ -226,7 +230,7 @@ export function createEngine({
         let timer;
         const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), loadTimeout * 1000); });
         bassLoading = Promise.race([loadBassSamples(ctx), timeout])
-          .then((map) => { bass = map; bassState = 'ready'; onSound('bass-ready'); }, () => { bassState = 'failed'; onSound('bass-fallback'); })
+          .then((map) => { bass = map; bassState = 'ready'; onSound('bass-ready'); }, () => { bassState = 'failed'; bassFailedAt = ctx.currentTime; onSound('bass-fallback'); })
           .finally(() => clearTimeout(timer));
       }
       await bassLoading;

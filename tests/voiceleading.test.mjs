@@ -141,3 +141,29 @@ test('smooth from spread into another seventh chord aims at its spread notes', (
   const to = smoothInto(voiceAs('spread', parseChord('Dm7')), parseChord('G7'), 'spread');
   assert.deepEqual(new Set(to.map((m) => m % 12)), new Set(voiceAs('spread', parseChord('G7')).map((m) => m % 12)));
 });
+
+// Deferred minors (2026-11-24).
+test('smooth into a triad fills extra voices with the triad’s own tones, root first then 5th', () => {
+  const to = smoothInto(voiceAs('spread', c('Cmaj7')), c('F'), 'spread');
+  const counts = [5, 9, 0].map((p) => to.filter((m) => m % 12 === p).length);
+  assert.deepEqual(counts, [2, 1, 2], `F twice, A once, C twice: ${to}`);
+});
+
+test('the summary reads naturally when every voice does the same', () => {
+  const spell = (m) => ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'][m % 12];
+  const same = [60, 64, 67, 71];
+  assert.equal(describeMoves(compareVoices(same, same, n('C'), n('C')), spell).summary, 'All four voices are held.');
+});
+
+test('a held note says how its rank changes under the new centre', () => {
+  const spell = (m) => ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'][m % 12];
+  assert.equal(describeMoves(compareVoices([60], [60], n('G'), n('Ab')), spell).summary, 'The one voice is held, nearer home under the new centre (rank 11 → 5).');
+  const two = describeMoves(compareVoices([60, 67], [60, 69], n('C'), n('F')), spell).summary;
+  assert.match(two, /one is held, further out under the new centre \(rank 1 → 2\)/);
+});
+
+test('same shape onto the same chord reports a shift of 0', () => {
+  const from = voiceAs('drop2', c('Dm7'));
+  assert.equal(planeInto('drop2', from, c('Dm7'), c('Dm7')).shift, 0);
+  assert.equal(planeInto('drop2', from, c('Dm7'), c('Ebm7')).shift, 1);
+});

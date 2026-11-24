@@ -8,6 +8,7 @@
 // app's convention, David's lens). The words describe; they never prescribe.
 import { pc } from './notes.js';
 import { fourTones, voiceAs } from './voicings.js';
+import { chordNotes, QUALITIES } from './chords.js';
 import { rankFrom } from './reading.js';
 
 const w = (id, name, description, sources) => Object.freeze({ id, name, description, sources: Object.freeze(sources), status: 'verified' });
@@ -49,8 +50,16 @@ const near = (from, p) => [-12, 0, 12].map((o) => from + o + mod12(p - from)).co
 export function smoothInto(fromMidis, next, voicingId = null) {
   const shape = voicingId ? voiceAs(voicingId, next) : null;
   const goal = shape ? shape.map((m) => ((m % 12) + 12) % 12) : fourTones(next);
-  // More voices than target tones (a five-note spread into a triad): double the new root.
-  while (goal.length < fromMidis.length) goal.push(pc(next.root));
+  // More voices than target tones (a five-note spread into a triad): fill with
+  // the chord's own tones, the least-used first, root then 5th then the rest.
+  const notes = chordNotes(next).map(pc);
+  const degrees = QUALITIES[next.quality].degrees;
+  const at5 = degrees.findIndex((d) => ['5', 'b5', '#5'].includes(d));
+  const order = [...new Set([notes[0], ...(at5 >= 0 ? [notes[at5]] : []), ...notes])];
+  while (goal.length < fromMidis.length) {
+    const uses = (p) => goal.filter((g) => g === p).length;
+    goal.push(order.reduce((a, b) => (uses(b) < uses(a) ? b : a)));
+  }
   const orders = new Map(permutations(goal).map((p) => [p.join(), p])); // a doubled tone doesn't double the work
   let best = null;
   for (const targets of orders.values()) {
@@ -79,7 +88,7 @@ export function planeInto(voicingId, fromMidis, current, next) {
   if (current.quality === next.quality) {
     let shift = mod12(pc(next.root) - pc(current.root));
     if (shift > 6) shift -= 12;
-    return { midis: fromMidis.map((m) => m + shift), parallel: true };
+    return { midis: fromMidis.map((m) => m + shift), parallel: true, shift };
   }
   const shape = voiceAs(voicingId, next);
   if (!shape) return null;
@@ -88,7 +97,7 @@ export function planeInto(voicingId, fromMidis, current, next) {
     const m = shape.map((x) => x + 12 * k);
     if (!best || total(fromMidis, m) < total(fromMidis, best)) best = m;
   }
-  return { midis: best, parallel: false };
+  return { midis: best, parallel: false, shift: null };
 }
 
 /** Each voice's move, and its gravity rank before (from centreFrom) and after (from centreTo). */
@@ -104,6 +113,14 @@ export function compareVoices(fromMidis, toMidis, centreFrom, centreTo) {
 const rankFrom_ = (centre, midi) => rankFrom(centre, mod12(midi));
 
 const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
+const SUMMARY = [
+  ['toward', 'moves toward home', 'move toward home'],
+  ['away', 'moves outward', 'move outward'],
+  ['same', 'keeps its distance from home', 'keep their distance from home'],
+  ['held-nearer', 'is held, nearer home under the new centre', 'are held, nearer home under the new centre'],
+  ['held-further', 'is held, further out under the new centre', 'are held, further out under the new centre'],
+  ['held', 'is held', 'are held'],
+];
 
 /** The moves as text: each step with its ranks, and a one-line summary. */
 export function describeMoves(moves, spell) {
@@ -111,12 +128,17 @@ export function describeMoves(moves, spell) {
     const motion = m.step === 0 ? 'held' : `${m.step > 0 ? '↑' : '↓'}${Math.abs(m.step)}`;
     return `${spell(m.from, 'from')}→${spell(m.to, 'to')} ${motion} (rank ${m.rankFrom} → ${m.rankTo})`;
   }).join(' · ');
-  const count = (kind) => moves.filter((m) => m.kind === kind).length;
+  // Held notes are grouped by how their rank changes under the new centre (David).
+  const group = (m) => (m.kind !== 'held' ? m.kind : m.rankTo < m.rankFrom ? 'held-nearer' : m.rankTo > m.rankFrom ? 'held-further' : 'held');
   const parts = [];
-  const add = (k, one, many) => { const c = count(k); if (c) parts.push(`${WORDS[c]} ${c === 1 ? one : many}`); };
-  add('toward', 'moves toward home', 'move toward home');
-  add('away', 'moves outward', 'move outward');
-  add('same', 'keeps its distance from home', 'keep their distance from home');
-  add('held', 'is held', 'are held');
-  return { steps, summary: `Of the ${WORDS[moves.length]} voices, ${parts.join(', ')}.` };
+  for (const [k, one, many] of SUMMARY) {
+    const these = moves.filter((m) => group(m) === k);
+    if (!these.length) continue;
+    const ranks = these.length === 1 && k.startsWith('held-') ? ` (rank ${these[0].rankFrom} → ${these[0].rankTo})` : '';
+    parts.push({ c: these.length, one, many, ranks });
+  }
+  const total = WORDS[moves.length];
+  if (moves.length === 1) return { steps, summary: `The one voice ${parts[0].one}${parts[0].ranks}.` };
+  if (parts.length === 1) return { steps, summary: `All ${total} voices ${parts[0].many}${parts[0].ranks}.` };
+  return { steps, summary: `Of the ${total} voices, ${parts.map((p) => `${WORDS[p.c]} ${p.c === 1 ? p.one : p.many}${p.ranks}`).join(', ')}.` };
 }

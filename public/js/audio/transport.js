@@ -77,7 +77,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
       // A drone that dies away (piano, bass) is struck again every few beats.
       const every = p.instrument.restrikeBeats;
       while (p.nextDrone < now + lookahead && p.nextDroneBeat < endBeat(p)) {
-        for (const midi of p.held) engine.note(midi, p.nextDrone, every * beat, { gain: DRONE_GAIN, instrument: p.instrument.id });
+        for (const midi of p.held) engine.note(midi, p.nextDrone, every * beat, { gain: DRONE_GAIN * p.instrument.droneLevel, instrument: p.instrument.id });
         p.nextDrone += every * beat;
         p.nextDroneBeat += every;
       }
@@ -108,7 +108,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   const same = (a, b) => a && b && a.length === b.length && a.every((m, i) => m === b[i]);
   function playStepDrone(p, index, beats, beat) {
     const notes = p.pattern.stepDrones[index];
-    const opts = { gain: DRONE_GAIN, instrument: p.instrument.id };
+    const opts = { gain: DRONE_GAIN * p.instrument.droneLevel, instrument: p.instrument.id };
     if (p.instrument.holds) {
       if (same(notes, p.stepHeld)) return;
       p.release?.(undefined, p.nextTime);
@@ -136,7 +136,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     };
     // A sustaining drone (organ, pad) is one held voice for the whole pattern.
     if (current.held && current.instrument.holds) {
-      current.release = engine.hold(current.held, start, { gain: DRONE_GAIN, instrument: current.instrument.id });
+      current.release = engine.hold(current.held, start, { gain: DRONE_GAIN * current.instrument.droneLevel, instrument: current.instrument.id });
     }
     current.timer = setTimer(() => current && run(), tick);
     playListeners.forEach((cb) => cb(pattern));

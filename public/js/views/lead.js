@@ -40,6 +40,8 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
   }
 
   function refresh() {
+    // Rows are rebuilt: keep focus on the same way's button.
+    const focused = document.activeElement?.closest?.('#leads li')?.dataset.way;
     const chord = getChord();
     const from = fromVoicing();
     buttons.clear();
@@ -54,6 +56,7 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
     $('lead-centres').textContent = `${chord.symbol} is heard from ${noteName(centreA)}, and ${next.symbol} from ${noteName(centreB)}: each chord from its own drone note.`;
     for (const way of WAYS) {
       const li = make('li', 'voicing lead-row');
+      li.dataset.way = way.id;
       const head = make('p', 'voicing-head');
       head.append(make('span', 'lead-name', way.name));
       let to = null;
@@ -61,7 +64,7 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
       if (way.id === 'smooth') to = smoothInto(from.midis, next, from.id);
       else {
         const r = planeInto(from.id, from.midis, chord, next);
-        if (r) { to = r.midis; note = r.parallel ? 'The shape moves in parallel.' : 'Same voicing type; the chord type changes.'; }
+        if (r) { to = r.midis; note = !r.parallel ? 'Same voicing type; the chord type changes.' : r.shift === 0 ? 'Same chord: nothing moves.' : 'The shape moves in parallel.'; }
       }
       if (!to) {
         head.append(make('span', 'voicing-na', 'Not for this chord'));
@@ -87,6 +90,7 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
       rows.push({ way: way.id, from, to });
     }
     showState();
+    if (focused) buttons.get(focused)?.focus();
   }
 
   function patternFor(wayId) {
@@ -113,9 +117,14 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
     for (const [id, b] of buttons) {
       const on = playingWay() === id;
       const name = WAYS.find((w) => w.id === id).name.toLowerCase();
+      // A toggle keeps its name; aria-pressed and the row's aria-current carry the state.
       b.setAttribute('aria-pressed', String(on));
-      b.setAttribute('aria-label', `${on ? 'Stop' : 'Play'} ${name} lead`);
-      b.textContent = on ? '■ Stop' : '▶ Play';
+      b.setAttribute('aria-label', `Play ${name} lead`);
+      b.textContent = '▶ Play';
+    }
+    for (const li of $('leads').children) {
+      if (li.dataset.way && li.dataset.way === playingWay()) li.setAttribute('aria-current', 'true');
+      else li.removeAttribute('aria-current');
     }
   }
 
@@ -125,11 +134,12 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
     if (text === applied) return;
     applied = text;
     $('next-chord-error').textContent = '';
+    $('next-chord').removeAttribute('aria-invalid');
     // No next chord (cleared, or not one the app knows): a playing lead stops with it.
     const drop = () => { next = null; if (playingWay()) app.transport.stop('user'); refresh(); };
     if (!text) { drop(); return; }
     const parsed = parseChord(text);
-    if (parsed.error) { $('next-chord-error').textContent = parsed.error; drop(); return; }
+    if (parsed.error) { $('next-chord-error').textContent = parsed.error; $('next-chord').setAttribute('aria-invalid', 'true'); drop(); return; }
     next = parsed;
     refresh();
     restart();

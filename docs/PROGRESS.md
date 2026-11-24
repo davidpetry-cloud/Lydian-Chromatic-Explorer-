@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (after the Spread voicing, PR #21; everything on the Voicings card is sourced and shipped).
+Last updated: 2026-11-24 (deferred minors fixed in #22; next: a sus2 chord in place of 7sus4, and passing diminished chords).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -108,19 +108,10 @@ stands, so any future session (or person) can pick up from here.
    Theory defines them but blocks automated reading. A page number from a
    Berklee Press book (Pease & Pullig, *Modern Jazz Voicings*) or a pasted
    passage would upgrade them.
-4. **Deferred minors:**
-   - from #21: Smooth into a triad triples the new root; 7♭9's spread tops
-     out a 3rd apart; the empty "Waiting for sources" line leaves a small
-     gap; Same shape from Spread into a triad reads "Not for this chord"
-   - from #18: summary grammar ("four are held"); the held-note summary
-     doesn't name the rank change; "moves in parallel" at a shift of 0;
-     `#next-chord` lacks `aria-invalid`; the lead row lacks `aria-current`;
-     a bass → organ fallback keeps bass-sized step drones
-   - from #15/#16: no text names the voicing sounding during Play all;
-     rows rebuild on each chord change, so focus is lost; the toggle changes
-     both its name and `aria-pressed`; a bass that times out stays on the
-     organ for the session; a pad note shorter than ~1.9 s would be silent;
-     the loudness test covers the bass and organ only
+4. **Deferred minors:** all fixed in #22 except two kept by design: 7♭9's
+   spread tops out a 3rd apart (the row says "usually a fourth or fifth"),
+   and Same shape from Spread into a triad reads "Not for this chord", as
+   rootless and cluster do.
 
 Working notes:
 - The environment "David Petry sites" allows the research hosts used for
@@ -144,6 +135,11 @@ Working notes:
 3. **Live line feedback:** notes marked by gravity rank as you play (MIDI or clicks).
 
 ## Open ideas (not started)
+
+0. **Passing diminished chords (David, 2026-11-24):** fully diminished 7th
+   chords make good passing chords, e.g. Cmaj7 → C♯°7 → Dm7. Find two
+   sources (textbook first), then add it to the dim7 row, the Learn tab or
+   the next-chord section.
 
 1. **Book check:** with Russell's 4th edition (or Baker), confirm or correct:
    - 7♯9's home (Auxiliary Diminished II in the app; Chart A also lists
