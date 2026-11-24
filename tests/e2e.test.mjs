@@ -368,7 +368,8 @@ test('the chord table scrolls from the keyboard at phone width, so the Note colu
   assert.equal(await scroller.getAttribute('aria-labelledby'), 'h-chords');
   await scroller.focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
-  assert.ok(await scroller.evaluate((el) => el.scrollLeft > 0), 'the arrow keys scroll the table sideways');
+  // Newer Chromium scrolls smoothly from the keyboard, so wait for the scroll to land.
+  await page.waitForFunction(() => document.querySelector('.table-scroll').scrollLeft > 0, null, { timeout: 3000 });
   await page.close();
 });
 
