@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (#13 live; nine chord types from Russell's Chart A in review).
+Last updated: 2026-11-24 (#13 live; #14, nine chord types from Russell's Chart A: checks green, theory review in progress).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -36,7 +36,7 @@ stands, so any future session (or person) can pick up from here.
 | Slash chords and a bass-note drone everywhere (Drone on: bass, Lydian tonic, root, other) | #11 |
 | Learn tab: six sourced, playable sections on tonal gravity, voice leading and the bass | #11 |
 | Recorded grand piano (Salamander, CC BY 3.0) with the electric piano as fallback; **Stop after** (default 30 s) fades out drones, chord loops and scale runs; drones re-strike each bar; the chord loop holds its chord for the bar; Stop cancels a press still waiting for the piano | #13 |
-| 9 more chord types from Russell's Chart A: m6, m7♭5, dim (inferred), 7♯5, 7alt, m(maj7), dim7, 7♭9, 7♯9 (28 in all; 7sus4 waits) | this PR |
+| 9 more chord types from Russell's Chart A: m6, m7♭5, dim (inferred), 7♯5, 7alt, m(maj7), dim7, 7♭9, 7♯9 (28 in all; 7sus4 waits) | #14 |
 
 ## Decisions to remember
 
@@ -79,7 +79,9 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **Chord types PR** (this one): review, checks, merge when David says.
+1. **#14** (chord types): GitHub tests and the Cloudflare build pass;
+   David asked to merge once the checks pass. Waiting on the fresh theory
+   review; fix any important findings test-first, then merge.
 2. **Book check** (whenever David has the 4th edition or David Baker's
    *Techniques of Improvisation, Vol. 1*): 7♯9's home, the diminished
    triad, and 7sus4. See `docs/theory-sources.md` (2026-11-24).
