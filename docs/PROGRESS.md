@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (Stop after in bars, drone sounds and a lower scale octave, in review in #15).
+Last updated: 2026-11-24 (#15 built: Stop after in bars, drone sounds, scale an octave lower; checks running, fresh review in progress).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -87,7 +87,10 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **#15**: review, checks, then merge when David says.
+1. **#15** (Stop after in bars, drone sounds, scale octave): all four
+   tasks built and tested (234 pass). David asked to merge once the checks
+   pass; waiting on CI and the fresh whole-branch review, whose important
+   findings get fixed test-first first.
 2. **Sound and arranging library** (David, 2026-11-24): instruments, ranges,
    voicings (drop 2, clusters, big band section writing) and textures tied
    to tension and release, and to inside and outside on the chromatic tonal
