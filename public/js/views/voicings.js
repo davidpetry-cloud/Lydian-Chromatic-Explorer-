@@ -7,6 +7,7 @@ import { chordNotes, lydianAnalysis } from '../theory/chords.js';
 import { VOICINGS, voicingsFor } from '../theory/voicings.js';
 import { gravityReading } from '../theory/reading.js';
 import { SOURCES } from '../data/sources.js';
+import { mountLead } from './lead.js';
 
 const $ = (id) => document.getElementById(id);
 const SHARPS = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
@@ -18,11 +19,12 @@ const make = (tag, cls, text) => {
   return el;
 };
 
-export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBpm }) {
+export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBpm, getCentreFor, stepDroneFor }) {
   let list = [];
   const buttons = new Map();
 
   const sourceRefs = (ids) => ids.map((id) => `[${SOURCES.findIndex((s) => s.id === id) + 1}]`).join(' ');
+  const lead = mountLead({ app, getChord, getVoicings: () => list, getCentreFor, stepDroneFor, getBpm, start, sourceRefs });
 
   function render() {
     const chord = getChord();
@@ -65,6 +67,7 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
     const pending = VOICINGS.filter((v) => v.status !== 'verified').map((v) => v.name);
     $('voicings-pending').textContent = pending.length ? `Waiting for sources: ${pending.join(', ')}.` : '';
     showState();
+    lead.refresh();
   }
 
   const bass = () => 36 + pc(getChord().bass);
@@ -133,7 +136,8 @@ export function mountVoicings({ app, getChord, getCentre, start, droneFor, getBp
     chordChanged() {
       const p = app.transport.current();
       if (!ours()) return;
-      if (p.kind === 'voicing') start(patternFor(p.voicingId) ?? patternFor('close'));
+      if (p.kind === 'lead') lead.restart();
+      else if (p.kind === 'voicing') start(patternFor(p.voicingId) ?? patternFor('close'));
       else if (p.kind === 'voicings') start(patternForAll());
     },
   };

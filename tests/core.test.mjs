@@ -200,6 +200,44 @@ test('an upright-bass drone is plucked every 2 beats', () => {
   assert.equal(f.engine.notes[0].dur, 2);
 });
 
+const lead = (extra) => ({ kind: 'lead', steps: [[38, 60], [39, 61]], durations: [4, 4], bpm: 60, loop: true, label: 'l', ...extra });
+
+test('a held organ drone changes with each chord of a lead, and Stop releases the last one', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play(lead({ stepDrones: [[43, 50], [44, 51]], droneSound: 'organ' }));
+  f.tick();
+  assert.equal(f.engine.holds.length, 1);
+  assert.deepEqual(f.engine.holds[0].midis, [43, 50]);
+  f.clock.t = 4.0; f.tick(); // the second chord, due at 4.05, is scheduled
+  assert.equal(f.engine.holds.length, 2);
+  assert.deepEqual(f.engine.holds[1].midis, [44, 51]);
+  assert.ok(Math.abs(f.engine.holds[1].at - 4.05) < 1e-9);
+  assert.equal(f.engine.released, 1, 'the first drone lets go as the second begins');
+  t.stop('user');
+  assert.equal(f.engine.released, f.engine.holds.length);
+});
+
+test('a piano drone in a lead is struck with each chord on its own notes', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play(lead({ stepDrones: [[43, 50], [44, 51]], droneSound: 'piano' }));
+  f.clock.t = 4.0; f.tick();
+  const drone = f.engine.notes.filter((n) => n.gain && n.gain < 0.18);
+  assert.deepEqual(drone.map((n) => [n.midi, Math.round(n.at * 100) / 100]), [[43, 0.05], [50, 0.05], [44, 4.05], [51, 4.05]]);
+  assert.equal(f.engine.holds.length, 0);
+});
+
+test('the same drone on both chords is held once, not struck again', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play(lead({ stepDrones: [[43, 50], [43, 50]], droneSound: 'organ' }));
+  for (const at of [2, 4, 6, 8.0, 10]) { f.clock.t = at; f.tick(); }
+  assert.equal(f.engine.holds.length, 1);
+  t.stop('user');
+  assert.equal(f.engine.released, 1);
+});
+
 test('looping patterns fade out at the end of the bar limit, striking nothing after it', () => {
   const f = fakes();
   const t = createTransport(f.engine, { ...f.opts, limit: 2 }); // 2 bars = 8 beats = 8 s at 60 bpm

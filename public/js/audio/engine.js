@@ -241,7 +241,8 @@ export function createEngine({
       if (!ctx || !SYNTHS[instrument]) return () => {};
       const gain = baseGain * INSTRUMENTS[instrument].level;
       const held = midis.map((m) => synthVoice(instrument, m, at, gain));
-      return (fade) => held.forEach((v) => { if (voices.has(v)) release(v, ctx.currentTime, fade); });
+      // Releases now, or at a scheduled time (`at`), over `fade` seconds.
+      return (fade, at) => held.forEach((v) => { if (voices.has(v)) release(v, Math.max(at ?? 0, ctx.currentTime), fade); });
     },
     /** How many voices are sounding or scheduled (for tests and stuck-note checks). */
     voiceCount: () => voices.size,

@@ -28,6 +28,10 @@ The **Voicings** card plays your chord in sourced piano voicings (close,
 drop 2, drop 3, quartal, cluster, rootless A and B), each with a Play/Stop
 toggle and a tonal-gravity reading counted from your drone note, so the same
 chord can be heard from another centre (D-7 over G: G Mixolydian).
+Type a **next chord** under the voicings to hear how a voicing moves into it,
+smoothly (each voice to its nearest note) or as the same shape (planing,
+like D-7 → E♭-7), with each voice's move read by tonal gravity from each
+chord's own drone note.
 
 The sound is a recorded grand piano (the Salamander Grand Piano, CC BY 3.0).
 The drone has its own sound: organ (default), synth pad, upright bass

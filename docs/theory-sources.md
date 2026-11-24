@@ -169,6 +169,29 @@ nothing is copied.
 | "Heard from G, the parent scale sounds as G Mixolydian" | The mode name of the parent scale's notes started on the centre: the major-mode rotation rule already sourced (wikipedia-mode, berklee-modes) | As the mode names |
 | Ranks 1–7 read as "inside" | The first seven ranks are the Lydian scale (french-2018, mcclimon) | Agree |
 
+## Voice leading (2026-11-24)
+
+**How this was checked:** textbooks and teaching sources first (David,
+2026-11-24: "better sources than Wikipedia before going to Wiki"). The rows
+rest on search summaries of these pages; Wikipedia's "Voice leading" and
+"Parallel harmony" agree but are not cited.
+
+| Way in | Definition used | Sources | What they say | Verdict |
+|---|---|---|---|---|
+| Smooth | Each of the four voices moves to a note of the next chord by the smallest total motion; common tones stay; voices don't cross. The target notes are those of the same voicing type on the next chord (David, 2026-11-24: rootless stays rootless), or its four main tones where that voicing doesn't fit | rwu-part-writing, harmony-musicianship-common-tone | Two open textbooks: keep the common tone in its voice and move the other voices to the nearest chord tones of the next chord | Verified |
+| Same shape (planing) | Same chord type: the whole shape moves in parallel by the root interval. A different chord type: the same voicing type of the next chord, placed nearest | hutchinson-planing, learnmusictheory-planing | Hutchinson: parallelism, or planing, moves every voice of a chord in parallel (Debussy, Ravel). Feezell: whole chords moving in parallel; chromatic planing keeps the exact intervals, diatonic planing follows a scale | Verified. Exact parallel motion = chromatic planing; "same voicing type" when the chord type changes is the app's reading of the looser, diatonic kind |
+
+**The app's conventions** (labelled as such):
+- **Smooth tie-breaks:** at equal total motion, more shared notes held
+  (the sources' common-tone rule), then the smaller largest single move,
+  then the lower result.
+- **"Toward home / away":** compares each voice's gravity rank, counted from
+  each chord's own drone note (David's lens). A held note "stays", with its
+  rank change shown.
+- **Smooth's target notes:** the same voicing type on the next chord
+  (David's choice), else its four main tones by the drop-voicing convention
+  (`fourTones`).
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.

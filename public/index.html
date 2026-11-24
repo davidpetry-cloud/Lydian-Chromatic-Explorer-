@@ -151,6 +151,23 @@
           <p class="hint voicings-heard" id="voicings-heard"></p>
           <ol class="voicings" id="voicings"></ol>
           <p class="hint" id="voicings-pending"></p>
+          <section class="lead" aria-labelledby="h-lead">
+            <h3 id="h-lead">Into a next chord</h3>
+            <div class="control-row">
+              <div class="field">
+                <label for="next-chord">Next chord</label>
+                <input id="next-chord" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="lead-hint next-chord-error">
+              </div>
+              <div class="field">
+                <label for="lead-from">Lead from</label>
+                <select id="lead-from"></select>
+              </div>
+            </div>
+            <p class="hint" id="lead-hint">Type a next chord (like Ebm7 or G7/B) and press Enter to hear how this voicing moves into it: smoothly, or as the same shape.</p>
+            <p class="error" id="next-chord-error" role="status"></p>
+            <p class="hint" id="lead-centres"></p>
+            <ol class="voicings leads" id="leads"></ol>
+          </section>
         </section>
 
         <section class="keyboard-section" aria-labelledby="h-keyboard">

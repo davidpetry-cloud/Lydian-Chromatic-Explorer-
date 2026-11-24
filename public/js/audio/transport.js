@@ -93,6 +93,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
       // A step lasts one beat, or as many beats as `durations` says (held chords).
       const beats = p.pattern.durations?.[index] ?? 1;
       const length = p.pattern.durations ? beats * beat : beat * 0.9;
+      if (p.pattern.stepDrones) playStepDrone(p, index, beats, beat);
       for (const midi of steps[index]) engine.note(midi, p.nextTime, length);
       stepListeners.forEach((cb) => cb({ index, midis: steps[index], at: p.nextTime }));
       p.index += 1;
@@ -101,10 +102,31 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     }
   }
 
+  // A lead between chords carries a drone per step (stepDrones): a sustaining
+  // drone lets go and is held anew when the step's notes change; one that dies
+  // away is struck at the step's start (and again every few beats within it).
+  const same = (a, b) => a && b && a.length === b.length && a.every((m, i) => m === b[i]);
+  function playStepDrone(p, index, beats, beat) {
+    const notes = p.pattern.stepDrones[index];
+    const opts = { gain: DRONE_GAIN, instrument: p.instrument.id };
+    if (p.instrument.holds) {
+      if (same(notes, p.stepHeld)) return;
+      p.release?.(undefined, p.nextTime);
+      p.release = notes?.length ? engine.hold(notes, p.nextTime, opts) : null;
+      p.stepHeld = notes;
+      return;
+    }
+    if (!notes?.length) return;
+    const every = p.instrument.restrikeBeats;
+    for (let b = 0; b < beats; b += every) {
+      for (const midi of notes) engine.note(midi, p.nextTime + b * beat, Math.min(every, beats - b) * beat, opts);
+    }
+  }
+
   function play(pattern) {
     halt();
     const start = engine.now() + 0.05;
-    const held = pattern.kind === 'drone' ? pattern.steps[0] : pattern.drone;
+    const held = pattern.stepDrones ? null : pattern.kind === 'drone' ? pattern.steps[0] : pattern.drone;
     const now = engine.now();
     current = {
       pattern, bpm: pattern.bpm, index: 0, held: held ?? null, timer: null, lastPoke: now,
