@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (paused after #16, the Voicings card; voice-leading layer designed, 3 questions open).
+Last updated: 2026-11-24 (after the Spread voicing, PR #21; everything on the Voicings card is sourced and shipped).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -39,6 +39,11 @@ stands, so any future session (or person) can pick up from here.
 | 9 more chord types from Russell's Chart A: m6, m7♭5, dim (inferred), 7♯5, 7alt, m(maj7), dim7, 7♭9, 7♯9 (28 in all; 7sus4 waits) | #14 |
 | Scale runs an octave lower (octave 3, on the keyboard); **Stop after** in bars (2, 4, 6, 8 or until Stop; default 8); **Drone sound**: organ (default), synth pad, upright bass (VSCO 2 CE, CC0), piano, through a shared instrument format | #15 |
 | **Voicings card** in Practice: your chord in sourced piano voicings (close, drop 2, drop 3, quartal, cluster, rootless A and B; drop 2 & 4 and spread wait for sources), extra notes from the Russell parent scale, Play/Stop toggles, Play all, and a tonal-gravity reading counted from the drone note (D-7 over G: G Mixolydian) | #16 |
+| Docs and the paused bookmark | #17 |
+| **Voice leading into a next chord** on the Voicings card: Smooth (smallest motion, aiming at the same voicing type) and Same shape (planing), each chord heard from its own drone note, each voice's move read toward home or away by gravity rank | #18 |
+| `CLAUDE.md` rule: textbook, university and academic sources first; Wikipedia only when nothing better is found, and say so | #19 |
+| Voicings sources upgraded to textbooks and university pages (Hutchinson, Berklee, SF Conservatory, Harvey Mudd, Stevens, Acevedo & Rush, Feezell); **drop 2 & 4 ships** | #20 |
+| **Spread voicing** (Hutchinson's five notes: root, 7th and 3rd, then two parent-scale tones, keeping the chord's own colour tones); Smooth leads five voices into a triad; keys light only for notes on the keyboard | #21 |
 
 ## Decisions to remember
 
@@ -94,29 +99,37 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **Voice-leading layer** (sound and arranging library, layer 2): a Next
-   chord field on the Voicings card, with Smooth and Same shape (planing)
-   ways in, each chord heard from its own drone note (David). The design is
-   in `docs/superpowers/specs/2026-11-24-voice-leading-design.md`; settle
-   its three open questions with David, then plan and build.
-2. **Later library layers:** instrument ranges and timbres, horn sections,
-   and the tension map.
-3. **Form & Gravity lab** and the **book check** (see "Open ideas" 1).
-4. **Deferred minors from the #15/#16 reviews:**
-   - the octave-2 bass lights a phantom key on the keyboard
-   - no text names the voicing sounding during Play all
-   - rows rebuild on each chord change, so focus is lost
-   - the toggle changes both its name and `aria-pressed`
-   - a few spelling and wording details
-   - a bass that times out stays on the organ for the session
-   - a pad note shorter than ~1.9 s would be silent
-   - the loudness test covers the bass and organ only
+1. **Later library layers** (the sound and arranging library): instrument
+   ranges and timbres, horn sections (big band section writing), and the
+   tension map (inside/outside, tension and release, coupled with tonal
+   gravity).
+2. **Form & Gravity lab** and the **book check** (see "Open ideas" 1).
+3. **Drop 2 and drop 3 still cite Wikipedia and lesson sites:** Open Music
+   Theory defines them but blocks automated reading. A page number from a
+   Berklee Press book (Pease & Pullig, *Modern Jazz Voicings*) or a pasted
+   passage would upgrade them.
+4. **Deferred minors:**
+   - from #21: Smooth into a triad triples the new root; 7♭9's spread tops
+     out a 3rd apart; the empty "Waiting for sources" line leaves a small
+     gap; Same shape from Spread into a triad reads "Not for this chord"
+   - from #18: summary grammar ("four are held"); the held-note summary
+     doesn't name the rank change; "moves in parallel" at a shift of 0;
+     `#next-chord` lacks `aria-invalid`; the lead row lacks `aria-current`;
+     a bass → organ fallback keeps bass-sized step drones
+   - from #15/#16: no text names the voicing sounding during Play all;
+     rows rebuild on each chord change, so focus is lost; the toggle changes
+     both its name and `aria-pressed`; a bass that times out stays on the
+     organ for the session; a pad note shorter than ~1.9 s would be silent;
+     the loudness test covers the bass and organ only
 
 Working notes:
-- The environment "David Petry sites" now allows the research hosts used
-  for theory checks: scholar.colorado.edu, files.mcclimon.org,
-  www.diva-portal.org, jazzimproviser.com, www.italianpiano.com,
-  www.andyfrench.co.uk and en.wikipedia.org.
+- The environment "David Petry sites" allows the research hosts used for
+  theory checks: university and open-textbook sites (Puget Sound, Pressbooks,
+  U of Minnesota, Harvey Mudd, Stevens, Berklee, SF Conservatory, Rutgers,
+  LibreTexts, tobyrush.com, learnmusictheory.net) plus scholar.colorado.edu,
+  files.mcclimon.org, www.diva-portal.org, jazzimproviser.com,
+  www.italianpiano.com, www.andyfrench.co.uk and en.wikipedia.org. Pressbooks
+  sites refuse automated reading even when allowed.
 - Since #13 the first press loads the piano, so browser tests must wait for
   playback (`playing(page)` in `tests/e2e.test.mjs`) before reading what
   plays.
