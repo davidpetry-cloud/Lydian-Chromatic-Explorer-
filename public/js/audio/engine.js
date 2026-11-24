@@ -6,6 +6,9 @@
 // attack, with a short high "tine" partial for the ping.
 import { midiToFreq } from '../theory/notes.js';
 import { loadPiano, pickSample } from './piano.js';
+import { organVoice, padVoice, SYNTH_RELEASE } from './synths.js';
+
+const SYNTHS = { organ: organVoice, pad: padVoice };
 
 const ATTACK = 0.005;
 const RELEASE = 0.15;
@@ -118,6 +121,14 @@ export function createEngine({
     return v;
   }
 
+  // One key of a made-in-the-browser instrument (organ or pad).
+  function synthVoice(instrument, midi, at, gain) {
+    const v = SYNTHS[instrument](ctx, master, midi, at, gain);
+    voices.add(v);
+    v.oscs[0].onended = () => { voices.delete(v); v.out.disconnect(); };
+    return v;
+  }
+
   function release(v, at, fade = RELEASE) {
     const g = v.out.gain;
     if (v.start > at) {
@@ -157,8 +168,16 @@ export function createEngine({
     context: () => ctx,
     /** Which sound plays: 'off' (not started), 'loading', 'piano' or 'electric'. */
     sound: () => sound,
-    note(midi, at, dur, { gain = 0.18 } = {}) {
+    note(midi, at, dur, { gain = 0.18, instrument = 'piano' } = {}) {
       if (!ctx || sound === 'loading' || sound === 'off') return;
+      if (SYNTHS[instrument]) {
+        const v = synthVoice(instrument, midi, at, gain);
+        const off = at + Math.max(0.05, dur - SYNTH_RELEASE[instrument]);
+        v.out.gain.cancelScheduledValues(off);
+        v.out.gain.setTargetAtTime(0, off, SYNTH_RELEASE[instrument]);
+        v.oscs.forEach((o) => o.stop(off + SYNTH_RELEASE[instrument] * 6));
+        return;
+      }
       if (samples) {
         const v = pianoVoice(midi, at, gain);
         // Let go of the key: the damper comes down.
@@ -172,6 +191,16 @@ export function createEngine({
       const off = at + Math.max(ATTACK * 2, dur - RELEASE);
       v.out.gain.setTargetAtTime(0, off, RELEASE / 4);
       v.oscs.forEach((o) => o.stop(off + RELEASE + 0.05));
+    },
+    /**
+     * Holds notes on a sustaining instrument (organ or pad) until the returned
+     * function releases them, over `fade` seconds. Stop and stopAll() release
+     * them too.
+     */
+    hold(midis, at, { gain = 0.12, instrument = 'organ' } = {}) {
+      if (!ctx || !SYNTHS[instrument]) return () => {};
+      const held = midis.map((m) => synthVoice(instrument, m, at, gain));
+      return (fade) => held.forEach((v) => { if (voices.has(v)) release(v, ctx.currentTime, fade); });
     },
     /** Lets go of every sounding note, over `fade` seconds (a quick release by default). */
     stopAll(fade) {

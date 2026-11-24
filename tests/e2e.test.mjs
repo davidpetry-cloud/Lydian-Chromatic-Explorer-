@@ -394,6 +394,34 @@ test('the chord table scrolls from the keyboard at phone width, so the Note colu
   await page.close();
 });
 
+test('organ and pad drones hold steadily, then fall silent when released (real audio graph)', async () => {
+  const { page } = await open();
+  const result = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    async function render(instrument) {
+      class Offline extends OfflineAudioContext {
+        constructor() { super(1, 44100 * 4, 44100); }
+        get state() { return 'running'; }
+      }
+      const engine = createEngine({ AudioContextCtor: Offline, volume: 1, loadSamples: async () => new Map() });
+      await engine.resume();
+      const ctx = engine.context();
+      engine.hold([48, 55], 0, { gain: 0.12, instrument });
+      ctx.suspend(3).then(() => { engine.stopAll(0.1); ctx.resume(); });
+      const x = (await ctx.startRendering()).getChannelData(0);
+      const rms = (a, b) => { const w = x.subarray(a * 44100, b * 44100); return Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length); };
+      return { early: rms(instrument === 'pad' ? 1.6 : 0.2, instrument === 'pad' ? 2.0 : 0.6), late: rms(2.5, 2.9), after: rms(3.3, 3.5) };
+    }
+    return { organ: await render('organ'), pad: await render('pad') };
+  });
+  for (const [name, r] of Object.entries(result)) {
+    assert.ok(r.early > 0.01, `${name} sounds: ${JSON.stringify(r)}`);
+    assert.ok(r.late > r.early * 0.5, `${name} holds: ${JSON.stringify(r)}`);
+    assert.ok(r.after < 0.002, `${name} stops: ${JSON.stringify(r)}`);
+  }
+  await page.close();
+});
+
 test('a note plays the recorded piano from this site: it strikes, rings and dies away', async () => {
   const { page, problems } = await open();
   const shape = await page.evaluate(async () => {

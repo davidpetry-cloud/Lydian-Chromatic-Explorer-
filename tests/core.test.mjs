@@ -54,6 +54,8 @@ function fakes() {
     now: () => clock.t,
     resume: async () => {},
     note(midi, at, dur, opts) { this.notes.push({ midi, at, dur, ...opts }); },
+    holds: [], released: 0,
+    hold(midis, at, opts) { this.holds.push({ midis, at, ...opts }); return () => { this.released += 1; }; },
     stopAll(fade) { this.stops += 1; this.fades.push(fade); },
   };
   const opts = {
@@ -158,6 +160,44 @@ test('a scale run can hold a drone underneath, struck on each bar and stopped wi
   f.engine.notes.length = 0;
   f.clock.t = 10; f.tick();
   assert.ok(f.engine.notes.every((n) => n.midi >= 62), 'no drone after switching');
+});
+
+test('an organ drone is held as one voice, not re-struck, and released on Stop', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play({ kind: 'drone', steps: [[48, 55]], bpm: 60, loop: true, label: 'd', droneSound: 'organ' });
+  for (const at of [2, 4, 6, 8, 10]) { f.clock.t = at; f.tick(); }
+  assert.equal(f.engine.holds.length, 1);
+  assert.deepEqual(f.engine.holds[0].midis, [48, 55]);
+  assert.equal(f.engine.holds[0].instrument, 'organ');
+  assert.equal(f.engine.notes.length, 0);
+  t.stop('user');
+  assert.equal(f.engine.released, 1);
+});
+
+test('a held pad under a scale run is released by a hidden tab and by the idle stop', () => {
+  for (const reason of ['hidden', 'idle']) {
+    const f = fakes();
+    const t = createTransport(f.engine, f.opts);
+    t.play(pattern(60, { loop: true, drone: [48, 55], droneSound: 'pad' }));
+    assert.equal(f.engine.holds.length, 1);
+    if (reason === 'hidden') t.stop('hidden');
+    else { f.clock.t = 21 * 60; f.tick(); }
+    assert.equal(t.isPlaying(), false, reason);
+    assert.equal(f.engine.released, 1, reason);
+  }
+});
+
+test('an upright-bass drone is plucked every 2 beats', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, f.opts);
+  t.play({ kind: 'drone', steps: [[36]], bpm: 60, loop: true, label: 'd', droneSound: 'bass' });
+  f.clock.t = 5; f.tick();
+  const at = f.engine.notes.map((n) => n.at);
+  assert.ok(at.length >= 3);
+  assert.ok(at.slice(1).every((x, i) => Math.abs(x - at[i] - 2) < 1e-9), JSON.stringify(at));
+  assert.equal(f.engine.notes[0].instrument, 'bass');
+  assert.equal(f.engine.notes[0].dur, 2);
 });
 
 test('looping patterns fade out at the end of the bar limit, striking nothing after it', () => {
