@@ -171,13 +171,15 @@ nothing is copied.
 
 ## Voice leading (2026-11-24)
 
-**How this was checked:** Wikipedia's "Voice leading" and "Parallel
-harmony" were read in full; the other rows rest on search summaries.
+**How this was checked:** textbooks and teaching sources first (David,
+2026-11-24: "better sources than Wikipedia before going to Wiki"). The rows
+rest on search summaries of these pages; Wikipedia's "Voice leading" and
+"Parallel harmony" agree but are not cited.
 
 | Way in | Definition used | Sources | What they say | Verdict |
 |---|---|---|---|---|
-| Smooth | Each of the four voices moves to a tone of the next chord by the smallest total motion; common tones stay; voices don't cross | wikipedia-voice-leading, rwu-part-writing, harmony-musicianship-common-tone | The "rule of the shortest way": keep common tones, and move the other parts to the closest note of the next chord. The textbooks: keep the common tone and move the other voices to the nearest chord tones | Verified |
-| Same shape (planing) | Same chord type: the whole shape moves in parallel by the root interval. A different chord type: the same voicing type of the next chord, placed nearest | wikipedia-parallel-harmony, learnmusictheory-planing | Parallel harmony, also called harmonic planing, is the parallel movement of melodies. The handout: whole chords moving in parallel; chromatic planing keeps the exact intervals, diatonic planing follows a scale | Verified. Exact parallel motion = chromatic planing; "same voicing type" when the chord type changes is the app's reading of the looser, diatonic kind |
+| Smooth | Each of the four voices moves to a tone of the next chord by the smallest total motion; common tones stay; voices don't cross | rwu-part-writing, harmony-musicianship-common-tone | Two open textbooks: keep the common tone in its voice and move the other voices to the nearest chord tones of the next chord | Verified |
+| Same shape (planing) | Same chord type: the whole shape moves in parallel by the root interval. A different chord type: the same voicing type of the next chord, placed nearest | hutchinson-planing, learnmusictheory-planing | Hutchinson: parallelism, or planing, moves every voice of a chord in parallel (Debussy, Ravel). Feezell: whole chords moving in parallel; chromatic planing keeps the exact intervals, diatonic planing follows a scale | Verified. Exact parallel motion = chromatic planing; "same voicing type" when the chord type changes is the app's reading of the looser, diatonic kind |
 
 **The app's conventions** (labelled as such):
 - **Smooth tie-breaks:** the smaller largest single move, then the lower

@@ -14,7 +14,7 @@ const OFFSETS = GRAVITY_DEGREES.map((d) => SEMITONES[d]);
 const mod12 = (x) => ((x % 12) + 12) % 12;
 
 /** Rank 1–12 of a pitch class, counted from the centre (works for any spelling of the centre). */
-const rankFrom = (centre, p) => OFFSETS.indexOf(mod12(p - pc(centre))) + 1;
+export const rankFrom = (centre, p) => OFFSETS.indexOf(mod12(p - pc(centre))) + 1;
 
 // How to spell a pitch class: as the chord or parent scale spells it, else from the gravity order.
 function spell(p, centre, spellings) {

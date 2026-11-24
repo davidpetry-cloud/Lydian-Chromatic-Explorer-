@@ -38,11 +38,10 @@ export const SOURCES = Object.freeze([
   s('pianowithjonny-rootless', 'Piano With Jonny, “Rootless Voicings.”', 'https://pianowithjonny.com/piano-lessons/rootless-voicings/', 'secondary'),
   s('tjps-rootless', 'The Jazz Piano Site, “Rootless Chord Voicings.”', 'https://www.thejazzpianosite.com/?p=458', 'secondary'),
   s('pianogroove-spread', 'PianoGroove, “How To Play 3-Note Spread Voicings.”', 'https://www.pianogroove.com/jazz-piano-lessons/misty-3-note-spread-voicings/', 'secondary'),
-  s('wikipedia-voice-leading', 'Wikipedia, “Voice leading” (the rule of the shortest way).', 'https://en.wikipedia.org/wiki/Voice_leading', 'secondary'),
   s('rwu-part-writing', 'Western Harmonic Practice I (Roger Williams University, Pressbooks), “Root-Position Connection of Chords in the Major Mode.”', 'https://rwu.pressbooks.pub/musictheory/chapter/root-position-connection-of-chords-in-the-major-mode/', 'secondary'),
   s('harmony-musicianship-common-tone', 'Harmony and Musicianship with Solfège (Pressbooks): keeping common tones and moving to the nearest chord tones.', 'https://pressbooks.pub/harmonyandmusicianshipwithsolfege/?p=60', 'secondary'),
-  s('wikipedia-parallel-harmony', 'Wikipedia, “Parallel harmony” (harmonic planing).', 'https://en.wikipedia.org/wiki/Parallel_harmony', 'secondary'),
-  s('learnmusictheory-planing', 'LearnMusicTheory.net, “Parallelism (Planing) and Impressionism” (handout).', 'https://learnmusictheory.net/PDFs/pdffiles/06-06-ParallelismPlaningImpressionism.pdf', 'secondary'),
+  s('hutchinson-planing', 'Robert Hutchinson, Music Theory for the 21st-Century Classroom (University of Puget Sound), §32.1 “Impressionism”: parallelism, or planing.', 'https://musictheory.pugetsound.edu/mt21c/Impressionism.html', 'secondary'),
+  s('learnmusictheory-planing', 'Mark Feezell, LearnMusicTheory.net, “Parallelism (Planing) and Impressionism” (handout).', 'https://learnmusictheory.net/PDFs/pdffiles/06-06-ParallelismPlaningImpressionism.pdf', 'secondary'),
   s('mcclimon', 'Michael McClimon, “Reconceptualizing the Lydian Chromatic Concept” (conference slides).', 'https://files.mcclimon.org/projects/lcc-smt-slides.pdf', 'secondary'),
   s('kvr-forum', 'KVR Audio Music Theory Forum, “George Russell’s Lydian Chromatic Concept of Tonal…,” page 2.', 'https://www.kvraudio.com/forum/viewtopic.php?t=227223&start=15', 'secondary'),
 ]);
