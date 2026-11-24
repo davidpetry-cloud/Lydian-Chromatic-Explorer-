@@ -31,6 +31,18 @@ async function enterChord(page, text) {
   await page.press('#chord-text', 'Enter');
 }
 
+test('the app carries its maker’s name: in the header, the footer and the page metadata', async () => {
+  const { page, problems } = await open();
+  const by = page.locator('.app-header .brand-by a');
+  assert.equal(await by.textContent(), 'David Petry');
+  assert.equal(await by.getAttribute('href'), 'https://david-petry.netlify.app/');
+  assert.equal(await page.getAttribute('meta[name="author"]', 'content'), 'David Petry');
+  assert.match(await page.textContent('.app-footer'), /Made by David Petry/);
+  assert.equal(await page.getAttribute('.app-footer a[href*="LICENSE"]', 'href'), 'https://github.com/davidpetry-cloud/Lydian-Chromatic-Explorer-/blob/main/LICENSE');
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
 test('the app loads cleanly under the CSP', async () => {
   const { page, problems } = await open();
   assert.deepEqual(problems, []);
@@ -169,16 +181,110 @@ test('reference search filters the glossary as you type', async () => {
   await page.close();
 });
 
+test('a sus chord is heard from the drone note when it is one of its Lydian tonics', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Csus4');
+  await page.waitForFunction(() => /F Lydian/.test(document.getElementById('parent-name').textContent));
+  await page.selectOption('#drone-on', 'other');
+  await page.selectOption('#drone-other', 'Bb');
+  await page.waitForFunction(() => /B♭ Lydian/.test(document.getElementById('parent-name').textContent));
+  assert.match(await page.textContent('#voicings-heard'), /B♭/);
+  await page.selectOption('#drone-other', 'D');
+  await page.waitForFunction(() => /^F Lydian/.test(document.getElementById('parent-name').textContent));
+  await page.close();
+});
+
+test('a sus chord shows its Lydian tonics, and Hear from sets the drone (and keeps it)', async () => {
+  const { page, problems } = await open();
+  assert.equal(await page.isHidden('#sus-panel'), true, 'no panel for Cmaj7');
+  await enterChord(page, 'Csus4');
+  await page.waitForFunction(() => !document.getElementById('sus-panel').hidden);
+  assert.match(await page.textContent('#sus-readings'), /no single parent scale.*Also read as: Fsus2 · G7sus4 \(no 5th\)/s);
+  const buttons = page.locator('#sus-tonics button');
+  assert.deepEqual(await buttons.allTextContents(), ['Hear from F', 'Hear from B♭', 'Hear from E♭', 'Hear from A♭', 'Hear from D♭']);
+  assert.equal(await buttons.nth(0).getAttribute('aria-pressed'), 'true');
+  assert.match(await page.textContent('#sus-ladder'), /D♭ major pentatonic/);
+  await buttons.nth(1).click();
+  await page.waitForFunction(() => /B♭ Lydian/.test(document.getElementById('parent-name').textContent));
+  assert.equal(await page.inputValue('#drone-on'), 'other');
+  assert.equal(await page.inputValue('#drone-other'), 'Bb');
+  assert.equal(await page.locator('#sus-tonics button').nth(1).getAttribute('aria-pressed'), 'true');
+  assert.match(await page.evaluate(() => localStorage.getItem('lce.drone')), /"note":"Bb"/);
+  await enterChord(page, 'Cmaj7');
+  await page.waitForFunction(() => document.getElementById('sus-panel').hidden);
+  assert.equal(await page.inputValue('#drone-other'), 'Bb', 'Hear from is a lasting drone setting (David)');
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('a sus chord on a double-sharp root renders, and survives a reload', async () => {
+  const { page, problems } = await open();
+  await enterChord(page, 'Exsus4');
+  await page.waitForFunction(() => !document.getElementById('sus-panel').hidden);
+  await page.reload();
+  await page.waitForFunction(() => /E𝄪sus4/.test(document.getElementById('chord-name').textContent));
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('a playing lead into a sus chord follows a drone change even without the held drone', async () => {
+  const { page } = await open();
+  await page.uncheck('#hold-tonic');
+  await page.selectOption('#lead-from', 'quartal');
+  await nextChord(page, 'Csus4');
+  await lead(page, 'Smooth').locator('button').click();
+  await playing(page);
+  const target = () => page.evaluate(async () => (await import('/js/main.js')).app.transport.current()?.steps[1].slice(1));
+  assert.ok((await target()).includes(59), 'heard from F Lydian first: B natural');
+  await page.selectOption('#drone-on', 'other');
+  await page.selectOption('#drone-other', 'Bb');
+  await page.waitForTimeout(300);
+  const now = await target();
+  assert.ok(now.includes(58) && !now.includes(59), `the sound follows the screen (B♭ Lydian): ${now}`);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('Hear from is announced even while another view is playing', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Csus4');
+  await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    await app.engine.resume();
+    app.transport.play({ kind: 'drone', owner: 'gravity', steps: [[60]], durations: [4], loop: true, bpm: 80, label: 'Gravity test' });
+  });
+  await page.locator('#sus-tonics button', { hasText: 'B♭' }).click();
+  await page.waitForFunction(() => /Csus4: Lydian tonic B♭/.test(document.getElementById('live').textContent), null, { timeout: 3000 });
+  await page.evaluate(async () => (await import('/js/main.js')).app.transport.stop('user'));
+  await page.close();
+});
+
+test('Hear from while a scale plays switches it to the new parent', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Csus4');
+  await page.click('#play-scale');
+  await playing(page);
+  await page.locator('#sus-tonics button', { hasText: 'E♭' }).click();
+  await page.waitForFunction(() => /E♭ Lydian/.test(document.getElementById('now-playing').textContent));
+  await page.click('#stop');
+  await page.close();
+});
+
 test('the chord table lists verified chords and the book citation is there', async () => {
   const { page } = await open('/#reference');
   assert.ok(await page.locator('#chord-table tbody tr').count() >= 12);
   const sharp9 = page.locator('#chord-table tbody tr', { hasText: '7♯9' });
   assert.match(await sharp9.textContent(), /Auxiliary Diminished.*Lydian Diminished/s);
   assert.match(await page.textContent('#chord-table'), /Cm7b5\s*G♭ \(a tritone above the root\)/);
-  assert.deepEqual(await page.$$eval('#pending-list li', (lis) => lis.map((li) => li.textContent)), ['7sus4 (7sus4)']);
+  assert.equal(await page.locator('#pending-list li').count(), 0);
+  assert.equal(await page.isHidden('#h-pending'), true, 'nothing waits for sources, so the heading is hidden');
+  const sus4 = page.locator('#chord-table tbody tr', { hasText: 'Csus4' });
+  assert.match(await sus4.textContent(), /No single parent: F · B♭ · E♭ · A♭ · D♭/);
+  assert.match(await sus4.textContent(), /Lydian \(no single tonic\)/);
+  await page.fill('#ref-search', 'suspended');
+  assert.equal(await page.locator('#chord-table tbody tr:not([hidden])').count(), 4);
   assert.match(await page.textContent('#chord-table'), /Dm7|Cm7/);
   assert.match(await page.textContent('#sources-list'), /Concept Publishing, 2001/);
-  assert.ok(await page.locator('#pending-list li').count() >= 1);
   await page.close();
 });
 
@@ -572,7 +678,7 @@ test('Next chord: each chord heard from its own drone note, described not prescr
 
 test('Next chord: a chord the app does not know shows the reason and no rows', async () => {
   const { page } = await open();
-  for (const text of ['C7sus4', 'zz']) {
+  for (const text of ['C7sus9', 'zz']) {
     await nextChord(page, text);
     assert.match(await page.textContent('#next-chord-error'), /\w/);
     assert.equal(await page.getAttribute('#next-chord', 'aria-invalid'), 'true');

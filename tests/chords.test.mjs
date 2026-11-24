@@ -82,10 +82,8 @@ test('only verified rows are supported', () => {
   }
 });
 
-test('pending qualities are refused by default', () => {
-  const sus = QUALITIES['7sus4'];
-  assert.equal(sus.status, 'pending');
-  assert.ok(parseChord('C7sus4').error);
+test('7sus4 now parses (it ships with no single parent scale)', () => {
+  assert.ok(!parseChord('C7sus4').error);
 });
 
 test('verified rows cite known sources', () => {
@@ -197,9 +195,9 @@ test('every verified chord parses on every picker root (no impossible spellings)
   }
 });
 
-test('28 chord types are verified now; only 7sus4 waits', () => {
-  assert.equal(SUPPORTED_QUALITIES.length, 28);
-  assert.deepEqual(Object.values(QUALITIES).filter((x) => x.status !== 'verified').map((x) => x.id), ['7sus4']);
+test('32 chord types are verified now, the four sus chords included; none waits', () => {
+  assert.equal(SUPPORTED_QUALITIES.length, 32);
+  assert.deepEqual(Object.values(QUALITIES).filter((x) => x.status !== 'verified').map((x) => x.id), []);
 });
 
 test('slash chords carry a bass note and keep the analysis', () => {

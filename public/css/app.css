@@ -53,6 +53,8 @@ a:hover { color: var(--accent-top); }
 }
 .brand { margin: 0; font-weight: 600; color: var(--white); display: flex; align-items: center; gap: 8px; }
 .brand-mark { color: var(--amber); font-size: 1.3em; }
+.brand-by { color: var(--muted2); font-weight: 400; font-size: var(--fs-sm); }
+.brand-by a { color: inherit; }
 .tabs { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
 .tab {
   display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px;
@@ -82,6 +84,8 @@ main:focus { outline: none; }
 .btn:hover, .icon-btn:hover { background: var(--card-hover); }
 .btn-primary { background: var(--amber); color: var(--on-accent); border-color: var(--amber); }
 .btn-primary:hover { background: var(--accent-top); }
+.sus-panel { margin: 0 0 1em; }
+.sus-tonics { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 1em; }
 .btn[aria-pressed="true"] { background: var(--amber-dim); border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber); }
 
 .field { display: flex; flex-direction: column; gap: 4px; }

@@ -39,8 +39,10 @@ test('unknown note sets get a friendly message', () => {
   assert.equal(sym([60, 64, 67, 68]), 'A♭maj7#5/C'); // C E G A♭ is really A♭maj7♯5, here over C
 });
 
-test('chords still waiting on sources are not named', () => {
-  assert.ok(recognizeChord([60, 65, 67, 70]).error); // C7sus4: no source places it yet
+test('sus chords are named by their bass note', () => {
+  assert.equal(recognizeChord([60, 65, 67, 70]).chord.symbol, 'C7sus4');
+  assert.equal(recognizeChord([48, 53, 55]).chord.symbol, 'Csus4');
+  assert.equal(recognizeChord([53, 55, 60]).chord.symbol, 'Fsus2');
 });
 
 test('roots are spelled like the root picker', () => {

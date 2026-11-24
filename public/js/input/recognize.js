@@ -16,7 +16,7 @@ const SHAPES = SUPPORTED_QUALITIES.map((id) => ({ id, shape: key(semis(id)) }));
 // Players often leave out the perfect 5th of seventh-family chords
 // (sources: docs/theory-sources.md). These are tried only after every exact
 // match fails, so a full voicing always wins.
-const FIFTH_OPTIONAL = ['maj7', '6', '69', 'm7', '7', '9', '13', '7b9', '7s9'];
+const FIFTH_OPTIONAL = ['maj7', '6', '69', 'm7', '7', '9', '13', '7b9', '7s9', '7sus4', '7sus2'];
 const NO_FIFTH_SHAPES = SHAPES
   .filter((s) => FIFTH_OPTIONAL.includes(s.id))
   .map(({ id }) => { const set = semis(id); set.delete(7); return { id, shape: key(set) }; })

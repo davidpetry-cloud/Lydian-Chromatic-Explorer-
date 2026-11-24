@@ -17,8 +17,8 @@ const make = (tag, cls, text) => {
 };
 
 // Spell a MIDI note as this chord (or its parent scale) spells it.
-function speller(chord) {
-  const known = [...chordNotes(chord), ...lydianAnalysis(chord).parentNotes];
+function speller(chord, centre) {
+  const known = [...chordNotes(chord), ...lydianAnalysis(chord, { centre }).parentNotes];
   return (m) => { const n = known.find((x) => pc(x) === ((m % 12) + 12) % 12); return n ? noteName(n) : SHARPS[((m % 12) + 12) % 12]; };
 }
 
@@ -51,8 +51,8 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
     if (!next || !from) { showState(); return; }
     const centreA = getCentreFor(chord);
     const centreB = getCentreFor(next);
-    const spellA = speller(chord);
-    const spellB = speller(next);
+    const spellA = speller(chord, centreA);
+    const spellB = speller(next, centreB);
     $('lead-centres').textContent = `${chord.symbol} is heard from ${noteName(centreA)}, and ${next.symbol} from ${noteName(centreB)}: each chord from its own drone note.`;
     for (const way of WAYS) {
       const li = make('li', 'voicing lead-row');
@@ -61,9 +61,9 @@ export function mountLead({ app, getChord, getVoicings, getCentreFor, stepDroneF
       head.append(make('span', 'lead-name', way.name));
       let to = null;
       let note = '';
-      if (way.id === 'smooth') to = smoothInto(from.midis, next, from.id);
+      if (way.id === 'smooth') to = smoothInto(from.midis, next, from.id, { centre: centreB });
       else {
-        const r = planeInto(from.id, from.midis, chord, next);
+        const r = planeInto(from.id, from.midis, chord, next, { centre: centreB });
         if (r) {
           to = r.midis;
           const sameBass = pc(next.bass) === pc(chord.bass);
