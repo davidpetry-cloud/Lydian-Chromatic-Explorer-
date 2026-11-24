@@ -9,15 +9,18 @@
 import { parseNote, transpose, pc, noteName } from './notes.js';
 import { scaleNotes } from './scales.js';
 import { rankScales } from './gravity.js';
+import { lydianTonicsFor } from './sus.js';
 
-const q = (id, label, aliases, degrees, tonicDegree, parentScale, status = 'pending', sources = [], note = null) =>
-  Object.freeze({ id, label, aliases: Object.freeze(aliases), degrees: Object.freeze(degrees), tonicDegree, parentScale, status, sources: Object.freeze(sources), note });
+const q = (id, label, aliases, degrees, tonicDegree, parentScale, status = 'pending', sources = [], note = null, { noSingleParent = false } = {}) =>
+  Object.freeze({ id, label, aliases: Object.freeze(aliases), degrees: Object.freeze(degrees), tonicDegree, parentScale, status, sources: Object.freeze(sources), note, noSingleParent });
 // A tonic a tritone or a major third from the root has two spellings
 // (C → G♭ or F♯; C → E or F♭). The app takes whichever gives the parent
 // scale fewer accidentals (E♭ → A, not B𝄫), keeping the first on a tie.
 const RESPELL = Object.freeze({ b5: '#4', 3: 'b4' });
 const accidentals = (notes) => notes.reduce((n, note) => n + Math.abs(note.acc), 0);
 const CHART_A = ['french-chart-a', 'mcclimon'];
+const NO_SINGLE_PARENT = 'No single parent scale: it lies in several Lydian scales, listed in tonal-gravity order (the app’s convention, David’s reading).';
+const SUS = { noSingleParent: true };
 
 const ROWS = [
   q('maj', 'major', ['', 'maj', 'M'], ['1', '3', '5'], '1', 'lydian', 'verified', ['italianpiano', 'wikipedia-chord-scale']),
@@ -59,9 +62,15 @@ const ROWS = [
   q('m7b5', 'half-diminished', ['m7b5', 'ø', 'ø7', '-7b5'], ['1', 'b3', 'b5', 'b7'], 'b5', 'lydian', 'verified', CHART_A),
   q('dim', 'diminished', ['dim', '°', 'o'], ['1', 'b3', 'b5'], 'b5', 'lydian', 'verified', CHART_A,
     'Inferred (David’s choice): the sources name the half-diminished chord here, not this triad, which is that chord without its seventh.'),
-  // No source places a sus chord on Russell's chart, and its open, pentatonic
-  // sound fits several Lydian tonics at once (D7sus4 lies in C, F and B♭ Lydian).
-  q('7sus4', '7sus4', ['7sus4', '7sus'], ['1', '4', '5', 'b7'], null, null),
+  // Sus chords: Chart A names none, and their open, pentatonic sound lies in
+  // several Lydian scales at once, so they have no single parent (David,
+  // 2026-11-24). lydianAnalysis lists every Lydian tonic that holds them, in
+  // tonal-gravity order, and the drone picks the one heard.
+  q('sus4', 'sus4', ['sus4', 'sus'], ['1', '4', '5'], null, 'lydian', 'verified', ['hutchinson-sus', 'omt-lead-sheet'], NO_SINGLE_PARENT, SUS),
+  q('sus2', 'sus2', ['sus2'], ['1', '2', '5'], null, 'lydian', 'verified', ['hutchinson-sus', 'omt-lead-sheet'], NO_SINGLE_PARENT, SUS),
+  q('7sus4', '7sus4', ['7sus4', '7sus'], ['1', '4', '5', 'b7'], null, 'lydian', 'verified', ['hutchinson-chord-symbols', 'omt-lead-sheet'], NO_SINGLE_PARENT, SUS),
+  q('7sus2', '7sus2', ['7sus2'], ['1', '2', '5', 'b7'], null, 'lydian', 'verified', ['hutchinson-sus', 'omt-lead-sheet'],
+    `${NO_SINGLE_PARENT} Neither source names 7sus2: it is their sus2 (a 2nd in place of the 3rd) on a dominant 7th.`, SUS),
 ];
 
 export const QUALITIES = Object.freeze(Object.fromEntries(ROWS.map((r) => [r.id, r])));
@@ -75,9 +84,22 @@ export function chordNotes(chord) {
   return QUALITIES[chord.quality].degrees.map((d) => transpose(chord.root, d));
 }
 
-export function lydianAnalysis(chord) {
+/** Every Lydian tonic that holds the chord, most ingoing first (see sus.js). */
+export const lydianTonics = (chord) => lydianTonicsFor(chordNotes(chord).map(pc));
+
+/**
+ * The chord's Lydian tonic and parent scale. A sus chord has no single
+ * parent: its tonic is the listed one matching `centre` (the drone note, by
+ * pitch class), else the most ingoing.
+ */
+export function lydianAnalysis(chord, { centre = null } = {}) {
   const quality = QUALITIES[chord.quality];
   const chordPcs = new Set(chordNotes(chord).map(pc));
+  if (quality.noSingleParent) {
+    const tonics = lydianTonics(chord);
+    const tonic = (centre && tonics.find((t) => pc(t) === pc(centre))) || tonics[0];
+    return { tonic, parentScale: 'lydian', parentNotes: scaleNotes(tonic, 'lydian'), ladder: rankScales(tonic, chordPcs), tonics, noSingleParent: true };
+  }
   const analyse = (degree) => {
     const tonic = transpose(chord.root, degree);
     return {
@@ -99,7 +121,7 @@ export function lydianAnalysis(chord) {
     }
   }
   if (!best) throw failure;
-  return best;
+  return { ...best, tonics: [best.tonic], noSingleParent: false };
 }
 
 /** "Cmaj7" → { root, quality, symbol }, or { error } in plain words. */
@@ -127,7 +149,7 @@ export function parseChord(text, { allowPending = false } = {}) {
   }
   const id = ALIAS_TO_ID.get(qualityText);
   const quality = id && QUALITIES[id];
-  if (!quality || !quality.tonicDegree || (quality.status !== 'verified' && !allowPending)) {
+  if (!quality || !(quality.tonicDegree || quality.noSingleParent) || (quality.status !== 'verified' && !allowPending)) {
     return { error: `“${input}” isn't a chord I know yet. See Reference for the list.` };
   }
   if (pc(bass) === pc(root) && bass.letter === root.letter) bass = root; // Emaj7/E is just Emaj7

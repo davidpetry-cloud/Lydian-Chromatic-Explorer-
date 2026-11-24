@@ -175,10 +175,15 @@ test('the chord table lists verified chords and the book citation is there', asy
   const sharp9 = page.locator('#chord-table tbody tr', { hasText: '7♯9' });
   assert.match(await sharp9.textContent(), /Auxiliary Diminished.*Lydian Diminished/s);
   assert.match(await page.textContent('#chord-table'), /Cm7b5\s*G♭ \(a tritone above the root\)/);
-  assert.deepEqual(await page.$$eval('#pending-list li', (lis) => lis.map((li) => li.textContent)), ['7sus4 (7sus4)']);
+  assert.equal(await page.locator('#pending-list li').count(), 0);
+  assert.equal(await page.isHidden('#h-pending'), true, 'nothing waits for sources, so the heading is hidden');
+  const sus4 = page.locator('#chord-table tbody tr', { hasText: 'Csus4' });
+  assert.match(await sus4.textContent(), /No single parent: F · B♭ · E♭ · A♭ · D♭/);
+  assert.match(await sus4.textContent(), /Lydian \(no single tonic\)/);
+  await page.fill('#ref-search', 'suspended');
+  assert.equal(await page.locator('#chord-table tbody tr:not([hidden])').count(), 4);
   assert.match(await page.textContent('#chord-table'), /Dm7|Cm7/);
   assert.match(await page.textContent('#sources-list'), /Concept Publishing, 2001/);
-  assert.ok(await page.locator('#pending-list li').count() >= 1);
   await page.close();
 });
 
@@ -572,7 +577,7 @@ test('Next chord: each chord heard from its own drone note, described not prescr
 
 test('Next chord: a chord the app does not know shows the reason and no rows', async () => {
   const { page } = await open();
-  for (const text of ['C7sus4', 'zz']) {
+  for (const text of ['C7sus9', 'zz']) {
     await nextChord(page, text);
     assert.match(await page.textContent('#next-chord-error'), /\w/);
     assert.equal(await page.getAttribute('#next-chord', 'aria-invalid'), 'true');

@@ -52,13 +52,21 @@ export function mountReference() {
     const chord = parseChord(`C${q.aliases[0]}`);
     const a = lydianAnalysis(chord);
     const tr = make('tr');
-    const tonicWords = TONIC_WORDS[q.tonicDegree] ?? degreeLabel(q.tonicDegree);
-    for (const text of [q.label, chord.symbol, `${noteName(a.tonic)} (${tonicWords})`, scaleById(q.parentScale).name, q.note ?? '']) tr.append(make('td', { text }));
+    // A sus chord has no single parent: its row lists every Lydian tonic, in tonal-gravity order.
+    const tonicCell = q.noSingleParent ? `No single parent: ${a.tonics.map(noteName).join(' · ')}`
+      : `${noteName(a.tonic)} (${TONIC_WORDS[q.tonicDegree] ?? degreeLabel(q.tonicDegree)})`;
+    const scaleCell = q.noSingleParent ? `${scaleById(q.parentScale).name} (no single tonic)` : scaleById(q.parentScale).name;
+    for (const text of [q.label, chord.symbol, tonicCell, scaleCell, q.note ?? '']) tr.append(make('td', { text }));
     tbody.append(tr);
-    return { node: tr, haystack: fold([q.label, chord.symbol, ...q.aliases, scaleById(q.parentScale).name, q.note ?? '', 'chord'].join(' ')) };
+    const extra = q.noSingleParent ? ['sus', 'suspended', 'no single parent', ...a.tonics.map(noteName)] : [];
+    return { node: tr, haystack: fold([q.label, chord.symbol, ...q.aliases, scaleCell, q.note ?? '', 'chord', ...extra].join(' ')) };
   });
 
   const pending = document.getElementById('pending-list');
+  // Nothing waiting for sources: hide the heading and the empty list.
+  const waiting = Object.values(QUALITIES).some((x) => x.status !== 'verified');
+  pending.hidden = !waiting;
+  document.getElementById('h-pending').hidden = !waiting;
   for (const q of Object.values(QUALITIES).filter((x) => x.status !== 'verified')) {
     pending.append(make('li', { text: `${q.label} (${q.aliases.filter(Boolean)[0]})` }));
   }
