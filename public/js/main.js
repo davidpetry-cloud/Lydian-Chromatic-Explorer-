@@ -2,7 +2,7 @@
 // the saved chord, and the three views.
 import { mountThemeToggle } from './theme-toggle.js';
 import { viewFromHash, isViewHash, VIEWS } from './router.js';
-import { readPref, volumePref, stopAfterPref, writePref, describeLimit, STOP_AFTER_CHOICES } from './prefs.js';
+import { readPref, volumePref, stopAfterPref, writePref, describeLimit, STOP_AFTER_CHOICES, droneSoundPref } from './prefs.js';
 import { parseChord } from './theory/chords.js';
 import { createEngine } from './audio/engine.js';
 import { createTransport } from './audio/transport.js';
@@ -19,6 +19,10 @@ const DEFAULT_CHORD = 'Cmaj7';
 const waiting = new Map();
 let fellBack = false;
 function soundChanged(sound) {
+  if (sound === 'bass-fallback') {
+    announce("The upright bass recordings didn't load, so the drone plays on the organ instead.");
+    return;
+  }
   if (sound === 'loading') {
     for (const el of document.querySelectorAll('.now-playing')) {
       if (!waiting.has(el)) waiting.set(el, el.textContent);
@@ -40,6 +44,7 @@ export const app = {
   events: new EventTarget(),
 };
 app.transport = createTransport(app.engine, { limit: stopAfterPref() });
+app.droneSound = droneSoundPref(); // shared by Practice and Gravity
 
 // "Stop after" appears in Practice and Gravity; both show one shared setting.
 const stopAfter = [...document.querySelectorAll('.stop-after')];

@@ -360,6 +360,20 @@ test('stopAfterPref reads the saved limit in bars, defaulting to 8 (0 = until St
   });
 });
 
+test('droneSoundPref defaults to the organ and ignores junk', async () => {
+  const { droneSoundPref } = await import('../public/js/prefs.js');
+  const box = {};
+  withStorage({ getItem: (k) => box[k] ?? null, setItem: (k, v) => { box[k] = v; } }, () => {
+    assert.equal(droneSoundPref(), 'organ');
+    box['lce.droneSound'] = '"pad"';
+    assert.equal(droneSoundPref(), 'pad');
+    box['lce.droneSound'] = '"tuba"';
+    assert.equal(droneSoundPref(), 'organ');
+    box['lce.droneSound'] = '{';
+    assert.equal(droneSoundPref(), 'organ');
+  });
+});
+
 test('volumePref reads the saved volume, clamped, defaulting to 70', async () => {
   const { volumePref } = await import('../public/js/prefs.js');
   const box = {};

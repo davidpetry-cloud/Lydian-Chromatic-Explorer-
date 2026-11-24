@@ -236,6 +236,8 @@ export function createEngine({
       const held = midis.map((m) => synthVoice(instrument, m, at, gain));
       return (fade) => held.forEach((v) => { if (voices.has(v)) release(v, ctx.currentTime, fade); });
     },
+    /** How many voices are sounding or scheduled (for tests and stuck-note checks). */
+    voiceCount: () => voices.size,
     /** Lets go of every sounding note, over `fade` seconds (a quick release by default). */
     stopAll(fade) {
       if (!ctx) return;

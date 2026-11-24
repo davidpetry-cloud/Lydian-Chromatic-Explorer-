@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (after #13 and #14 went live: piano, Stop after, 28 chord types).
+Last updated: 2026-11-24 (Stop after in bars, drone sounds and a lower scale octave, in review in #15).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -37,6 +37,7 @@ stands, so any future session (or person) can pick up from here.
 | Learn tab: six sourced, playable sections on tonal gravity, voice leading and the bass | #11 |
 | Recorded grand piano (Salamander, CC BY 3.0) with the electric piano as fallback; **Stop after** (default 30 s) fades out drones, chord loops and scale runs; drones re-strike each bar; the chord loop holds its chord for the bar; Stop cancels a press still waiting for the piano | #13 |
 | 9 more chord types from Russell's Chart A: m6, m7♭5, dim (inferred), 7♯5, 7alt, m(maj7), dim7, 7♭9, 7♯9 (28 in all; 7sus4 waits) | #14 |
+| Scale runs an octave lower (octave 3, on the keyboard); **Stop after** in bars (2, 4, 6, 8 or until Stop; default 8); **Drone sound**: organ (default), synth pad, upright bass (VSCO 2 CE, CC0), piano, through a shared instrument format | #15 |
 
 ## Decisions to remember
 
@@ -52,8 +53,12 @@ stands, so any future session (or person) can pick up from here.
   address on the first press (`connect-src 'self'`). Natural (stretch)
   tuning kept, as a real piano is tuned. Logic Pro's sounds can't be used:
   Apple's licence forbids redistributing them as samples.
-- **Stop after** (30 s, 1, 2, 5 min, or until Stop; default 30 s, David's
-  choice) applies to looping patterns only; Learn examples always finish.
+- **Stop after** counts bars (2, 4, 6, 8 or until Stop; default 8, David's
+  choice), following tempo changes; it applies to looping patterns only, and
+  Learn examples always finish. Gravity counts at its 80 bpm.
+- **Instruments** (`public/js/audio/instruments.js`) are the start of the
+  future sound and arranging library: each says whether it holds or dies
+  away. Organ and pad drones are one held voice; piano and bass re-strike.
 - **Chords with two homes on Chart A** use the most ingoing one (David,
   2026-11-24), and the Reference table names the other. The two-source rule
   still comes first: 7♯9 uses the home both sources share (Auxiliary
@@ -82,10 +87,14 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **Form & Gravity lab** (gravity series, project 2): start with a short
-   brainstorm on how David pictures building a section.
-2. **Book check** whenever David has Russell's 4th edition or David
-   Baker's *Techniques of Improvisation, Vol. 1*. See "Open ideas" 1.
+1. **#15**: review, checks, then merge when David says.
+2. **Sound and arranging library** (David, 2026-11-24): instruments, ranges,
+   voicings (drop 2, clusters, big band section writing) and textures tied
+   to tension and release, and to inside and outside on the chromatic tonal
+   gravity; later score writing, an improviser and performance tools.
+   Brainstorm first. Open questions for David: what a player should do with
+   it first, and what he means by "coupled" and "entangled".
+3. **Form & Gravity lab** and the **book check** (see "Open ideas" 1).
 
 Working notes:
 - The environment "David Petry sites" now allows the research hosts used

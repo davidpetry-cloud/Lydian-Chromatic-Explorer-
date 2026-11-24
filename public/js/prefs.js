@@ -27,6 +27,12 @@ export function stopAfterPref() {
 /** How a "Stop after" limit reads in a sentence: "8 bars". */
 export const describeLimit = (bars) => `${bars} bars`;
 
+/** The saved drone sound: 'organ' (default), 'pad', 'bass' or 'piano'. */
+export function droneSoundPref() {
+  const v = readPref('lce.droneSound', 'organ');
+  return ['organ', 'pad', 'bass', 'piano'].includes(v) ? v : 'organ';
+}
+
 const DRONE_DEFAULT = Object.freeze({ mode: 'bass', note: 'C' });
 
 /** The saved drone choice, { mode, note }, falling back to the bass note. */

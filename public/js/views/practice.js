@@ -11,6 +11,7 @@ import { createKeyboard } from './keyboard.js';
 import { createFlashGate } from './flash-gate.js';
 import { writePref, volumePref, dronePref, describeLimit } from '../prefs.js';
 import { resolveDrone } from '../audio/drone.js';
+import { INSTRUMENTS, DRONE_SOUNDS, droneMidis as droneMidisFor } from '../audio/instruments.js';
 import { parseNote } from '../theory/notes.js';
 
 const $ = (id) => document.getElementById(id);
@@ -36,10 +37,8 @@ export function mountPractice({ app, announce, initialText }) {
   const DRONE_WORDS = { bass: 'the bass note', tonic: 'the Lydian tonic', root: 'the chord root', other: 'your chosen note' };
   const droneChoice = () => ({ mode: $('drone-on').value, note: $('drone-other').value });
   const droneNote = () => resolveDrone(droneChoice(), state.chord, state.analysis.tonic);
-  function droneMidis() {
-    const root = 48 + pc(droneNote());
-    return [root, root + 7];
-  }
+  const droneMidis = () => droneMidisFor(app.droneSound, pc(droneNote()));
+  const droneSoundWord = () => INSTRUMENTS[app.droneSound].name.toLowerCase();
 
 
   // The selected scale read from the chord root, when "Start on: Chord root" is chosen and the root is in it.
@@ -76,7 +75,8 @@ export function mountPractice({ app, announce, initialText }) {
   let pendingChordMessage = null;
 
   async function start(pattern) {
-    if (!(await app.transport.whenReady(app.engine.resume()))) return;
+    const ready = app.engine.resume().then(() => app.engine.ensure(pattern.droneSound ?? 'piano'));
+    if (!(await app.transport.whenReady(ready))) return;
     app.engine.setVolume(Number($('volume').value) / 100);
     app.transport.play({ ...pattern, owner: 'practice' });
     announce(pendingChordMessage ? `${pendingChordMessage} Playing ${pattern.label}.` : pattern.label);
@@ -94,12 +94,13 @@ export function mountPractice({ app, announce, initialText }) {
   function playScale() {
     const bpm = state.bpm;
     const label = scaleRunLabel(bpm);
-    start({ kind: 'scale', steps: scaleSteps(), bpm, loop: true, label, drone: $('hold-tonic').checked ? droneMidis() : null });
+    const held = $('hold-tonic').checked;
+    start({ kind: 'scale', steps: scaleSteps(), bpm, loop: true, label, drone: held ? droneMidis() : null, droneSound: held ? app.droneSound : undefined });
   }
 
   function playDrone() {
-    const label = `Drone on ${noteName(droneNote())}, ${DRONE_WORDS[droneChoice().mode]}`;
-    start({ kind: 'drone', steps: [droneMidis()], bpm: state.bpm, loop: true, label });
+    const label = `Drone on ${noteName(droneNote())}, ${DRONE_WORDS[droneChoice().mode]}, ${droneSoundWord()}`;
+    start({ kind: 'drone', steps: [droneMidis()], bpm: state.bpm, loop: true, label, droneSound: app.droneSound });
   }
 
   function playChordLoop() {
@@ -271,6 +272,16 @@ export function mountPractice({ app, announce, initialText }) {
     else if (kind === 'scale' && $('hold-tonic').checked) playScale();
   }
   $('drone-on').addEventListener('change', droneChanged);
+  for (const id of DRONE_SOUNDS) $('drone-sound').add(new Option(INSTRUMENTS[id].name, id));
+  $('drone-sound').value = app.droneSound;
+  $('drone-sound').addEventListener('change', () => {
+    if (!DRONE_SOUNDS.includes($('drone-sound').value)) return;
+    app.droneSound = $('drone-sound').value;
+    writePref('lce.droneSound', app.droneSound);
+    const kind = ours() ? app.transport.current().kind : null;
+    if (kind === 'drone') playDrone();
+    else if (kind === 'scale' && $('hold-tonic').checked) playScale();
+  });
   $('drone-other').addEventListener('change', droneChanged);
   $('start-on').addEventListener('change', () => { if (app.transport.current()?.kind === 'scale') playScale(); });
 
