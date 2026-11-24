@@ -18,15 +18,15 @@ const v = (id, name, description, sources, status = 'verified') =>
   Object.freeze({ id, name, description, sources: Object.freeze(sources), status });
 
 export const VOICINGS = Object.freeze([
-  v('close', 'Close', 'Four chord tones packed as tightly as they go, inside one octave.', ['wikipedia-voicing', 'tjps-close']),
+  v('close', 'Close', 'Four chord tones packed as tightly as they go, inside one octave.', ['hutchinson-jazz-voicings', 'haupers-berklee', 'sfcm-four-part']),
   v('drop2', 'Drop 2', 'Close position with the second note from the top moved down an octave: wider, warmer, still easy to hold.', ['wikipedia-voicing', 'pianogroove-drop2']),
   v('drop3', 'Drop 3', 'Close position with the third note from the top moved down an octave: wider still, with a gap in the middle.', ['wikipedia-voicing', 'bonedo-drop3']),
-  v('drop24', 'Drop 2 & 4', 'Close position with the second and fourth notes from the top moved down an octave.', ['wikipedia-voicing'], 'pending'),
+  v('drop24', 'Drop 2 & 4', 'Close position with the second and fourth notes from the top moved down an octave: wide and open, with room between every voice.', ['haupers-berklee', 'wikipedia-voicing']),
   v('spread', 'Spread', 'Chord tones spread wide across the keyboard.', ['pianogroove-spread'], 'pending'),
-  v('quartal', 'Quartal', 'Four notes stacked in fourths from the parent scale: open, modern and a little ambiguous.', ['wikipedia-quartal', 'pianogroove-quartal']),
-  v('cluster', 'Cluster', 'The 9th, the 3rd and the next two steps of the scale, packed in seconds within a fifth.', ['pianogroove-cluster', 'pianowithjonny-cluster']),
-  v('rootlessA', 'Rootless A', 'The 3rd at the bottom, then 5th (13th on a dominant), 7th and 9th: the root is left to the bass.', ['pianowithjonny-rootless', 'tjps-rootless']),
-  v('rootlessB', 'Rootless B', 'The 7th at the bottom, then 9th, 3rd and 5th (13th on a dominant): rootless A turned over.', ['pianowithjonny-rootless', 'tjps-rootless']),
+  v('quartal', 'Quartal', 'Four notes stacked in fourths from the parent scale: open, modern and a little ambiguous. One fourth may be augmented where the scale has one; some textbooks stack only perfect fourths.', ['hutchinson-quartal', 'acevedo-rush-quartal', 'brick-fourths']),
+  v('cluster', 'Cluster', 'The 9th, the 3rd and the next two steps of the scale, packed in seconds within a fifth.', ['brick-seconds', 'feezell-sonorities', 'pianogroove-cluster', 'pianowithjonny-cluster']),
+  v('rootlessA', 'Rootless A', 'The 3rd at the bottom, then 5th (13th on a dominant), 7th and 9th: the root is left to the bass.', ['keller-rootless', 'hutchinson-jazz-voicings', 'tjps-rootless']),
+  v('rootlessB', 'Rootless B', 'The 7th at the bottom, then 9th, 3rd and 5th (13th on a dominant): rootless A turned over.', ['keller-rootless', 'hutchinson-jazz-voicings', 'tjps-rootless']),
 ]);
 
 const mod12 = (x) => ((x % 12) + 12) % 12;

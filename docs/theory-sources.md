@@ -131,24 +131,35 @@ this name. This is one more reason for the book check.
 David Baker's *Techniques of Improvisation, Vol. 1: The Lydian Chromatic
 Concept* (Russell's former sideman) would make a strong second source.
 
-## Voicings (2026-11-24)
+## Voicings (2026-11-24, sources upgraded the same day)
 
-**How this was checked:** Wikipedia's "Voicing (music)", "Quartal and
-quintal harmony" and "Tone cluster" articles were read in full. The other
-rows rest on search summaries of the pages, as in the earlier rounds. The
-definitions are written in my own words in `public/js/theory/voicings.js`;
-nothing is copied.
+**How this was checked:** following the textbooks-first rule in `CLAUDE.md`,
+these pages were read in full on 2026-11-24: Hutchinson §31.7 and §32.3
+(University of Puget Sound open textbook), the San Francisco Conservatory
+four-part writing supplement, Mitch Haupers's Berklee lesson, Robert Keller's
+Harvey Mudd course notes, Acevedo and Rush's *Music Theory 21c*, Andy Brick's
+Stevens Institute class notes 4 and 6, and Mark Feezell's LearnMusicTheory.net
+handout. Earlier, Wikipedia's "Voicing (music)", "Quartal and quintal harmony"
+and "Tone cluster" were read in full. The lesson-site rows rest on search
+summaries. Every definition is written in my own words in
+`public/js/theory/voicings.js`; nothing is copied.
+
+**Couldn't be read:** Open Music Theory's "Jazz Voicings" chapter and
+*Harmony and Musicianship with Solfège* ch. 39 (both on Pressbooks) refuse
+automated reading, so nothing here rests on them. The Berklee Press
+arranging books (Pease and Pullig, *Modern Jazz Voicings*; Lowell and Pullig,
+*Arranging for Large Jazz Ensemble*) are print only and aren't cited.
 
 | Voicing | Definition used | Sources | What they say | Verdict |
 |---|---|---|---|---|
-| Close | The four tones as compact as possible, inside an octave | wikipedia-voicing, tjps-close | "close position (the most compact voicing)"; four-way close = a four-note close-position chord | Verified |
-| Drop 2 | From a four-note close voicing, the 2nd voice from the top moves down an octave | wikipedia-voicing, pianogroove-drop2 | "A drop-2 voicing lowers the second voice by an octave"; begin with a 4-note closed voicing, drop the 2nd note from the top an octave | Verified |
-| Drop 3 | Same, with the 3rd voice from the top | wikipedia-voicing, bonedo-drop3 | Voices are numbered from the top, and "drop-3" lowers the third; drop 3 drops the third-highest note | Verified |
-| Drop 2 & 4 | Same, with the 2nd and 4th voices | wikipedia-voicing | Gives the four drop-2-and-4 voicings of G7; no second source defines it | **Waiting for sources** |
-| Spread | — | pianogroove-spread, (open position: wikipedia-voicing) | One source: root with 3rd and 7th spread apart; another: any tones spaced wider than a third | **Sources differ**, so not shipped |
-| Quartal | Four notes stacked in fourths, using the parent scale's tones (a fourth may be augmented where the scale has it) | wikipedia-quartal, pianogroove-quartal | Quartal harmony is built mainly from fourths rather than thirds; quartal comping voicings for jazz piano | Verified |
-| Cluster | Four parent-scale tones in consecutive steps (seconds), spanning no more than a fifth, holding **one** of the 3rd and 7th: here the 3rd, from the step below it | pianogroove-cluster, pianowithjonny-cluster | Built from seconds, usually within a fifth; clusters don't contain both the 3rd and 7th. Sizes differ (three notes in one source, more in the other); the app uses four | Verified (the size is the app's choice) |
-| Rootless A / B | A: 3–5–7–9; B: 7–9–3–5. On dominant chords the 13th replaces the 5th (A: 3–13–7–9; B: 7–9–3–13). Only on major 7, minor 7 and dominant chord families | pianowithjonny-rootless, tjps-rootless | Type A 3-5-7-9, Type B 7-9-3-5; B is A with the bottom two notes moved to the top; dominants commonly use the 13th for the 5th | Verified |
+| Close | The four tones as compact as possible, inside an octave | hutchinson-jazz-voicings, haupers-berklee, sfcm-four-part | Hutchinson: the four upper notes "in close position" over the bass; Haupers: "4-way close" seventh chords; SFCM: close means no chord tone could fit between the upper voices | Verified |
+| Drop 2 | From a four-note close voicing, the 2nd voice from the top moves down an octave | wikipedia-voicing, pianogroove-drop2 | "A drop-2 voicing lowers the second voice by an octave"; begin with a 4-note closed voicing, drop the 2nd note from the top an octave | Verified. **Wikipedia and a lesson site only:** no textbook page defining it could be read (see above) |
+| Drop 3 | Same, with the 3rd voice from the top | wikipedia-voicing, bonedo-drop3 | Voices are numbered from the top, and "drop-3" lowers the third; drop 3 drops the third-highest note | Verified. **Wikipedia and a lesson site only**, as for drop 2 |
+| Drop 2 & 4 | Same, with the 2nd and 4th voices | haupers-berklee, wikipedia-voicing | Haupers: voices two and four of a four-way close chord are dropped an octave; Wikipedia gives the drop-2-and-4 voicings of G7 | **Verified** (now shipped). Wikipedia is the second source because no other readable one was found |
+| Spread | — | pianogroove-spread, hutchinson-jazz-voicings, (open position: wikipedia-voicing) | Hutchinson: 5-note "spread" voicings with the root, 3rd and 7th lowest and the rest above, often in fourths or fifths; PianoGroove: a 3-note root–3rd–7th spread; Wikipedia: any tones spaced wider | **Sources differ** on the number of notes, so not shipped. Hutchinson and PianoGroove agree on the root–3rd–7th base, so a sourced spread voicing is possible next |
+| Quartal | Four notes stacked in fourths, using the parent scale's tones; a fourth may be augmented where the scale has one | hutchinson-quartal, acevedo-rush-quartal, brick-fourths | Hutchinson: chords "stacked entirely (or mostly) in fourths"; Acevedo and Rush: built by stacking **perfect** fourths; Brick: a three-note stack may be P4–P4, P4–A4 or A4–P4 | Verified. **Sources differ on the augmented fourth:** the app follows Brick and says so in the row |
+| Cluster | Four parent-scale tones in consecutive steps (seconds), spanning no more than a fifth, holding **one** of the 3rd and 7th: here the 3rd, from the step below it | brick-seconds, feezell-sonorities, pianogroove-cluster, pianowithjonny-cluster | Brick: clusters are chords with most voices a second apart, and diatonic clusters keep to the scale or mode; Feezell: a stack of seconds within one octave; the jazz lesson sites add the within-a-fifth span and keep only one of the 3rd and 7th | Verified. The fifth span and the 3rd-not-7th rule come from the lesson sites; the textbooks allow up to an octave |
+| Rootless A / B | A: 3–5–7–9; B: 7–9–3–5. On dominant chords the 13th replaces the 5th (A: 3–13–7–9; B: 7–9–3–13). Only on major 7, minor 7 and dominant chord families | keller-rootless, hutchinson-jazz-voicings, tjps-rootless | Keller: Type A 3-5-7-9, Type B 7-9-3-5, and on dominants "we substitute the 6 (i.e. 13) for the 5"; Hutchinson: four close notes over the bass, usually with the 7th or 3rd lowest; The Jazz Piano Site gives the same A/B names | Verified |
 
 **The app's own conventions** (no source states them; labelled as such):
 - **Four tones for drop voicings:** a chord with four distinct tones uses

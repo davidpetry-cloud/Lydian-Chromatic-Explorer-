@@ -425,10 +425,10 @@ const row = (page, name) => page.locator('#voicings li', { has: page.locator('.v
 test('Voicings card: each sourced voicing of the chord, its notes, and the centre it is heard from', async () => {
   const { page, problems } = await open();
   assert.equal(await page.textContent('#h-voicings'), 'Voicings of Cmaj7');
-  assert.equal(await page.locator('#voicings li').count(), 7);
+  assert.equal(await page.locator('#voicings li').count(), 8);
   assert.match(await row(page, 'Close').textContent(), /B C E G over C/);
   assert.match(await page.textContent('#voicings-heard'), /heard from C.*C Lydian/);
-  assert.match(await page.textContent('#voicings-pending'), /Drop 2 & 4.*Spread/);
+  assert.equal(await page.textContent('#voicings-pending'), 'Waiting for sources: Spread.');
   await enterChord(page, 'Dm7/G');
   assert.match(await page.textContent('#voicings-heard'), /heard from G.*G Mixolydian/);
   assert.deepEqual(problems, []);
