@@ -256,3 +256,17 @@ input[type="range"] { min-height: 44px; accent-color: var(--amber); }
     transition-duration: 0.01ms !important; scroll-behavior: auto !important;
   }
 }
+
+/* Voicings card */
+.voicings-card { grid-column: 1 / -1; }
+.voicings-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.voicings-head h2 { margin: 0; }
+.voicings { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.voicing { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 12px; background: var(--card); }
+.voicing[aria-current="true"] { border-color: var(--amber); box-shadow: inset 0 0 0 2px var(--amber); }
+.voicing p { margin: 4px 0 0; }
+.voicing-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; }
+.voicing-name { color: var(--white); font-weight: 600; }
+.voicing-na { color: var(--muted2); font-size: var(--fs-sm); }
+.voicing-notes { color: var(--text); }
+.voicing-reading { font-size: var(--fs-sm); color: var(--teal); }

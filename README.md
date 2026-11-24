@@ -24,6 +24,11 @@ Concept of Tonal Organization*.
 Type slash chords (`Cmaj7/E`, `Dm7/G`) to choose the bass note; the drone
 plays that bass note by default (or the Lydian tonic, the root, or any note).
 
+The **Voicings** card plays your chord in sourced piano voicings (close,
+drop 2, drop 3, quartal, cluster, rootless A and B), each with a Play/Stop
+toggle and a tonal-gravity reading counted from your drone note, so the same
+chord can be heard from another centre (D-7 over G: G Mixolydian).
+
 The sound is a recorded grand piano (the Salamander Grand Piano, CC BY 3.0).
 The drone has its own sound: organ (default), synth pad, upright bass
 (VSCO 2 Community Edition, CC0) or piano. Drones, chord loops and scale runs
