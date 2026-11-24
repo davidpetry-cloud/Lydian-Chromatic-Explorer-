@@ -5,6 +5,7 @@
 import { noteName, spokenName, pc, parseNote, degreeLabel, asciiName } from '../theory/notes.js';
 import { GRAVITY_DEGREES, gravityOrder } from '../theory/gravity.js';
 import { PRINCIPAL_SCALES, scalePcs } from '../theory/scales.js';
+import { describeLimit } from '../prefs.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const ROOTS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -58,14 +59,17 @@ export function mountGravity({ app, announce }) {
     const n = nodes[rank - 1];
     const text = `${noteName(n.note)}: rank ${rank} of 12, ${MEANING[rank - 1]}.`;
     note.textContent = text;
+    // Wait for the piano first, so "Loading the piano" can't drown out the tone's description.
+    const ok = await app.transport.whenReady(app.engine.resume());
     announce(text);
-    await app.engine.resume();
+    if (!ok) return;
     const drone = 48 + pc(tonic);
     const label = `Drone on ${noteName(tonic)}, the Lydian tonic`;
     if (app.transport.current()?.label !== label) {
       app.transport.play({ kind: 'drone', owner: 'gravity', steps: [[drone, drone + 7]], bpm: 80, loop: true, label });
     }
     app.transport.poke();
+    app.transport.renew(); // exploring keeps the drone going; it fades only once you stop
     const midi = 60 + pc(n.note);
     app.engine.note(midi, app.engine.now() + 0.02, 1.2, { gain: 0.25 });
     n.g.classList.add('is-sounding');
@@ -155,7 +159,9 @@ export function mountGravity({ app, announce }) {
   app.events.addEventListener('tonic', (e) => setTonic(e.detail));
   const status = document.getElementById('gravity-status');
   app.transport.onPlay((p) => { status.textContent = `Playing: ${p.label}`; });
-  app.transport.onStop(() => { status.textContent = 'Silent.'; });
+  app.transport.onStop((reason) => {
+    status.textContent = reason === 'limit' ? `Faded out after ${describeLimit(app.transport.limit())}.` : 'Silent.';
+  });
 
   render();
   return { setTonic };

@@ -21,6 +21,11 @@ async function open(path = '/', { init, initArg } = {}) {
   return { page, problems };
 }
 
+/** Waits until a "now playing" line says Playing (the piano loads on the first press). */
+async function playing(page, sel = '#now-playing') {
+  await page.waitForFunction((q) => /^Playing/.test(document.querySelector(q).textContent), sel);
+}
+
 async function enterChord(page, text) {
   await page.fill('#chord-text', text);
   await page.press('#chord-text', 'Enter');
@@ -80,6 +85,29 @@ test('pressing Play twice then Stop leaves silence', async () => {
   await page.click('#stop');
   await page.waitForFunction(() => document.getElementById('live').textContent === 'Stopped');
   assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
+  await page.close();
+});
+
+test('Stop pressed while the piano loads keeps it silent (scale and keyboard key)', async () => {
+  const { page } = await open();
+  // Hold the recordings back until after Stop, so Stop really lands mid-load.
+  const held = [];
+  await page.route('**/audio/piano/**', (route) => { held.push(route); });
+  await page.click('#play-scale');
+  await page.locator('#keyboard [role="button"][tabindex="0"]').press('Enter');
+  await page.waitForFunction(() => document.getElementById('now-playing').textContent === 'Loading the piano…');
+  await page.click('#stop');
+  for (let i = 0; i < 50 && held.length < 25; i++) await page.waitForTimeout(50);
+  assert.equal(held.length, 25, 'every recording was held back until after Stop');
+  for (const r of held) await r.continue();
+  await page.waitForTimeout(1500);
+  const state = await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    return { playing: app.transport.isPlaying(), sound: app.engine.sound() };
+  });
+  assert.deepEqual(state, { playing: false, sound: 'piano' });
+  assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
+  assert.doesNotMatch(await page.textContent('#now-playing'), /Playing|Loading/);
   await page.close();
 });
 
@@ -248,6 +276,7 @@ test('no key flashes after Stop', async () => {
 test('the now-playing line follows a tempo change', async () => {
   const { page } = await open();
   await page.click('#play-scale');
+  await playing(page);
   await page.$eval('#bpm', (el) => { el.value = '120'; el.dispatchEvent(new Event('input')); });
   assert.match(await page.textContent('#now-playing'), /120 bpm/);
   await page.click('#stop');
@@ -277,7 +306,7 @@ test('the Gravity picker shows a tonic spelled outside the twelve roots', async 
   await page.close();
 });
 
-test('a drone sounds until stopAll, then falls silent (real audio graph)', async () => {
+test('a ringing chord sounds until stopAll, then falls silent (real audio graph)', async () => {
   const { page } = await open();
   const energy = await page.evaluate(async () => {
     const { createEngine } = await import('/js/audio/engine.js');
@@ -288,7 +317,8 @@ test('a drone sounds until stopAll, then falls silent (real audio graph)', async
     const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
     await engine.resume();
     const ctx = engine.context();
-    engine.drone([48, 55]);
+    engine.note(48, 0, 4, { gain: 0.12 });
+    engine.note(55, 0, 4, { gain: 0.12 });
     ctx.suspend(0.5).then(() => { engine.stopAll(); ctx.resume(); });
     const data = (await ctx.startRendering()).getChannelData(0);
     const rms = (a, b) => Math.sqrt(data.slice(a * 44100, b * 44100).reduce((s, v) => s + v * v, 0) / ((b - a) * 44100));
@@ -299,7 +329,7 @@ test('a drone sounds until stopAll, then falls silent (real audio graph)', async
   await page.close();
 });
 
-test('a note sounds like a struck electric-piano key: bright attack that mellows and fades', async () => {
+test('if the piano cannot load, a note sounds like a struck electric-piano key: bright attack that mellows and fades', async () => {
   const { page } = await open();
   const shape = await page.evaluate(async () => {
     const { createEngine } = await import('/js/audio/engine.js');
@@ -307,8 +337,9 @@ test('a note sounds like a struck electric-piano key: bright attack that mellows
       constructor() { super(1, 44100, 44100); }
       get state() { return 'running'; }
     }
-    const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
+    const engine = createEngine({ AudioContextCtor: Offline, volume: 1, loadSamples: async () => { throw new Error('offline'); } });
     await engine.resume();
+    if (engine.sound() !== 'electric') throw new Error(engine.sound());
     engine.note(57, 0, 1);
     const x = (await engine.context().startRendering()).getChannelData(0);
     const win = (a, b) => x.subarray(Math.round(a * 44100), Math.round(b * 44100));
@@ -324,6 +355,58 @@ test('a note sounds like a struck electric-piano key: bright attack that mellows
   await page.close();
 });
 
+test('a note plays the recorded piano from this site: it strikes, rings and dies away', async () => {
+  const { page, problems } = await open();
+  const shape = await page.evaluate(async () => {
+    const { createEngine } = await import('/js/audio/engine.js');
+    class Offline extends OfflineAudioContext {
+      constructor() { super(1, 44100 * 3, 44100); }
+      get state() { return 'running'; }
+    }
+    const engine = createEngine({ AudioContextCtor: Offline, volume: 1 });
+    await engine.resume();
+    engine.note(62, 0, 2.5); // D4: retuned from the D♯4 recording
+    const x = (await engine.context().startRendering()).getChannelData(0);
+    const rms = (a, b) => { const w = x.subarray(a * 44100, b * 44100); return Math.sqrt(w.reduce((s, v) => s + v * v, 0) / w.length); };
+    return { sound: engine.sound(), early: rms(0.02, 0.2), late: rms(2, 2.4), after: rms(2.8, 3) };
+  });
+  assert.equal(shape.sound, 'piano');
+  assert.ok(shape.early > 0.02, JSON.stringify(shape));
+  assert.ok(shape.late < shape.early * 0.5, `should die away: ${JSON.stringify(shape)}`);
+  assert.ok(shape.after < 0.002, `silent after the key is let go: ${JSON.stringify(shape)}`);
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('Stop after defaults to 30 seconds, is shared with Gravity, and is remembered', async () => {
+  const { page } = await open();
+  assert.equal(await page.inputValue('#stop-after'), '30');
+  const labels = await page.$$eval('#stop-after option', (os) => os.map((o) => o.textContent));
+  assert.deepEqual(labels, ['30 seconds', '1 minute', '2 minutes', '5 minutes', 'Until I press Stop']);
+  await page.selectOption('#stop-after', '120');
+  assert.equal(await page.inputValue('#gravity-stop-after'), '120');
+  await page.reload();
+  await page.waitForFunction(() => document.getElementById('tonic')?.textContent.length > 0);
+  assert.equal(await page.inputValue('#stop-after'), '120');
+  await page.goto(server.url + '/#gravity');
+  await page.selectOption('#gravity-stop-after', '0');
+  assert.equal(await page.inputValue('#stop-after'), '0');
+  await page.close();
+});
+
+test('pressing Drone loads the piano and plays it under the CSP', async () => {
+  const { page, problems } = await open();
+  const audio = [];
+  page.on('request', (r) => { if (r.url().includes('/audio/piano/')) audio.push(r.url()); });
+  await page.click('#drone');
+  await page.waitForFunction(() => /^Playing/.test(document.getElementById('now-playing').textContent));
+  assert.equal(audio.length, 25);
+  assert.ok(audio.every((u) => u.startsWith(server.url)));
+  assert.deepEqual(problems, []);
+  await page.click('#stop');
+  await page.close();
+});
+
 test('clicking a scale card selects it without playing', async () => {
   const { page } = await open();
   await page.locator('.ladder-card').nth(1).click();
@@ -332,6 +415,7 @@ test('clicking a scale card selects it without playing', async () => {
   assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
   assert.match(await page.textContent('#now-playing'), /Silent/);
   await page.click('#play-scale');
+  await playing(page);
   assert.match(await page.textContent('#now-playing'), /Lydian Augmented/);
   await page.click('#stop');
   await page.close();
@@ -344,6 +428,7 @@ test('scale cards show the notes from the chord root, with the familiar mode nam
   assert.match(await first.textContent(), /From C: C D E♭ F G A B♭ · C Dorian/);
   await page.selectOption('#start-on', 'root');
   await page.click('#play-scale');
+  await playing(page);
   assert.match(await page.textContent('#now-playing'), /E♭ Lydian from C \(C Dorian\)/);
   await page.click('#stop');
   await page.close();
@@ -354,11 +439,12 @@ test('the drone plays the bass note by default, and the picker changes it', asyn
   assert.equal(await page.inputValue('#drone-on'), 'bass');
   await enterChord(page, 'Cmaj7/E');
   await page.click('#drone');
+  await playing(page);
   assert.match(await page.textContent('#now-playing'), /Drone on E\b/);
   await page.selectOption('#drone-on', 'tonic');
   await enterChord(page, 'Cm7');
   await page.click('#drone');
-  assert.match(await page.textContent('#now-playing'), /Drone on E♭/);
+  await page.waitForFunction(() => /Drone on E♭/.test(document.getElementById('now-playing').textContent));
   assert.equal(await page.isVisible('#drone-other'), false);
   await page.selectOption('#drone-on', 'other');
   assert.equal(await page.isVisible('#drone-other'), true);

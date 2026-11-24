@@ -9,7 +9,7 @@ import { QUALITIES, chordNotes, lydianAnalysis } from '../theory/chords.js';
 import { mountChordInput } from '../input/chord-input.js';
 import { createKeyboard } from './keyboard.js';
 import { createFlashGate } from './flash-gate.js';
-import { writePref, volumePref, dronePref } from '../prefs.js';
+import { writePref, volumePref, dronePref, describeLimit } from '../prefs.js';
 import { resolveDrone } from '../audio/drone.js';
 import { parseNote } from '../theory/notes.js';
 
@@ -76,7 +76,7 @@ export function mountPractice({ app, announce, initialText }) {
   let pendingChordMessage = null;
 
   async function start(pattern) {
-    await app.engine.resume();
+    if (!(await app.transport.whenReady(app.engine.resume()))) return;
     app.engine.setVolume(Number($('volume').value) / 100);
     app.transport.play({ ...pattern, owner: 'practice' });
     announce(pendingChordMessage ? `${pendingChordMessage} Playing ${pattern.label}.` : pattern.label);
@@ -106,7 +106,8 @@ export function mountPractice({ app, announce, initialText }) {
     // The bass note sounds lowest (octave 2), the chord above it.
     const tones = [36 + pc(state.chord.bass), ...ascendingMidis(chordNotes(state.chord), 3).slice(0, -1)];
     const label = chordLoopLabel(state.bpm);
-    start({ kind: 'chordLoop', steps: [tones, [], [], []], bpm: state.bpm, loop: true, label });
+    // Struck once a bar and held, like a pianist comping on the downbeat.
+    start({ kind: 'chordLoop', steps: [tones], durations: [4], bpm: state.bpm, loop: true, label });
   }
 
   // Practice only follows its own playback; a Learn example or a Gravity
@@ -122,7 +123,7 @@ export function mountPractice({ app, announce, initialText }) {
   }
 
   async function playKey(midi) {
-    await app.engine.resume();
+    if (!(await app.transport.whenReady(app.engine.resume(), 'key'))) return;
     app.transport.poke();
     app.engine.note(midi, app.engine.now() + 0.01, 0.6);
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) keyboard.flash(midi, 600);
@@ -243,11 +244,12 @@ export function mountPractice({ app, announce, initialText }) {
     pending.add(id);
   });
   app.transport.onPlay(showPlaying);
-  app.transport.onStop(() => {
+  app.transport.onStop((reason) => {
     pending.forEach(clearTimeout);
     pending.clear();
     keyboard.clearFlashes();
     showPlaying(null);
+    if (reason === 'limit') $('now-playing').textContent = `Faded out after ${describeLimit(app.transport.limit())}. Press play to go again.`;
   });
 
   $('play-scale').addEventListener('click', playScale);
