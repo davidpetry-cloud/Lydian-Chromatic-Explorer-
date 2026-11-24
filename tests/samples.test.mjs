@@ -50,3 +50,16 @@ test('if the bass recordings fail, the bass falls back to the organ and says so 
   assert.equal(await engine.ensure('bass'), 'fallback');
   assert.equal(sounds.filter((s) => s === 'bass-fallback').length, 1);
 });
+
+test('the bass says it is loading, then ready or falling back', async () => {
+  const seen = [];
+  const ok = createEngine({ AudioContextCtor: FakeCtx, loadSamples: async () => new Map(), loadBass: async () => new Map(), onSound: (x) => seen.push(x) });
+  await ok.resume();
+  await ok.ensure('bass');
+  assert.deepEqual(seen.filter((x) => x.startsWith('bass')), ['bass-loading', 'bass-ready']);
+  seen.length = 0;
+  const bad = createEngine({ AudioContextCtor: FakeCtx, loadSamples: async () => new Map(), loadBass: async () => { throw new Error('x'); }, onSound: (x) => seen.push(x) });
+  await bad.resume();
+  await bad.ensure('bass');
+  assert.deepEqual(seen.filter((x) => x.startsWith('bass')), ['bass-loading', 'bass-fallback']);
+});

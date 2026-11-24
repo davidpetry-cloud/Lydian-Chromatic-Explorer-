@@ -19,19 +19,18 @@ const DEFAULT_CHORD = 'Cmaj7';
 const waiting = new Map();
 let fellBack = false;
 function soundChanged(sound) {
-  if (sound === 'bass-fallback') {
-    announce("The upright bass recordings didn't load, so the drone plays on the organ instead.");
-    return;
-  }
-  if (sound === 'loading') {
+  const loadingText = { loading: 'Loading the piano…', 'bass-loading': 'Loading the upright bass…' }[sound];
+  if (loadingText) {
     for (const el of document.querySelectorAll('.now-playing')) {
       if (!waiting.has(el)) waiting.set(el, el.textContent);
-      el.textContent = 'Loading the piano…';
+      el.textContent = loadingText;
     }
-    announce('Loading the piano');
+    announce(loadingText.slice(0, -1));
     return;
   }
-  for (const [el, text] of waiting) if (el.textContent === 'Loading the piano…') el.textContent = text;
+  // Loaded, or not: each line gets its own text back. (A bass that fell back
+  // to the organ is announced with the drone's own label, by the view.)
+  for (const [el, text] of waiting) if (/^Loading the /.test(el.textContent)) el.textContent = text;
   waiting.clear();
   if (sound === 'electric') announce("The piano recordings didn't load, so you're hearing the built-in electric piano instead.");
   if (sound === 'piano' && fellBack) announce('The piano has loaded after all.');

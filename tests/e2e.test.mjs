@@ -360,6 +360,42 @@ test('choosing the upright bass loads its 14 recordings from this site, on the f
   await page.close();
 });
 
+test('while the bass loads, the screen says so', async () => {
+  const { page } = await open();
+  await page.click('#drone');
+  await playing(page);
+  await page.click('#stop');
+  const held = [];
+  await page.route('**/audio/bass/**', (route) => { held.push(route); });
+  await page.selectOption('#drone-sound', 'bass');
+  await page.click('#drone');
+  await page.waitForFunction(() => document.getElementById('now-playing').textContent === 'Loading the upright bass…');
+  for (let i = 0; i < 50 && held.length < 14; i++) await page.waitForTimeout(50);
+  for (const r of held) await r.continue();
+  await playing(page);
+  assert.match(await page.textContent('#now-playing'), /upright bass/);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('if the bass cannot load, the drone plays a held organ and says so in its label', async () => {
+  const { page } = await open();
+  await page.route('**/audio/bass/**', (route) => route.fulfill({ status: 404, body: '' }));
+  await page.selectOption('#drone-sound', 'bass');
+  await page.click('#drone');
+  await playing(page);
+  assert.match(await page.textContent('#now-playing'), /organ \(the upright bass didn’t load\)/);
+  const state = await page.evaluate(async () => {
+    const { app } = await import('/js/main.js');
+    return { sound: app.transport.current().droneSound, notes: app.transport.current().steps[0] };
+  });
+  assert.equal(state.sound, 'organ');
+  assert.equal(state.notes.length, 2, 'root and fifth, held like the organ');
+  await page.waitForFunction(() => /upright bass didn’t load/.test(document.getElementById('live').textContent));
+  await page.click('#stop');
+  await page.close();
+});
+
 test('Stop pressed while the bass recordings load keeps it silent', async () => {
   const { page } = await open();
   await page.click('#drone'); // the piano and organ path loads first

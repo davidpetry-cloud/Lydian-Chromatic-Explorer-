@@ -213,16 +213,20 @@ export function createEngine({
     /**
      * Makes an instrument ready to play: loads the bass recordings on their
      * first use. Resolves 'ready', or 'fallback' when the bass couldn't load
-     * and the organ plays in its place (said once through onSound).
+     * and the organ plays in its place. Reports 'bass-loading' (again for
+     * each press while it loads), then 'bass-ready' or 'bass-fallback',
+     * through onSound.
      */
     async ensure(instrument) {
       if (instrument !== 'bass' || !ctx) return 'ready';
+      if (bassState === 'loading') onSound('bass-loading');
       if (bassState === 'off') {
         bassState = 'loading';
+        onSound('bass-loading');
         let timer;
         const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), loadTimeout * 1000); });
         bassLoading = Promise.race([loadBassSamples(ctx), timeout])
-          .then((map) => { bass = map; bassState = 'ready'; }, () => { bassState = 'failed'; onSound('bass-fallback'); })
+          .then((map) => { bass = map; bassState = 'ready'; onSound('bass-ready'); }, () => { bassState = 'failed'; onSound('bass-fallback'); })
           .finally(() => clearTimeout(timer));
       }
       await bassLoading;

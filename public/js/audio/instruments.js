@@ -20,6 +20,9 @@ export const INSTRUMENTS = Object.freeze({
 /** The choices for the drone's sound, in picker order. */
 export const DRONE_SOUNDS = Object.freeze(['organ', 'pad', 'bass', 'piano']);
 
+/** What a drone says when the upright bass couldn't load and the organ plays instead. */
+export const BASS_FALLBACK_WORDS = 'organ (the upright bass didn’t load)';
+
 /** The MIDI notes a drone on pitch class `pc` plays with this sound. */
 export function droneMidis(soundId, pc) {
   if (soundId === 'bass') return [36 + pc]; // a bassist's root, in octave 2

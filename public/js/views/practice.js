@@ -11,7 +11,7 @@ import { createKeyboard } from './keyboard.js';
 import { createFlashGate } from './flash-gate.js';
 import { writePref, volumePref, dronePref, describeLimit } from '../prefs.js';
 import { resolveDrone } from '../audio/drone.js';
-import { INSTRUMENTS, DRONE_SOUNDS, droneMidis as droneMidisFor } from '../audio/instruments.js';
+import { INSTRUMENTS, DRONE_SOUNDS, BASS_FALLBACK_WORDS, droneMidis as droneMidisFor } from '../audio/instruments.js';
 import { parseNote } from '../theory/notes.js';
 
 const $ = (id) => document.getElementById(id);
@@ -74,9 +74,25 @@ export function mountPractice({ app, announce, initialText }) {
   // so one message can't overwrite the other.
   let pendingChordMessage = null;
 
+  // The upright bass couldn't load: the drone plays a held organ instead, and says so.
+  function organInstead(pattern) {
+    const midis = droneMidisFor('organ', pc(droneNote()));
+    const words = `, ${INSTRUMENTS.bass.name.toLowerCase()}`;
+    return {
+      ...pattern,
+      droneSound: 'organ',
+      ...(pattern.kind === 'drone' ? { steps: [midis] } : { drone: midis }),
+      label: pattern.label.endsWith(words) ? `${pattern.label.slice(0, -words.length)}, ${BASS_FALLBACK_WORDS}` : `${pattern.label}; drone: ${BASS_FALLBACK_WORDS}`,
+    };
+  }
+
   async function start(pattern) {
-    const ready = app.engine.resume().then(() => app.engine.ensure(pattern.droneSound ?? 'piano'));
+    let outcome = 'ready';
+    const ready = app.engine.resume()
+      .then(() => app.engine.ensure(pattern.droneSound ?? 'piano'))
+      .then((r) => { outcome = r; });
     if (!(await app.transport.whenReady(ready))) return;
+    if (outcome === 'fallback') pattern = organInstead(pattern);
     app.engine.setVolume(Number($('volume').value) / 100);
     app.transport.play({ ...pattern, owner: 'practice' });
     announce(pendingChordMessage ? `${pendingChordMessage} Playing ${pattern.label}.` : pattern.label);

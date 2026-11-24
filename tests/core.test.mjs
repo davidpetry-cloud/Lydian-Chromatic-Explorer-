@@ -215,15 +215,41 @@ test('looping patterns fade out at the end of the bar limit, striking nothing af
   assert.equal(f.engine.fades.at(-1), 2, 'a two-second fade, not a cut');
 });
 
-test('a tempo change mid-loop still stops on the right bar line', () => {
+test('a tempo change mid-loop still stops on the bar line, with every beat heard', () => {
   const f = fakes();
   const t = createTransport(f.engine, { ...f.opts, limit: 2 });
-  t.play(pattern(60, { loop: true, bpm: 60 }));
-  f.clock.t = 4; f.tick(); // 4 beats at 60 bpm
-  t.setBpm(120);
-  f.clock.t = 5.9; f.tick(); // 4 + 3.8 beats
+  t.play(pattern(60, { loop: true, bpm: 60 })); // beats at 0.05, 1.05, 2.05 …
+  for (let at = 0; at <= 4.001; at += 0.025) { f.clock.t = at; f.tick(); }
+  t.setBpm(120); // beats 0–4 were scheduled at 60 bpm, so beat 5 is at 5.05, then every 0.5 s
+  for (let at = 4.025; at <= 6.5; at += 0.025) { f.clock.t = at; f.tick(); }
+  assert.equal(t.isPlaying(), true, 'the bar line is at 6.55 s');
+  assert.equal(f.engine.notes.length, 8, 'all 8 beats are struck');
+  f.clock.t = 6.6; f.tick();
+  assert.equal(t.isPlaying(), false);
+});
+
+test('a chord loop slowed mid-bar stops on its new bar line, not seconds late', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
+  t.play({ kind: 'chordLoop', steps: [[60, 64]], durations: [4], bpm: 120, loop: true, label: 'c' });
+  f.clock.t = 0.2; f.tick();
+  t.setBpm(40); // bar 2 was already due at 2.05 s; it then lasts 6 s, to 8.05 s
+  for (let at = 0.225; at <= 8.0; at += 0.025) { f.clock.t = at; f.tick(); }
   assert.equal(t.isPlaying(), true);
-  f.clock.t = 6.1; f.tick(); // 4 + 4.2 beats
+  assert.equal(f.engine.notes.length, 4, 'two chords of two notes');
+  f.clock.t = 8.1; f.tick();
+  assert.equal(t.isPlaying(), false);
+});
+
+test('a held organ drone follows a tempo change to its bar line', () => {
+  const f = fakes();
+  const t = createTransport(f.engine, { ...f.opts, limit: 2 });
+  t.play({ kind: 'drone', steps: [[48, 55]], bpm: 60, loop: true, label: 'd', droneSound: 'organ' });
+  f.clock.t = 4; f.tick(); // 3.95 beats since the start at 0.05 s
+  t.setBpm(120); // 4.05 beats left: 2.025 s
+  f.clock.t = 6.0; f.tick();
+  assert.equal(t.isPlaying(), true);
+  f.clock.t = 6.05; f.tick();
   assert.equal(t.isPlaying(), false);
 });
 

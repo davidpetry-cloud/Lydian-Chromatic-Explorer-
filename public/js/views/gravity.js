@@ -6,7 +6,7 @@ import { noteName, spokenName, pc, parseNote, degreeLabel, asciiName } from '../
 import { GRAVITY_DEGREES, gravityOrder } from '../theory/gravity.js';
 import { PRINCIPAL_SCALES, scalePcs } from '../theory/scales.js';
 import { describeLimit } from '../prefs.js';
-import { INSTRUMENTS, droneMidis } from '../audio/instruments.js';
+import { INSTRUMENTS, BASS_FALLBACK_WORDS, droneMidis } from '../audio/instruments.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const ROOTS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -61,11 +61,15 @@ export function mountGravity({ app, announce }) {
     const text = `${noteName(n.note)}: rank ${rank} of 12, ${MEANING[rank - 1]}.`;
     note.textContent = text;
     // Wait for the piano first, so "Loading the piano" can't drown out the tone's description.
-    const droneSound = app.droneSound;
-    const ok = await app.transport.whenReady(app.engine.resume().then(() => app.engine.ensure(droneSound)));
-    announce(text);
+    let outcome = 'ready';
+    const ready = app.engine.resume().then(() => app.engine.ensure(app.droneSound)).then((r) => { outcome = r; });
+    const ok = await app.transport.whenReady(ready);
+    // If the upright bass couldn't load, the drone is a held organ, and says so.
+    const droneSound = outcome === 'fallback' ? 'organ' : app.droneSound;
+    const words = outcome === 'fallback' ? BASS_FALLBACK_WORDS : INSTRUMENTS[droneSound].name.toLowerCase();
+    const label = `Drone on ${noteName(tonic)}, the Lydian tonic, ${words}`;
+    announce(outcome === 'fallback' ? `${text} ${label}.` : text);
     if (!ok) return;
-    const label = `Drone on ${noteName(tonic)}, the Lydian tonic, ${INSTRUMENTS[droneSound].name.toLowerCase()}`;
     if (app.transport.current()?.label !== label) {
       app.transport.play({ kind: 'drone', owner: 'gravity', steps: [droneMidis(droneSound, pc(tonic))], bpm: 80, loop: true, label, droneSound });
     }

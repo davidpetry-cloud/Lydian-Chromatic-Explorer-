@@ -5,8 +5,9 @@
 // plays on its instrument: a sustaining one (organ, pad) is one held voice;
 // one that dies away (piano, bass) is struck again every few beats.
 // Looping patterns fade out at the bar line of the player's "Stop after"
-// limit (counted in beats, so tempo changes are followed), and anything
-// stops itself after 20 minutes without input.
+// limit. Bars are counted on the note schedule itself (notes already
+// scheduled keep their time when the tempo changes), and anything stops
+// itself after 20 minutes without input.
 
 export const IDLE_SECONDS = 20 * 60;
 export const LIMIT_FADE = 2; // seconds
@@ -51,11 +52,17 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
 
   const loops = (pattern) => pattern.loop || pattern.kind === 'drone';
 
-  // Beats played so far, following tempo changes.
-  function advance(p, now) {
-    p.beatPos += ((now - p.lastRun) * p.bpm) / 60;
-    p.lastRun = now;
+  // The beat grid: a point whose time and beat are known exactly. It is the
+  // next scheduled step, or the next drone strike, or (for a held drone,
+  // which schedules nothing) an anchor moved along at each tempo change.
+  function grid(p) {
+    if (p.pattern.kind !== 'drone') return { time: p.nextTime, beat: p.nextBeat };
+    if (p.release) return { time: p.anchorTime, beat: p.anchorBeat };
+    return { time: p.nextDrone, beat: p.nextDroneBeat };
   }
+
+  // Which beat it is at `now` (fractional between grid points).
+  const beatAt = (p, now) => { const g = grid(p); return g.beat + ((now - g.time) * p.bpm) / 60; };
 
   // The beat at which a looping pattern ends (Infinity: until Stop).
   const endBeat = (p) => (limit && loops(p.pattern) ? p.limitFrom + limit * BAR : Infinity);
@@ -63,9 +70,8 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
   function run() {
     const p = current;
     const now = engine.now();
-    advance(p, now);
     if (now - p.lastPoke > IDLE_SECONDS) { stop('idle'); return; }
-    if (p.beatPos >= endBeat(p)) { stop('limit'); return; }
+    if (beatAt(p, now) >= endBeat(p)) { stop('limit'); return; }
     const beat = 60 / p.bpm;
     if (p.held && !p.release) {
       // A drone that dies away (piano, bass) is struck again every few beats.
@@ -103,7 +109,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     current = {
       pattern, bpm: pattern.bpm, index: 0, held: held ?? null, timer: null, lastPoke: now,
       nextTime: start, nextBeat: 0, nextDrone: start, nextDroneBeat: 0,
-      beatPos: 0, lastRun: now, limitFrom: 0,
+      anchorTime: start, anchorBeat: 0, limitFrom: 0,
       instrument: INSTRUMENTS[pattern.droneSound] ?? INSTRUMENTS.piano, release: null,
     };
     // A sustaining drone (organ, pad) is one held voice for the whole pattern.
@@ -120,7 +126,9 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     stop,
     setBpm(bpm) {
       if (!current) return;
-      advance(current, engine.now()); // beats so far count at the old tempo
+      const now = engine.now();
+      current.anchorBeat = beatAt(current, now); // a held drone counts its beats so far at the old tempo
+      current.anchorTime = now;
       current.bpm = bpm;
     },
     /** Bars a looping pattern plays before fading out; null or 0 = until Stop. */
@@ -140,9 +148,7 @@ export function createTransport(engine, { setTimer = setInterval, clearTimer = c
     },
     /** Restarts the "Stop after" bar count: the player is still actively using this sound. */
     renew() {
-      if (!current) return;
-      advance(current, engine.now());
-      current.limitFrom = current.beatPos;
+      if (current) current.limitFrom = beatAt(current, engine.now());
     },
     isPlaying: () => current !== null,
     current: () => current?.pattern ?? null,
