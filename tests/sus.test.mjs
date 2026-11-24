@@ -96,3 +96,20 @@ test('Drone on: Lydian tonic means the most ingoing tonic of a sus chord', () =>
   const sus4 = c('Csus4');
   assert.equal(noteName(resolveDrone({ mode: 'tonic' }, sus4, lydianAnalysis(sus4).tonic)), 'F');
 });
+
+// Task 3: the panel's words.
+import { susReadings, ladderLine } from '../public/js/theory/sus-readings.js';
+
+test('other names for the same notes', () => {
+  assert.deepEqual(susReadings(c('Csus4')), ['Fsus2', 'G7sus4 (no 5th)']);
+  assert.deepEqual(susReadings(c('Csus2')), ['Gsus4', 'D7sus4 (no 5th)']);
+  assert.deepEqual(susReadings(c('C7sus2')), []);
+  assert.deepEqual(susReadings(c('C7sus4')), []);
+  assert.deepEqual(susReadings(c('Ebsus4')), ['A♭sus2', 'B♭7sus4 (no 5th)'], 'spelled as the chord spells them');
+});
+
+test('the ladder line: five tonics make a major pentatonic', () => {
+  assert.equal(ladderLine(lydianTonics(c('Csus4'))), 'These tonics run down in fifths (Russell’s ladder): together they are the D♭ major pentatonic.');
+  assert.equal(ladderLine(lydianTonics(c('Csus2'))), 'These tonics run down in fifths (Russell’s ladder): together they are the A♭ major pentatonic.');
+  assert.equal(ladderLine(lydianTonics(c('C7sus4'))), 'These tonics run down in fifths (Russell’s ladder).');
+});

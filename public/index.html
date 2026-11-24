@@ -64,6 +64,12 @@
           <p class="tonic-line"><span class="tonic" id="tonic" aria-hidden="true"></span><span class="visually-hidden" id="tonic-spoken"></span><span class="tonic-chord" id="chord-name"></span></p>
           <p class="parent-line">Parent scale: <strong id="parent-name"></strong><br><span class="mono" id="parent-notes"></span></p>
           <p class="hint bass-note" id="bass-note"></p>
+          <div class="sus-panel" id="sus-panel" hidden>
+            <p id="sus-readings"></p>
+            <p class="hint" id="sus-tonics-label">Lydian tonics that hold it, ingoing → outgoing. Pick one to hear the chord from it (this sets the drone):</p>
+            <div class="sus-tonics" id="sus-tonics" role="group" aria-labelledby="sus-tonics-label"></div>
+            <p class="hint" id="sus-ladder"></p>
+          </div>
           <div class="gravity-strip" aria-hidden="true" id="gravity-strip"></div>
           <p class="hint" id="gravity-text"></p>
         </section>

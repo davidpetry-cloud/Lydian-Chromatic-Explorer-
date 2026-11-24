@@ -14,6 +14,7 @@ import { writePref, volumePref, dronePref, describeLimit } from '../prefs.js';
 import { resolveDrone } from '../audio/drone.js';
 import { INSTRUMENTS, DRONE_SOUNDS, BASS_FALLBACK_WORDS, droneMidis as droneMidisFor } from '../audio/instruments.js';
 import { parseNote } from '../theory/notes.js';
+import { susReadings, ladderLine } from '../theory/sus-readings.js';
 
 const $ = (id) => document.getElementById(id);
 const names = (notes) => notes.map(noteName).join(' ');
@@ -220,6 +221,33 @@ export function mountPractice({ app, announce, initialText }) {
     $('gravity-text').textContent = `Uses ${depth} of 12 tones, counted outward from ${noteName(tonic)}.`;
   }
 
+  // A sus chord has no single parent scale: list its Lydian tonics, each a
+  // "Hear from" button that sets the drone (David: a lasting drone setting).
+  function renderSus(chord, tones) {
+    const a = state.analysis;
+    $('sus-panel').hidden = !a.noSingleParent;
+    $('sus-tonics').replaceChildren();
+    if (!a.noSingleParent) return;
+    const readings = susReadings(chord);
+    $('sus-readings').textContent = `${chord.symbol} (${names(tones)}) has no single parent scale.${readings.length ? ` Also read as: ${readings.join(' · ')}.` : ''}`;
+    for (const t of a.tonics) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn';
+      b.textContent = `Hear from ${noteName(t)}`;
+      b.setAttribute('aria-pressed', String(pc(t) === pc(a.tonic)));
+      b.addEventListener('click', () => {
+        const option = [...$('drone-other').options].find((o) => pc(parseNote(o.value)) === pc(t));
+        $('drone-on').value = 'other';
+        $('drone-other').value = option.value;
+        droneChanged();
+        $('sus-tonics').querySelectorAll('button')[a.tonics.indexOf(t)]?.focus({ preventScroll: true });
+      });
+      $('sus-tonics').append(b);
+    }
+    $('sus-ladder').textContent = ladderLine(a.tonics);
+  }
+
   let firstChord = true;
   function onChord({ chord }) {
     state.chord = chord;
@@ -237,6 +265,7 @@ export function mountPractice({ app, announce, initialText }) {
     const inParent = state.analysis.parentNotes.some((n) => pc(n) === pc(chord.bass));
     $('bass-note').textContent = inParent ? ''
       : `The bass ${noteName(chord.bass)} isn't in ${$('parent-name').textContent}: it sounds as a pedal under this chord. Sources don't settle how Russell analyses that, so the parent shown is the chord's own.`;
+    renderSus(chord, tones);
     renderGravity();
     state.scaleId = state.analysis.parentScale;
     renderLadder(tones);

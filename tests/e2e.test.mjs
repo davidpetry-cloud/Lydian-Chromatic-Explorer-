@@ -182,6 +182,40 @@ test('a sus chord is heard from the drone note when it is one of its Lydian toni
   await page.close();
 });
 
+test('a sus chord shows its Lydian tonics, and Hear from sets the drone (and keeps it)', async () => {
+  const { page, problems } = await open();
+  assert.equal(await page.isHidden('#sus-panel'), true, 'no panel for Cmaj7');
+  await enterChord(page, 'Csus4');
+  await page.waitForFunction(() => !document.getElementById('sus-panel').hidden);
+  assert.match(await page.textContent('#sus-readings'), /no single parent scale.*Also read as: Fsus2 · G7sus4 \(no 5th\)/s);
+  const buttons = page.locator('#sus-tonics button');
+  assert.deepEqual(await buttons.allTextContents(), ['Hear from F', 'Hear from B♭', 'Hear from E♭', 'Hear from A♭', 'Hear from D♭']);
+  assert.equal(await buttons.nth(0).getAttribute('aria-pressed'), 'true');
+  assert.match(await page.textContent('#sus-ladder'), /D♭ major pentatonic/);
+  await buttons.nth(1).click();
+  await page.waitForFunction(() => /B♭ Lydian/.test(document.getElementById('parent-name').textContent));
+  assert.equal(await page.inputValue('#drone-on'), 'other');
+  assert.equal(await page.inputValue('#drone-other'), 'Bb');
+  assert.equal(await page.locator('#sus-tonics button').nth(1).getAttribute('aria-pressed'), 'true');
+  assert.match(await page.evaluate(() => localStorage.getItem('lce.drone')), /"note":"Bb"/);
+  await enterChord(page, 'Cmaj7');
+  await page.waitForFunction(() => document.getElementById('sus-panel').hidden);
+  assert.equal(await page.inputValue('#drone-other'), 'Bb', 'Hear from is a lasting drone setting (David)');
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('Hear from while a scale plays switches it to the new parent', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Csus4');
+  await page.click('#play-scale');
+  await playing(page);
+  await page.locator('#sus-tonics button', { hasText: 'E♭' }).click();
+  await page.waitForFunction(() => /E♭ Lydian/.test(document.getElementById('now-playing').textContent));
+  await page.click('#stop');
+  await page.close();
+});
+
 test('the chord table lists verified chords and the book citation is there', async () => {
   const { page } = await open('/#reference');
   assert.ok(await page.locator('#chord-table tbody tr').count() >= 12);
