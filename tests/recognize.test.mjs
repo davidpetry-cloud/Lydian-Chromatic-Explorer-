@@ -40,7 +40,7 @@ test('unknown note sets get a friendly message', () => {
 });
 
 test('chords still waiting on sources are not named', () => {
-  assert.ok(recognizeChord([60, 63, 66, 69]).error);
+  assert.ok(recognizeChord([60, 65, 67, 70]).error); // C7sus4: no source places it yet
 });
 
 test('roots are spelled like the root picker', () => {
@@ -91,4 +91,19 @@ test('MIDI: a non-root bass becomes a slash chord', () => {
   assert.equal(sym([64, 67, 71, 72]), 'Cmaj7/E');
   assert.equal(sym([60, 64, 67, 71]), 'Cmaj7');
   assert.equal(sym([57, 60, 64, 67]), 'Am7');
+});
+
+test('the new chord types are recognized, the bass deciding twins (Cm6 vs Am7♭5)', () => {
+  assert.equal(sym([60, 63, 67, 69]), 'Cm6');
+  assert.equal(sym([57, 60, 63, 67]), 'Am7b5');
+  assert.equal(sym([60, 63, 66, 69]), 'Cdim7');
+  assert.equal(sym([60, 64, 68, 70]), 'C7#5');
+  assert.equal(sym([60, 64, 67, 70, 73]), 'C7b9');
+  assert.equal(sym([60, 63, 67, 71]), 'Cm(maj7)');
+  assert.equal(sym([60, 63, 66]), 'Cdim');
+});
+
+test('7♭9 and 7♯9 are recognized without their fifth', () => {
+  assert.equal(sym([48, 64, 70, 73]), 'C7b9');
+  assert.equal(sym([48, 64, 70, 75]), 'C7#9');
 });

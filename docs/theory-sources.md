@@ -82,17 +82,62 @@ A second research round (search only) did **not** reach two sources for:
 
 The bass note never changes the Lydian analysis in this app. No source found treats inversions differently in Russell's system; if the book does, this is the place to record it.
 
+## Russell's Chart A: nine more chord types (2026-11-24)
+
+**How this was checked:** two independent reproductions of Russell's own
+tables, both read in full this time (not search summaries):
+
+- **french-chart-a:** Andy French, Part 6, reproduces **Chart A** from the
+  4th edition's inside cover. Chart A lists the principal and sub-principal
+  chordmodes for every mode of all seven principal scales.
+- **mcclimon:** McClimon's SMT slides quote Russell's table of **primary
+  modal tonics** (p. 29). It says which Lydian degree each chord family
+  sits on. The slides also reproduce Mark Levine's minor-scale harmony
+  table.
+
+Every row was also checked by pitch: the chord's notes lie in the parent
+scale on all 12 roots (`tests/chords.test.mjs`).
+
+**Rule for chords with more than one home (David, 2026-11-24):** where
+Chart A lists a chord in more than one scale, the app uses the **most
+ingoing** one, nearest plain Lydian in the order of the seven principal
+scales. This is the app's convention, not Russell's statement; it matches
+how dominant 7 already works (G7 → F Lydian, not G Lydian ♭7). The other
+homes still appear in the chord's ladder, and the app's Reference table
+names them in a Note column.
+
+| Quality | Tonic | Parent | Chart A cell | Second source | Verdict |
+|---|---|---|---|---|---|
+| minor 6 | ♭3 | Lydian | Lydian VI "min 6th" | mcclimon: p. 29, VI = "minor and altered minor chords" | Verified |
+| half-diminished (m7♭5) | ♭5 or ♯4, whichever spells the parent with fewer accidentals | Lydian | Lydian +IV "min 7th ♭5" | mcclimon: p. 29, +IV = "minor seventh ♭5" | Verified |
+| diminished triad | ♭5 / ♯4 | Lydian | Not named. It is m7♭5 without the 7th (Lydian +IV). | — | **Inferred**: David chose on 2026-11-24 to ship it so labelled. Its cited sources name m7♭5, not the triad. |
+| 7♯5 | 3 or ♭4, fewer accidentals | Lydian Augmented | LA +V "7th +5"; **also** LD VII, L♭7 II and Aux Aug II, +IV, +V | mcclimon: p. 29, +V = "seventh +5 chords" | Verified; other homes named |
+| altered (7alt) | 3 or ♭4 | Lydian Augmented | LA +V: "7th +5 ♭9", "+9 +11", "7th +5 +9", "7th +5 +11" | mcclimon: p. 29, +V = "seventh +5 chords" fixes the tonic. Levine's table confirms the notes (the altered chord is VII of melodic minor) but not the tonic. | Verified |
+| minor-major 7 | ♭3 | Lydian Augmented | LA VI "min +7"; **also** LD I "Dim Maj 7th" | mcclimon: p. 29, VI = "minor and altered minor chords" fixes the tonic. Levine (CmM7 = C melodic minor = E♭ Lydian Augmented) confirms the notes. | Verified; second home named |
+| diminished 7 | ♭5 / ♯4 | Lydian Diminished | LD +IV "Dim tetrachord"; **also** Aux Dim +IV | italianpiano: Russell derives the diminished seventh chord from Lydian Diminished. It names no mode, and may be reading "Dim Maj 7th" (see below). | Verified on the scale; **the tonic waits for the book check**, and the app says so |
+| 7♭9 | ♭7 | Lydian Diminished | LD II "7th ♭9"; **also** LD VII and the auxiliary diminished scales | mcclimon: p. 29, II = "seventh and altered seventh chords" | Verified; other homes named |
+| 7♯9 | ♭7 | **Auxiliary Diminished** | Aux Dim II "7th +9 +11"; **also** LD VII "7th +9" | mcclimon: p. 29 puts altered sevenths on **II** | Verified on the home **both** sources share. The two-source rule outranks the most-ingoing convention here. The app names the Lydian Diminished home. |
+
+**Russell's naming trap:** on Chart A, "Dim Maj 7th" (Lydian Diminished I)
+means 1 ♭3 5 7, a minor-major seventh, not a diminished seventh chord.
+italianpiano's "diminished seventh from Lydian Diminished" may come from
+this name. This is one more reason for the book check.
+
+**Book check wanted:**
+- 7♯9: confirm or correct.
+- The diminished triad.
+- Whether Russell has a principal home for chords Chart A lists twice.
+
+David Baker's *Techniques of Improvisation, Vol. 1: The Lydian Chromatic
+Concept* (Russell's former sideman) would make a strong second source.
+
 ## Sources differ, or not enough found
 
 These ship as `pending`: the app refuses them and lists them in Reference.
 
-| Quality | Provisional idea | Why it's pending |
-|---|---|---|
-| diminished 7 | Lydian Diminished (italianpiano) *or* Auxiliary Diminished (the plan, via the whole-half scale) | italianpiano says Russell derives the diminished seventh chord from Lydian Diminished; no second source. |
-| 7♯5 | Auxiliary Augmented on the root | The whole-tone scale is described, but no source links the chord to Russell's parent. |
-| 7♭9, 7♯9 | Auxiliary Diminished Blues on the root | As above. |
-| minor-major 7 | Lydian Diminished on the root | A search found no source tying it to Lydian Diminished. |
-| minor 6, half-diminished, diminished, 7sus4, altered | — | No source found. |
+| Quality | Why it's pending |
+|---|---|
+| 7sus4 | Chart A names no sus chord. Its open, pentatonic sound (David's point) fits several Lydian tonics at once: D7sus4 (D G A C) lies in C Lydian (II), F Lydian (VI) and B♭ Lydian (III). |
 
 ## Not yet used
 

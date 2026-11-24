@@ -1,6 +1,6 @@
 # Progress bookmark
 
-Last updated: 2026-11-24 (#13, piano sound and Stop after: checks green, final review in progress; merges when it's clear). A snapshot of where the Lydian Chromatic Explorer
+Last updated: 2026-11-24 (#13 live; #14, nine chord types from Russell's Chart A: checks green, theory review in progress).
 stands, so any future session (or person) can pick up from here.
 
 ## Live
@@ -36,12 +36,13 @@ stands, so any future session (or person) can pick up from here.
 | Slash chords and a bass-note drone everywhere (Drone on: bass, Lydian tonic, root, other) | #11 |
 | Learn tab: six sourced, playable sections on tonal gravity, voice leading and the bass | #11 |
 | Recorded grand piano (Salamander, CC BY 3.0) with the electric piano as fallback; **Stop after** (default 30 s) fades out drones, chord loops and scale runs; drones re-strike each bar; the chord loop holds its chord for the bar; Stop cancels a press still waiting for the piano | #13 |
+| 9 more chord types from Russell's Chart A: m6, m7♭5, dim (inferred), 7♯5, 7alt, m(maj7), dim7, 7♭9, 7♯9 (28 in all; 7sus4 waits) | #14 |
 
 ## Decisions to remember
 
 - **Dominant chords** take the Lydian scale a whole step below the root
   (G7 → F Lydian), following two sources on Russell's derivation.
-- **Only chords with two agreeing sources ship (19 types).** The rest are
+- **Only chords with two agreeing sources ship (28 types; 7sus4 waits).** The rest are
   listed in the app under "Sources differ". See `docs/theory-sources.md`.
 - **Hosting is Cloudflare, never Netlify,** because David's Netlify plan
   limits deploys.
@@ -53,6 +54,13 @@ stands, so any future session (or person) can pick up from here.
   Apple's licence forbids redistributing them as samples.
 - **Stop after** (30 s, 1, 2, 5 min, or until Stop; default 30 s, David's
   choice) applies to looping patterns only; Learn examples always finish.
+- **Chords with two homes on Chart A** use the most ingoing one (David,
+  2026-11-24), and the Reference table names the other. The two-source rule
+  still comes first: 7♯9 uses the home both sources share (Auxiliary
+  Diminished, tonic a whole step below), not the more ingoing one. Tonics a
+  tritone or major third away take the spelling with fewer accidentals. The diminished
+  triad ships as inferred (from m7♭5). 7sus4 waits: its pentatonic sound
+  fits several Lydian tonics.
 - **Two names for one scale:** Russell names a scale from the Lydian tonic
   (Cm7 → E♭ Lydian); cards also show it from the chord root (C Dorian),
   because players read it that way. Only the seven major-scale modes get
@@ -74,14 +82,13 @@ stands, so any future session (or person) can pick up from here.
 
 ## Next step
 
-1. **#13** (piano + Stop after): GitHub tests and the Cloudflare build pass;
-   David asked to merge once the checks pass. Fresh review done: its two
-   important findings (keyboard clicks during loading; drone dropouts below
-   48 bpm) and the useful minor ones are fixed, test-first.
-2. **More chord types** (David, 2026-11-24): diminished, dim7, m7♭5, 7♭9,
-   7♯9, 7♯5, minor-major 7, m6, 7sus4, altered. First check what each
-   needs (two agreeing sources, ideally Russell's book with page numbers;
-   see "Sources differ" in `docs/theory-sources.md`), then build.
+1. **#14** (chord types): GitHub tests and the Cloudflare build pass;
+   David asked to merge once the checks pass. Fresh theory review done;
+   its findings are fixed test-first (7♯9 home, double-flat tonics, the
+   keyboard-scrollable chord table, MIDI 7♭9/7♯9 without the 5th).
+2. **Book check** (whenever David has the 4th edition or David Baker's
+   *Techniques of Improvisation, Vol. 1*): 7♯9's home, the diminished
+   triad, and 7sus4. See `docs/theory-sources.md` (2026-11-24).
 3. Then the **Form & Gravity lab** (gravity series, project 2).
 
 ## Gravity series (agreed order)

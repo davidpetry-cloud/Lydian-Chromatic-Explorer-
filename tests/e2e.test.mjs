@@ -172,6 +172,10 @@ test('reference search filters the glossary as you type', async () => {
 test('the chord table lists verified chords and the book citation is there', async () => {
   const { page } = await open('/#reference');
   assert.ok(await page.locator('#chord-table tbody tr').count() >= 12);
+  const sharp9 = page.locator('#chord-table tbody tr', { hasText: '7♯9' });
+  assert.match(await sharp9.textContent(), /Auxiliary Diminished.*Lydian Diminished/s);
+  assert.match(await page.textContent('#chord-table'), /Cm7b5\s*G♭ \(a tritone above the root\)/);
+  assert.deepEqual(await page.$$eval('#pending-list li', (lis) => lis.map((li) => li.textContent)), ['7sus4 (7sus4)']);
   assert.match(await page.textContent('#chord-table'), /Dm7|Cm7/);
   assert.match(await page.textContent('#sources-list'), /Concept Publishing, 2001/);
   assert.ok(await page.locator('#pending-list li').count() >= 1);
@@ -237,6 +241,8 @@ test('playing state stays true across views', async () => {
   await page.click('#play-scale');
   await page.click('#tab-gravity');
   await page.locator('#gravity-circle .gnode[data-rank="3"]').click();
+  // The first press loads the piano, so wait for the drone to start.
+  await playing(page, '#gravity-status');
   assert.match(await page.textContent('#gravity-status'), /Drone on C/);
   await page.click('#tab-practice');
   assert.equal(await page.getAttribute('#play-scale', 'aria-pressed'), 'false');
@@ -266,6 +272,7 @@ test('no key flashes after Stop', async () => {
   const { page } = await open();
   await page.$eval('#bpm', (el) => { el.value = '200'; el.dispatchEvent(new Event('input')); });
   await page.click('#play-scale');
+  await playing(page);
   await page.waitForTimeout(500);
   await page.click('#stop');
   await page.waitForTimeout(150);
@@ -292,6 +299,7 @@ test('keys do not flash at all when motion is reduced', async () => {
       .observe(document.getElementById('keyboard'), { subtree: true, attributes: true, attributeFilter: ['class'] });
   });
   await page.click('#play-scale');
+  await playing(page);
   await page.waitForTimeout(900);
   await page.click('#stop');
   assert.equal(await page.evaluate(() => window.__flashes), 0);
@@ -352,6 +360,20 @@ test('if the piano cannot load, a note sounds like a struck electric-piano key: 
   assert.ok(shape.brightEarly > shape.brightLate * 1.5, `attack should be brighter than the ring: ${JSON.stringify(shape)}`);
   assert.ok(shape.late < shape.early, `should fade: ${JSON.stringify(shape)}`);
   assert.ok(shape.late > shape.early * 0.05, `should still ring: ${JSON.stringify(shape)}`);
+  await page.close();
+});
+
+test('the chord table scrolls from the keyboard at phone width, so the Note column is reachable', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 800 } });
+  await page.goto(server.url + '/#reference');
+  const scroller = page.locator('.table-scroll');
+  assert.equal(await scroller.getAttribute('tabindex'), '0');
+  assert.equal(await scroller.getAttribute('role'), 'region');
+  assert.equal(await scroller.getAttribute('aria-labelledby'), 'h-chords');
+  await scroller.focus();
+  for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
+  // Newer Chromium scrolls smoothly from the keyboard, so wait for the scroll to land.
+  await page.waitForFunction(() => document.querySelector('.table-scroll').scrollLeft > 0, null, { timeout: 3000 });
   await page.close();
 });
 
@@ -492,6 +514,7 @@ test('Learn: an example replaces whatever Practice was playing', async () => {
 test('Learn: the first chord is highlighted as soon as an example starts', async () => {
   const { page } = await open('/#learn');
   await page.locator('#learn-home-away .learn-play').click();
+  await playing(page); // the piano loads on the first press; then the highlight must be immediate
   await page.waitForFunction(() => document.querySelector('#learn-home-away .learn-chords li')?.getAttribute('aria-current') === 'true', null, { timeout: 1500 });
   await page.locator('#learn-home-away .learn-stop').click();
   await page.close();
@@ -500,6 +523,7 @@ test('Learn: the first chord is highlighted as soon as an example starts', async
 test('Learn: changing the Practice chord does not replace a playing example', async () => {
   const { page } = await open('/#learn');
   await page.locator('#learn-horizontal .learn-play').click();
+  await playing(page);
   await page.click('#tab-practice');
   await enterChord(page, 'G7');
   await page.waitForTimeout(300);
@@ -599,6 +623,7 @@ test('MIDI: one clear announcement per chord, and the heard line is not a second
   await page.click('#midi-connect');
   await page.waitForFunction(() => /Listening/.test(document.getElementById('midi-status').textContent));
   await page.click('#play-scale');
+  await playing(page);
   await page.evaluate(() => window.__midi.play([55, 59, 62, 65]));
   await page.waitForFunction(() => /G7: Lydian tonic F/.test(document.getElementById('live').textContent));
   assert.match(await page.textContent('#live'), /Playing F Lydian/);

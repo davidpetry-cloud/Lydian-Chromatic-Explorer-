@@ -7,7 +7,14 @@ import { scaleById } from '../theory/scales.js';
 import { noteName, degreeLabel } from '../theory/notes.js';
 
 const fold = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-const TONIC_WORDS = { 1: 'the root', b3: 'a minor third above the root', b7: 'a whole step below the root' };
+const TONIC_WORDS = {
+  1: 'the root',
+  b3: 'a minor third above the root',
+  b7: 'a whole step below the root',
+  3: 'a major third above the root',
+  b5: 'a tritone above the root',
+  b2: 'a half step above the root',
+};
 const VIEW_NAMES = { practice: 'Practice', gravity: 'Gravity' };
 
 const make = (tag, { cls, text, attrs } = {}) => {
@@ -46,9 +53,9 @@ export function mountReference() {
     const a = lydianAnalysis(chord);
     const tr = make('tr');
     const tonicWords = TONIC_WORDS[q.tonicDegree] ?? degreeLabel(q.tonicDegree);
-    for (const text of [q.label, chord.symbol, `${noteName(a.tonic)} (${tonicWords})`, scaleById(q.parentScale).name]) tr.append(make('td', { text }));
+    for (const text of [q.label, chord.symbol, `${noteName(a.tonic)} (${tonicWords})`, scaleById(q.parentScale).name, q.note ?? '']) tr.append(make('td', { text }));
     tbody.append(tr);
-    return { node: tr, haystack: fold([q.label, chord.symbol, ...q.aliases, scaleById(q.parentScale).name, 'chord'].join(' ')) };
+    return { node: tr, haystack: fold([q.label, chord.symbol, ...q.aliases, scaleById(q.parentScale).name, q.note ?? '', 'chord'].join(' ')) };
   });
 
   const pending = document.getElementById('pending-list');

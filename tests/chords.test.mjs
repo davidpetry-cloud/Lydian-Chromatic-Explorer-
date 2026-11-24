@@ -83,9 +83,9 @@ test('only verified rows are supported', () => {
 });
 
 test('pending qualities are refused by default', () => {
-  const m6 = QUALITIES.m6;
-  assert.equal(m6.status, 'pending');
-  assert.ok(parseChord('Cm6').error);
+  const sus = QUALITIES['7sus4'];
+  assert.equal(sus.status, 'pending');
+  assert.ok(parseChord('C7sus4').error);
 });
 
 test('verified rows cite known sources', () => {
@@ -131,8 +131,75 @@ test('new verified chord types: 7♯11 and extended chords', () => {
   }
 });
 
-test('19 chord types are verified now', () => {
-  assert.equal(SUPPORTED_QUALITIES.length, 19);
+test('Chart A chord types (Russell, 4th ed., inside cover): tonic and parent, most ingoing home', () => {
+  const cases = {
+    'Cm6': ['E♭', 'lydian'], // Lydian VI, "min 6th"
+    'Cm7b5': ['G♭', 'lydian'], // Lydian +IV, "min 7th ♭5"
+    'Cdim': ['G♭', 'lydian'], // inferred: the triad inside m7♭5
+    'C7#5': ['E', 'lydian-augmented'], // Lydian Augmented +V, "7th +5"
+    'C7alt': ['E', 'lydian-augmented'], // Lydian Augmented +V: ♯5 with ♭9, ♯9, ♯11
+    'Cm(maj7)': ['E♭', 'lydian-augmented'], // Lydian Augmented VI, "min +7"
+    'Cdim7': ['G♭', 'lydian-diminished'], // Lydian Diminished +IV, "Dim tetrachord"
+    'C7b9': ['B♭', 'lydian-diminished'], // Lydian Diminished II, "7th ♭9"
+    'C7#9': ['B♭', 'auxiliary-diminished'], // Aux Dim II "7th +9 +11", and p. 29: altered sevenths on II
+  };
+  for (const [text, [tonic, parent]] of Object.entries(cases)) {
+    const c = parseChord(text);
+    assert.ok(!c.error, `${text}: ${c.error}`);
+    const a = lydianAnalysis(c);
+    assert.equal(noteName(a.tonic), tonic, text);
+    assert.equal(a.parentScale, parent, text);
+  }
+});
+
+test('a tritone or major-third tonic takes whichever spelling needs fewer accidentals', () => {
+  const tonic = (t) => noteName(lydianAnalysis(parseChord(t)).tonic);
+  assert.equal(tonic('Cm7b5'), 'G♭');
+  assert.equal(tonic('Dbm7b5'), 'G');
+  assert.equal(tonic('Ebm7b5'), 'A');
+  assert.equal(tonic('Abm7b5'), 'D');
+  assert.equal(tonic('Ebdim'), 'A');
+  assert.equal(tonic('Ebdim7'), 'A');
+  assert.equal(tonic('Abdim7'), 'D');
+  assert.equal(tonic('C7#5'), 'E'); // a tie keeps the usual spelling
+  assert.equal(tonic('F#7alt'), 'B♭');
+  assert.equal(tonic('D#7#5'), 'G');
+});
+
+test('no verified chord on a picker root gets a double-sharp or double-flat tonic', () => {
+  for (const id of SUPPORTED_QUALITIES) {
+    for (const root of ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']) {
+      const t = lydianAnalysis(parseChord(root + QUALITIES[id].aliases[0])).tonic;
+      assert.ok(Math.abs(t.acc) < 2, `${root}${QUALITIES[id].aliases[0]} → ${noteName(t)}`);
+    }
+  }
+});
+
+test('typed sharp roots work for the major-third tonics too', () => {
+  for (const t of ['D#7#5', 'G#7#5', 'A#7alt', 'E#7#5', 'Gb7#9']) assert.ok(!parseChord(t).error, t);
+});
+
+test('chords with another home on Chart A, or inferred, say so', () => {
+  for (const id of ['7b9', '7s9', '7s5', '7alt', 'mmaj7', 'dim', 'dim7']) assert.match(QUALITIES[id].note ?? '', /\w/, id);
+  assert.match(QUALITIES.dim.note, /inferred/i);
+  assert.match(QUALITIES.mmaj7.note, /Lydian Diminished/);
+  assert.match(QUALITIES['7s9'].note, /Lydian Diminished/);
+  assert.match(QUALITIES['7b9'].note, /Lydian Diminished/);
+  assert.match(QUALITIES.dim7.note, /book check/i);
+});
+
+test('every verified chord parses on every picker root (no impossible spellings)', () => {
+  for (const id of SUPPORTED_QUALITIES) {
+    for (const root of ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']) {
+      const c = parseChord(root + QUALITIES[id].aliases[0]);
+      assert.ok(!c.error, `${root}${QUALITIES[id].aliases[0]}: ${c.error}`);
+    }
+  }
+});
+
+test('28 chord types are verified now; only 7sus4 waits', () => {
+  assert.equal(SUPPORTED_QUALITIES.length, 28);
+  assert.deepEqual(Object.values(QUALITIES).filter((x) => x.status !== 'verified').map((x) => x.id), ['7sus4']);
 });
 
 test('slash chords carry a bass note and keep the analysis', () => {
