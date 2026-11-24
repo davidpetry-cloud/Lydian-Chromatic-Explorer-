@@ -95,6 +95,30 @@ or as the sources define them). The bass note still sounds below them.
   octaves, inside C3–B4). The octave-2 bass is a separate bass voice, as a
   bassist would play it. *My call.*
 
+## Tonal gravity and modal freedom (David, 2026-11-24)
+
+- **Extra notes come from Russell's parent scale.** This is now David's
+  decision, not my call.
+- **Every row shows a gravity reading:**
+  - each note's rank in the order of tonal gravity (1–12), counted from the
+    **centre**
+  - a one-line reading of how far out the voicing reaches (its most outward
+    tone)
+  - **No resolution arrows.** David: "If it's going outward, it's not
+    necessarily going somewhere immediately." The wording describes and
+    never tells the player to resolve. Example: "reaches outward to F♯ (♯4);
+    it can stay there."
+- **The centre is the drone note** ("Drone on: Bass note / Lydian tonic /
+  Chord root / Other note"; default the bass note).
+  - Example: D-7 with the drone on G (or typed D-7/G) is counted from G.
+  - The card names the colour from the centre when it is a major-scale mode:
+    "heard from G: G Mixolydian".
+  - Russell's own analysis (Lydian tonic F, parent F Lydian) stays shown and
+    unchanged; the centre is an extra lens.
+- **Next step, not this one:** voice leading into a chosen next chord
+  (including modal planing, e.g. D-7 → E♭-7), with each voice's move marked
+  toward home or away, as a choice and never an obligation.
+
 ## Rules the builder must settle, with sources
 
 Each of these must be sourced or stated as the app's own convention in
