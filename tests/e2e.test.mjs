@@ -415,6 +415,93 @@ test('Stop pressed while the bass recordings load keeps it silent', async () => 
   await page.close();
 });
 
+const now = (page) => page.evaluate(async () => {
+  const { app } = await import('/js/main.js');
+  const p = app.transport.current();
+  return p && { kind: p.kind, voicingId: p.voicingId, voicingIds: p.voicingIds, label: p.label };
+});
+const row = (page, name) => page.locator('#voicings li', { has: page.locator('.voicing-name', { hasText: new RegExp(`^${name}$`) }) });
+
+test('Voicings card: each sourced voicing of the chord, its notes, and the centre it is heard from', async () => {
+  const { page, problems } = await open();
+  assert.equal(await page.textContent('#h-voicings'), 'Voicings of Cmaj7');
+  assert.equal(await page.locator('#voicings li').count(), 7);
+  assert.match(await row(page, 'Close').textContent(), /B C E G over C/);
+  assert.match(await page.textContent('#voicings-heard'), /heard from C.*C Lydian/);
+  assert.match(await page.textContent('#voicings-pending'), /Drop 2 & 4.*Spread/);
+  await enterChord(page, 'Dm7/G');
+  assert.match(await page.textContent('#voicings-heard'), /heard from G.*G Mixolydian/);
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('a voicing plays and stops from the same button; another switches to it', async () => {
+  const { page } = await open();
+  const drop2 = row(page, 'Drop 2').locator('button');
+  await drop2.click();
+  await playing(page);
+  assert.deepEqual(await now(page), { kind: 'voicing', voicingId: 'drop2', voicingIds: undefined, label: 'Drop 2 of Cmaj7' });
+  assert.equal(await drop2.getAttribute('aria-pressed'), 'true');
+  assert.match(await drop2.textContent(), /Stop/);
+  assert.equal(await drop2.getAttribute('aria-label'), 'Stop drop 2');
+  await row(page, 'Close').locator('button').click();
+  await page.waitForFunction(() => /Close of Cmaj7/.test(document.getElementById('now-playing').textContent));
+  assert.equal(await drop2.getAttribute('aria-pressed'), 'false');
+  assert.equal(await row(page, 'Close').locator('button').getAttribute('aria-pressed'), 'true');
+  await row(page, 'Close').locator('button').click();
+  await page.waitForFunction(async () => !(await import('/js/main.js')).app.transport.isPlaying());
+  await page.close();
+});
+
+test('changing the chord while a voicing plays keeps the same voicing on the new chord', async () => {
+  const { page } = await open();
+  await row(page, 'Drop 2').locator('button').click();
+  await playing(page);
+  await enterChord(page, 'G7');
+  await page.waitForFunction(() => /Drop 2 of G7/.test(document.getElementById('now-playing').textContent));
+  assert.equal((await now(page)).voicingId, 'drop2');
+  await page.click('#stop');
+  await page.close();
+});
+
+test('changing the drone note updates the readings without restarting the voicing', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Dm7/G');
+  await row(page, 'Close').locator('button').click();
+  await playing(page);
+  await page.evaluate(async () => { window.__p = (await import('/js/main.js')).app.transport.current(); });
+  await page.selectOption('#drone-on', 'root');
+  assert.match(await page.textContent('#voicings-heard'), /heard from D/);
+  assert.equal(await page.evaluate(async () => (await import('/js/main.js')).app.transport.current() === window.__p), true);
+  await page.click('#stop');
+  await page.close();
+});
+
+test('a voicing that does not fit the chord says so and is skipped by Play all', async () => {
+  const { page } = await open();
+  await enterChord(page, 'Caug');
+  assert.match(await row(page, 'Rootless A').textContent(), /Not for this chord/);
+  assert.equal(await row(page, 'Rootless A').locator('button').count(), 0);
+  await page.click('#voicings-all');
+  await playing(page);
+  const p = await now(page);
+  assert.equal(p.kind, 'voicings');
+  assert.ok(!p.voicingIds.includes('rootlessA') && p.voicingIds.includes('close'), JSON.stringify(p));
+  assert.equal(await page.getAttribute('#voicings-all', 'aria-pressed'), 'true');
+  await page.click('#voicings-all');
+  await page.waitForFunction(async () => !(await import('/js/main.js')).app.transport.isPlaying());
+  assert.equal(await page.getAttribute('#voicings-all', 'aria-pressed'), 'false');
+  await page.close();
+});
+
+test('the Voicings card fits a 320 px screen', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 800 } });
+  await page.goto(server.url + '/');
+  await page.waitForFunction(() => document.querySelectorAll('#voicings li').length > 0);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+  await page.close();
+});
+
 test('the now-playing line follows a tempo change', async () => {
   const { page } = await open();
   await page.click('#play-scale');
